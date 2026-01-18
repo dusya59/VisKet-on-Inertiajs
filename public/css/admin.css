@@ -1,0 +1,247 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Neucha&family=Rubik+Spray+Paint&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", sans-serif;
+}
+main{
+    width: 100%;
+    height: 150vh;
+    padding: 60px;
+}
+header nav{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+a.logo{
+    display: flex;
+    font-size: 36px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.l1{
+    color: rgb(255, 52, 52);
+    text-decoration: none;
+}
+.l2{
+    color: rgb(99, 99, 99);
+    text-decoration: none;
+}
+header{
+    padding: 0 50px 0 50px;
+    position: absolute;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+header div{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+header a{
+    text-decoration: none;
+    color: black;
+}
+header a:hover{
+    text-decoration: underline;
+}
+a.logo:hover{
+    text-decoration: none;
+}
+header button{
+    color: white;
+    background-color: rgb(255, 52, 52);
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+}
+header button:hover{
+    background-color: rgb(230, 45, 45);
+}
+
+header button:active{
+    background-color: rgb(205, 45, 45);
+}
+header nav{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    height: calc(150vh - 70px);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-nav {
+    display: flex;
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.admin-nav-item {
+    padding: 10px 20px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+.admin-nav-item:hover {
+    background: #e0e0e0;
+}
+
+.admin-nav-item.active {
+    background: #bdbdbd;
+}
+
+.search-container {
+    margin-bottom: 20px;
+    background-color: white;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.users-list, .posts-list, .comments-list {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-right: 10px;
+    flex: 1;
+}
+
+.user-item, .post-item, .comment-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+
+.user-avatar, .comment-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f0f0f0;
+}
+
+.post-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 2px solid #f0f0f0;
+}
+
+.user-info, .post-info, .comment-info {
+    flex: 1;
+}
+
+.user-actions, .post-actions, .comment-actions {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    font-size: 16px;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background: #0056b3;
+}
+
+.btn-danger {
+    background: #dc3545;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Стилизация скроллбара */
+.users-list::-webkit-scrollbar,
+.posts-list::-webkit-scrollbar,
+.comments-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.users-list::-webkit-scrollbar-track,
+.posts-list::-webkit-scrollbar-track,
+.comments-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.users-list::-webkit-scrollbar-thumb,
+.posts-list::-webkit-scrollbar-thumb,
+.comments-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.users-list::-webkit-scrollbar-thumb:hover,
+.posts-list::-webkit-scrollbar-thumb:hover,
+.comments-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+footer{
+    justify-content: space-evenly;
+    width: 100%;
+    height: 200px;
+    background-color: rgb(211, 211, 211);
+    display: flex;
+
+}
+footer div{
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+footer div a{
+    cursor: pointer;
+}

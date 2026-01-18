@@ -1,0 +1,266 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Neucha&family=Rubik+Spray+Paint&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", serif;;
+}
+body{
+    display: flex;
+    flex-direction: column;
+}
+a.logo{
+    display: flex;
+    font-size: 36px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.l1{
+    color: rgb(255, 52, 52);
+    text-decoration: none;
+}
+.l2{
+    color: rgb(99, 99, 99);
+    text-decoration: none;
+}
+header nav{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+header{
+    padding: 0 50px 0 50px;
+    position: absolute;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgb(211, 211, 211);
+}
+header div{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+header a{
+    text-decoration: none;
+    color: black;
+}
+header a:hover{
+    text-decoration: underline;
+}
+a.logo:hover{
+    text-decoration: none;
+}
+header button{
+    color: white;
+    background-color: rgb(255, 52, 52);
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+}
+header button:hover{
+    background-color: rgb(230, 45, 45);
+}
+
+header button:active{
+    background-color: rgb(205, 45, 45);
+}
+main{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 100px;
+    min-height: 95vh;
+    height: fit-content;
+}
+.block{
+    display: flex;
+    width: 1000px;
+    height: min-content;
+    border:1px solid gray;
+    border-radius: 5px; 
+    overflow: hidden;
+}
+
+.block img{
+    width: 500px;
+    height: auto;
+    align-self: center;
+}
+.desc{
+    width:500px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.block div h1{   
+    word-wrap: break-word;
+    border-bottom: 1px solid gray;
+    border-top:1px solid gray; ;
+    padding: 10px 10px 10px 0;
+    margin: 0 0 10px 0;
+}
+.block div p{
+    word-wrap: break-word;
+}
+.block div a img{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+.block div a{
+    color: black;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.block div a:hover{
+    text-decoration: underline;
+}
+.post-actions button{ 
+    font-size: 18px;
+    width: 50px;
+    height: 20px;
+    gap:5px;
+    display: flex;
+    align-items: center;
+    border: none;
+    background-color: white;
+}
+.post-actions button:hover{
+    cursor: pointer;
+}
+.comm{
+    display: flex;
+    align-items: сenter;
+    padding: 20px 0 10px 0;
+}
+.comments{
+    flex: 1; 
+    overflow-y: auto; 
+}
+.comment{
+    padding: 10px 0;
+}
+textarea{
+    width: 350px;
+    resize: none;
+}
+footer{
+    justify-content: space-evenly;
+    width: 100%;
+    height: 200px;
+    background-color: rgb(211, 211, 211);
+    display: flex;
+
+}
+footer div{
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+footer div a{
+    cursor: pointer;
+}
+
+.desc {
+    display: flex;
+    flex-direction: column;
+    flex: 1; 
+    gap: 10px;
+    padding: 10px;
+}
+
+.comments {
+    flex: 1; 
+    overflow-y: auto; 
+}
+
+@media(max-width:1000px){
+    header{
+        height: 100px;
+        font-size: 32px;
+        z-index: 10;
+    }
+    header button{
+        width: 150px;
+        height: 60px;
+        font-size: 26px;
+    }
+    header div{
+        gap: 40px;
+        font-size:38px ;
+    }
+    header div a{
+        width: min-content;
+    }
+    a.logo{
+        font-size: 68px;
+    }
+    footer{
+        font-size: 28px;
+        height:300px;
+    }
+    footer div{
+        width: 33vw;
+        height:300px;
+        display: flex;
+        align-items: center;
+        text-align: center;
+    }
+    footer div a{
+        height: 70px;
+    }
+    main{
+        padding:150px 0;
+    }
+    .block{
+
+        
+        width: 800px;
+        font-size: 38px;
+        flex-direction: column;
+    }
+    .block>img{
+        width: 800px;
+    }
+    .desc{
+        width: 780px;
+        
+        gap: 10px;
+    }
+    .desc a{
+        font-size: 48px;
+    }
+    .block div a img{
+        width: 100px;
+        height: 100px;
+    }
+    .post-actions button{
+        font-size: 42px;
+        width: 100px;
+        height: 60px;
+    }
+    textarea{
+        width: 500px;
+        height: 100px;
+        padding: 10px;
+        border-radius: 10px 0 0 10px;
+        font-size: 32px;
+    }
+    .comm button{
+        padding: 10px;
+        font-size: 28px;
+        border-radius: 0 10px 10px 0;
+    }
+
+}

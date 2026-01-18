@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Neucha&family=Rubik+Spray+Paint&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", sans-serif;
+}
+@font-face {
+    font-family: 'cakra';
+    src: url('../Cakra-Normal.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Krasnodar';
+    src: url('../Krasnodar.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+a.logo{
+    display: flex;
+    font-size: 36px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.l1{
+    color: rgb(255, 52, 52);
+    text-decoration: none;
+}
+.l2{
+    color: rgb(99, 99, 99);
+    text-decoration: none;
+}
+header{
+    padding: 0 50px 0 50px;
+    position: absolute;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+header div{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+header a{
+    text-decoration: none;
+    color: black;
+}
+header a:hover{
+    text-decoration: underline;
+}
+a.logo:hover{
+    text-decoration: none;
+}
+header button{
+    color: white;
+    background-color: rgb(255, 52, 52);
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+}
+header button:hover{
+    background-color: rgb(230, 45, 45);
+}
+
+header button:active{
+    background-color: rgb(205, 45, 45);
+}
+header nav{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.block{
+    width: 100%;
+    height: 600px;
+    background-color: rgb(211, 211, 211);
+    display: flex;
+    justify-content:center;
+}
+.block img{
+    width: 500px;
+    height: 600px;
+    align-self: end;
+}
+.block h1{
+    font-size: 44px;
+    margin: 150px 0 0 150px;
+    font-family: 'Krasnodar'; 
+    color: rgb(255, 52, 52);
+}
+
+.posts {
+    width: 80%;
+    margin: 0 auto;
+    padding: 30px;
+    columns: 4 300px;
+    column-gap: 85px;
+}
+.post{
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    width: 300px; 
+}
+.post a{
+    color: white; 
+    text-decoration: none;
+}
+.post img{
+    width: 300px; 
+    height: auto; 
+}
+.post-content {
+    width: 100%;
+    position: absolute; 
+    bottom: 5px;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white; 
+    padding: 10px; 
+    opacity: 0; 
+    transition: opacity 0.3s ease;
+}
+
+.post:hover .post-content {
+    opacity: 1; 
+}
+
+.post-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: white; 
+}
+
+.post .title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post .description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.block2{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+    height: 100px;
+    width: 100%;
+    border-bottom: 1px solid rgb(182, 182, 182);;
+}
+
+input[type="text"]{
+    font-size: 18px;
+    padding: 5px 10px;
+    border-radius:10px;
+    border: solid 1px rgb(182, 182, 182);
+    width: 350px;
+    height: 60px;
+}
+.block2 div{
+    display: flex;
+    gap: 20px;
+    align-items:center;  
+}
+.block2 div button{
+    background-color: rgb(255, 52, 52);
+    border: none;
+    width: 200px;
+    height: 60px;
+    border-radius:10px ;
+    font-size:16px;
+}
+.block2 div button:hover{
+    background-color: rgb(230, 45, 45);
+}
+
+.block2 div button:active{
+    background-color: rgb(205, 45, 45);
+}
+
+.hidden{
+    display: none;
+}
+footer{
+    justify-content: space-evenly;
+    width: 100%;
+    height: 200px;
+    background-color: rgb(211, 211, 211);
+    display: flex;
+
+}
+footer div{
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+footer div a{
+    cursor: pointer;
+}
+
+
+@media(max-width:1000px){
+    header{
+        height: 100px;
+        font-size: 32px;
+        z-index: 10;
+    }
+    header button{
+        width: 150px;
+        height: 60px;
+        font-size: 26px;
+    }
+    header div{
+        gap: 40px;
+        font-size:38px ;
+    }
+    header div a{
+        width: min-content;
+    }
+    a.logo{
+        font-size: 68px;
+    }
+    .block{
+        background-color: rgb(205, 205, 205);
+        height: 80vh;
+    }
+    .block h1{
+        margin: 150px 0 0 0;
+        width: 100px;
+        z-index: 10;
+        font-size: 130px;
+    }
+    .block img{
+        position: absolute;
+        filter: blur(5px);
+        height: 60vh;
+        width: 100%;
+    }
+    .block2{
+        justify-content: center;
+        height: 300px;
+    }
+    .block2 div{
+        display: none;
+    }
+    .block2 input{
+        padding: 20px;
+        margin: 0;
+        height: 150px;
+        width: 800px;
+        border-radius: 20px;
+        font-size: 38px;
+    }
+
+    .post{
+        width: 400px;
+        font-size: 40px;
+    }
+    .post button{
+        width: 100px;
+        height: 100px;
+        font-size: 40px;
+        text-align: left;
+    }
+
+    .post img{
+        width: 400px;
+    }
+    footer{
+        font-size: 28px;
+        height:300px;
+    }
+    footer div{
+        width: 33vw;
+        height:300px;
+        display: flex;
+        align-items: center;
+        text-align: center;
+    }
+    footer div a{
+        height: 70px;
+    }
+}

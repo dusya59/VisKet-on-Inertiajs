@@ -1,0 +1,21 @@
+/* Стили страницы лайков */
+.likeshead {
+    width: 100%;
+    height: 150px;
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 50px;
+}
+
+.likeshead h2 {
+    margin-left: 130px;
+}
+
+/* Медиа-запросы для страницы лайков */
+@media(max-width: 1000px) {
+    .likeshead h2 {
+        font-size: 60px;
+        padding: 45px;
+        margin-left: 0;
+    }
+} 
