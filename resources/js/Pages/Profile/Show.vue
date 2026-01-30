@@ -17,11 +17,9 @@
           </div>
           <div class="desc">
             <h1>{{ user.name }}</h1>
-            <nav></nav>
           </div>
         </div>
       </div>
-
       <div class="aboutme">
         <div class="aboutme-header">
           <h1>Обо мне</h1>
@@ -63,7 +61,7 @@
               {{ user.is_subscribed ? 'Отписаться' : 'Подписаться' }}
             </button>
           </form>
-          <Link :href="'/chats/start/' + user.id">
+          <Link href="'/chats/start/' + user.id">
             <button>Написать сообщение</button>
           </Link>
         </div>

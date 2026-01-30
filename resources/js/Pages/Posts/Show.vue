@@ -393,8 +393,6 @@ footer div a{
         padding:150px 0;
     }
     .block{
-
-        
         width: 800px;
         font-size: 38px;
         flex-direction: column;

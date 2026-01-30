@@ -55,7 +55,7 @@ class ProfileController extends Controller
         $likedPosts = $user->likes()->with(['post.user'])->get()->map(function ($like) {
             $post = $like->post;
             $post->image_url = $post->image ? Storage::url($post->image) : null;
-            $post->likes_count = $post->likes()->count();
+            //$post->likes_count = $post->likes()->count();
             return $post;
         });
 
@@ -86,27 +86,43 @@ class ProfileController extends Controller
         if (auth()->id() !== $user->id) {
             abort(403, 'Unauthorized action.');
         }
+        
+        $userData = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'aboutme' => $user->aboutme,
+            'avatar_url' => $user->avatar ? Storage::url($user->avatar) : null,
+        ];
+        
         return Inertia::render('Profile/Edit', [
-            'user' => $user
+            'user' => $userData
         ]);
     }
 
-    public function update(Request $request, User $user)
-    {
-        if (auth()->id() !== $user->id) {
-            abort(403, 'Unauthorized action.');
+public function update(Request $request, User $user)
+{
+    if (auth()->id() !== $user->id) {
+        abort(403);
+    }
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'aboutme' => 'nullable|string|max:1000',
+        'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    if ($request->hasFile('avatar')) {
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
         }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'aboutme' => 'nullable|string|max:1000',
-        ]);
-
-        $user->update($validated);
-
-        return redirect()->route('profile', $user->id)
-            ->with('success', 'Профиль успешно обновлен');
+        $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
     }
+
+    $user->update($validated);
+
+    return Inertia::location(route('profile', $user->id));
+}
+
 
     public function updateAboutme(Request $request, User $user)
     {
