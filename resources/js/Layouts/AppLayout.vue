@@ -10,7 +10,7 @@
       <nav>
         <template v-if="authUser">
           <template v-if="authUser.is_admin">
-            <Link href="/admin.index">Админ панель</Link>
+            <Link href="/admin">Админ панель</Link>
           </template>
 
           <Link href="/chats">Список чатов</Link>

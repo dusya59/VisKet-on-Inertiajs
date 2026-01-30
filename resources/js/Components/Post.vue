@@ -18,7 +18,7 @@
       </small>
 
       <div class="post-actions">
-        <button @click="toggleLike" type="button" :class="{ liked: isLiked }">
+        <button @click="toggleLike" type="button" :class="{ liked: isLiked }" id="like">
           {{ isLiked ? '❤️' : '🤍' }} {{ localLikes }}
         </button>
       </div>
@@ -50,17 +50,21 @@ function toggleLike() {
     console.error('URL для лайка не указан')
     return
   }
+  
+  const previousLiked = isLiked.value
+  const previousLikes = localLikes.value
+
+  // Оптимистичное обновление UI
+  isLiked.value = !previousLiked
+  localLikes.value = localLikes.value + (isLiked.value ? 1 : -1)
 
   router.post(props.post.like_url, {}, {
     preserveScroll: true,
-    onSuccess: (page) => {
-      if (page.props.post) {
-        localLikes.value = page.props.post.likes_count ?? localLikes.value
-        isLiked.value = page.props.post.is_liked ?? isLiked.value
-      }
-    },
     onError: (error) => {
       console.error('Ошибка при лайке:', error)
+      // Откатываем состояние при ошибке
+      isLiked.value = previousLiked
+      localLikes.value = previousLikes
     }
   })
 }

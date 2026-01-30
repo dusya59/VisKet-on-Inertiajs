@@ -8,9 +8,10 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
 
 Route::middleware(['auth'])->group(function () {
-    // Посты
+
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
@@ -18,7 +19,21 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
 
-    // Чаты
+
+    Route::middleware('admin')->group(function () {
+
+        Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+        Route::get('/admin/users', [AdminController::class, 'usersPage'])->name('admin.users.page');
+        Route::get('/admin/posts', [AdminController::class, 'postsPage'])->name('admin.posts.page');
+        Route::get('/admin/comments', [AdminController::class, 'commentsPage'])->name('admin.comments.page');
+
+        Route::get('/api/admin/users', [AdminController::class, 'users'])->name('admin.users');
+        Route::get('/api/admin/posts', [AdminController::class, 'posts'])->name('admin.posts');
+        Route::get('/api/admin/comments', [AdminController::class, 'comments'])->name('admin.comments');
+        Route::delete('/api/admin/posts/{post}', [AdminController::class, 'deletePost'])->name('admin.posts.delete');
+        Route::delete('/api/admin/comments/{comment}', [AdminController::class, 'deleteComment'])->name('admin.comments.delete');
+    });
+
     Route::get('/chats', [ChatController::class, 'index'])->name('chats.index');
     Route::get('/chats/{chat}', [ChatController::class, 'show'])->name('chat');
     Route::get('/chats/start/{user}', [ChatController::class, 'startChat'])->name('chats.start');
@@ -38,7 +53,6 @@ Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('regi
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// TODO: перенастроить, когда появится админка
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 

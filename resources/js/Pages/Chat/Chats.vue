@@ -81,7 +81,7 @@
                       :title="isFileDownloaded(message) ? 'Скачано' : 'Скачать'"
                       @click="downloadFile(message)"
                     >
-                      <span v-if="!isFileDownloaded(message)"><img src="../../../../public/images/download.svg" alt="Cкачать" /></span>
+                      <span v-if="!isFileDownloaded(message)"><img src="../../../../public/images/download.svg" alt="Скачать" /></span>
                       <span v-else><img src="../../../../public/images/document.svg" alt="Файл" /></span>
                     </button>
                     <div class="file-meta">
@@ -120,10 +120,6 @@
                     Документ
                     <input type="file" name="document" @change="onDocumentChange">
                   </label>
-                  <label>
-                    Перевести сумму
-                    <input type="file" name="document" @change="onDocumentChange">
-                  </label>
                 </div>
               </div>
 
@@ -140,7 +136,7 @@
             </div>
 
             <div
-              v-if="photoPreviewUrl || videoPreviewUrl || documentPreviewName || editingMessage"
+              v-if="photoPreviewUrl || videoPreviewUrl || documentPreviewName"
               class="image-preview-container"
               style="display: flex"
             >
@@ -205,7 +201,6 @@
       </div>
     </div>
 
-    <!-- Контекстное меню -->
     <div
       v-if="contextMenu.show"
       class="context-menu"
@@ -224,7 +219,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
-import { computed, ref, computed as vueComputed, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
@@ -281,9 +276,19 @@ const autoResize = () => {
 }
 
 const scrollToBottom = () => {
-  const el = messagesRef.value
-  if (!el) return
-  el.scrollTop = el.scrollHeight
+  nextTick(() => {
+    const el = messagesRef.value
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  })
+}
+
+const resetForm = () => {
+  form.reset('content', 'photo', 'video', 'document')
+  photoPreviewUrl.value = null
+  videoPreviewUrl.value = null
+  documentPreviewName.value = null
+  editingMessage.value = null
 }
 
 const onPhotoChange = (event) => {
@@ -294,9 +299,10 @@ const onPhotoChange = (event) => {
     const reader = new FileReader()
     reader.onload = (e) => {
       photoPreviewUrl.value = e.target.result
+      videoPreviewUrl.value = null
+      documentPreviewName.value = null
     }
     reader.readAsDataURL(file)
-    closeFileSelectMenu()
   } else {
     photoPreviewUrl.value = null
   }
@@ -310,9 +316,10 @@ const onVideoChange = (event) => {
     const reader = new FileReader()
     reader.onload = (e) => {
       videoPreviewUrl.value = e.target.result
+      photoPreviewUrl.value = null
+      documentPreviewName.value = null
     }
     reader.readAsDataURL(file)
-    closeFileSelectMenu()
   } else {
     videoPreviewUrl.value = null
   }
@@ -322,15 +329,15 @@ const onDocumentChange = (event) => {
   const file = event.target.files[0]
   form.document = file || null
   documentPreviewName.value = file ? file.name : null
+  
   if (file) {
-    closeFileSelectMenu()
+    photoPreviewUrl.value = null
+    videoPreviewUrl.value = null
   }
 }
 
-const canSend = vueComputed(() => {
+const canSend = computed(() => {
   if (editingMessage.value) {
-    // При редактировании можно сохранить даже без контента и файлов
-    // (чтобы можно было очистить сообщение или просто отменить редактирование)
     return true
   }
 
@@ -437,48 +444,39 @@ const downloadFile = (message) => {
   }
 }
 
+const getCsrfToken = () => {
+  // Получение из meta тега
+  const tokenMeta = document.querySelector('meta[name="csrf-token"]')
+  if (tokenMeta) {
+    return tokenMeta.getAttribute('content')
+  }
+  
+  // Альтернативный способ - из cookie
+  const csrfCookie = document.cookie
+    .split(';')
+    .find(c => c.trim().startsWith('XSRF-TOKEN='))
+  
+  if (csrfCookie) {
+    return decodeURIComponent(csrfCookie.split('=')[1])
+  }
+  
+  return null
+}
+
 const sendMessage = () => {
-  if (!props.activeChat) return
-
-  if (!canSend.value) return
-
-  console.log('Sending message:', {
-    editing: !!editingMessage.value,
-    content: form.content,
-    hasPhoto: !!form.photo,
-    hasVideo: !!form.video,
-    hasDocument: !!form.document,
-    photoType: form.photo?.type,
-    videoType: form.video?.type,
-    documentType: form.document?.type
-  })
+  if (!props.activeChat || !canSend.value) return
 
   const url = editingMessage.value
     ? `/chats/${props.activeChat.id}/messages/${editingMessage.value.id}`
     : `/chats/${props.activeChat.id}/messages`
 
-  const method = editingMessage.value ? 'put' : 'post'
+  const wasEditing = !!editingMessage.value
 
-  const options = {
-    preserveScroll: true,
-    onSuccess: () => {
-      const wasEditing = editingMessage.value
-      form.reset('content', 'photo', 'video', 'document', '_method')
-      photoPreviewUrl.value = null
-      videoPreviewUrl.value = null
-      documentPreviewName.value = null
-      editingMessage.value = null
-      if (!wasEditing) {
-        scrollToBottom()
-      }
-    }
-  }
+  // Если есть файлы, используем FormData и fetch
   if (form.photo || form.video || form.document) {
     const formData = new FormData()
 
-    if (form.content) {
-      formData.append('content', form.content)
-    }
+    formData.append('content', form.content ?? '')
 
     if (form.photo) {
       formData.append('photo', form.photo)
@@ -490,28 +488,14 @@ const sendMessage = () => {
       formData.append('document', form.document)
     }
 
-    // Добавляем CSRF токен
-    let csrfToken = null
-    const tokenMeta = document.querySelector('meta[name="csrf-token"]')
-    if (tokenMeta) {
-      csrfToken = tokenMeta.getAttribute('content')
-    } else {
-      // Альтернативный способ - из cookie
-      const csrfCookie = document.cookie.split(';').find(c => c.trim().startsWith('XSRF-TOKEN='))
-      if (csrfCookie) {
-        csrfToken = decodeURIComponent(csrfCookie.split('=')[1])
-      }
-    }
-
-    console.log('Sending FormData manually, CSRF token found:', !!csrfToken, csrfToken?.substring(0, 10) + '...')
-
-    const method = 'POST'
-    if (editingMessage.value) {
+    if (wasEditing) {
       formData.append('_method', 'PUT')
     }
 
+    const csrfToken = getCsrfToken()
+
     fetch(url, {
-      method: method,
+      method: 'POST',
       body: formData,
       credentials: 'same-origin',
       headers: {
@@ -520,67 +504,46 @@ const sendMessage = () => {
       }
     })
     .then(response => {
-      console.log('Response status:', response.status, response.statusText)
-
       if (response.redirected) {
-        console.log('Redirected to:', response.url)
         window.location.href = response.url
       } else if (response.ok) {
-        console.log('Request successful')
-        const wasEditing = editingMessage.value
-        form.reset('content', 'photo', 'video', 'document', '_method')
-        photoPreviewUrl.value = null
-        videoPreviewUrl.value = null
-        documentPreviewName.value = null
-        editingMessage.value = null
-        // Не прокручиваем при редактировании сообщения
+        resetForm()
         if (!wasEditing) {
           scrollToBottom()
         }
+        // Перезагружаем страницу для обновления сообщений
+        router.reload({ only: ['activeChat'] })
       } else {
-        console.error('Request failed with status:', response.status)
         return response.text().then(text => {
-          console.error('Response body:', text)
+          console.error('Request failed:', response.status, text)
+          alert('Ошибка при отправке сообщения')
         })
       }
     })
     .catch(error => {
       console.error('Ошибка при отправке:', error)
+      alert('Ошибка при отправке сообщения')
     })
 
     return
   }
 
+  // Обычная отправка без файлов
+  const method = wasEditing ? 'put' : 'post'
+
   form[method](url, {
-    ...options,
+    preserveScroll: true,
+    onSuccess: () => {
+      resetForm()
+      if (!wasEditing) {
+        scrollToBottom()
+      }
+    },
     onError: (errors) => {
       console.error('Ошибка при отправке сообщения:', errors)
     }
   })
 }
-
-onMounted(() => {
-  try {
-    const raw = window.localStorage.getItem('visket_downloaded_files')
-    if (raw) {
-      const arr = JSON.parse(raw)
-      downloadedFiles.value = new Set(Array.isArray(arr) ? arr : [])
-    }
-  } catch (e) {
-    console.error('Не удалось прочитать состояние скачанных файлов', e)
-  }
-
-  document.addEventListener('click', hideContextMenu)
-
-  scrollToBottom()
-})
-
-watch(
-  () => props.activeChat && props.activeChat.messages.length,
-  () => {
-    scrollToBottom()
-  }
-)
 
 const formatSize = (bytes) => {
   if (!bytes) return ''
@@ -593,6 +556,8 @@ const formatSize = (bytes) => {
 }
 
 const showContextMenu = (event, message) => {
+  if (!message.is_mine) return // Показываем только для своих сообщений
+  
   contextMenu.value = {
     show: true,
     x: event.clientX,
@@ -622,48 +587,71 @@ const deleteMessage = (message) => {
 
 const editMessage = (message) => {
   editingMessage.value = message
-  form.content = message.content
+  form.content = message.content || ''
 
-  console.log('Editing message:', {
-    id: message.id,
-    content: message.content,
-    hasImage: !!message.image_url,
-    hasVideo: !!message.video_url,
-    hasFile: !!message.file_url,
-    image_url: message.image_url,
-    video_url: message.video_url,
-    file_url: message.file_url
-  })
-
-  // Загружаем файлы сообщения в preview для редактирования
-  // Показываем все файлы, которые есть у сообщения
+  // Показываем превью существующих файлов
   photoPreviewUrl.value = message.image_url || null
   videoPreviewUrl.value = message.video_url || null
   documentPreviewName.value = message.file_url ? message.file_name : null
 
   hideContextMenu()
+  
+  // Фокусируемся на textarea
+  nextTick(() => {
+    if (textareaRef.value) {
+      textareaRef.value.focus()
+      autoResize()
+    }
+  })
 }
 
 const cancelEdit = () => {
-  editingMessage.value = null
-  form.content = ''
-  // Очищаем preview при отмене редактирования
-  photoPreviewUrl.value = null
-  videoPreviewUrl.value = null
-  documentPreviewName.value = null
-  form.reset('photo', 'video', 'document')
+  resetForm()
 }
 
-</script>
-<style scoped>
+onMounted(() => {
+  // Загрузка списка скачанных файлов
+  try {
+    const raw = window.localStorage.getItem('visket_downloaded_files')
+    if (raw) {
+      const arr = JSON.parse(raw)
+      downloadedFiles.value = new Set(Array.isArray(arr) ? arr : [])
+    }
+  } catch (e) {
+    console.error('Не удалось прочитать состояние скачанных файлов', e)
+  }
 
+  // Добавляем слушатель для скрытия контекстного меню
+  document.addEventListener('click', hideContextMenu)
+
+  // Прокручиваем к последнему сообщению
+  scrollToBottom()
+})
+
+onUnmounted(() => {
+  // Удаляем слушатель при размонтировании компонента
+  document.removeEventListener('click', hideContextMenu)
+})
+
+// Следим за изменением количества сообщений
+watch(
+  () => props.activeChat?.messages?.length,
+  (newLength, oldLength) => {
+    if (newLength && newLength > (oldLength || 0)) {
+      scrollToBottom()
+    }
+  }
+)
+</script>
+
+<style scoped>
 .chat-container {
     display: flex;
     height: 100vh;
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
-    padding: 70px 0 0 0 ;
+    padding: 70px 0 0 0;
 }
 
 .chat-list {
@@ -672,9 +660,11 @@ const cancelEdit = () => {
     overflow-y: auto;
     background-color: white;
 }
-.chat-list h2{
-    padding:10px ;
+
+.chat-list h2 {
+    padding: 10px;
 }
+
 .chat-item {
     display: flex;
     justify-content: space-between;
@@ -723,7 +713,6 @@ const cancelEdit = () => {
     flex: 1;
     display: flex;
     flex-direction: column;
-    
 }
 
 .chat-header {
@@ -733,12 +722,28 @@ const cancelEdit = () => {
     align-items: center;
     gap: 15px;
 }
-.chat-area.active{
+
+.chat-area.active {
     height: 90vh;
 }
+
 .chat-messages {
     flex: 1;
     overflow-y: auto;
+    padding: 15px;
+}
+
+.message-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 10px;
+    transition: background-color 0.2s;
+    margin-bottom: 10px;
+}
+
+.message-container.right-clicked {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .message {
@@ -752,7 +757,6 @@ const cancelEdit = () => {
 }
 
 .my-message {
-
     background: #dcf8c6;
 }
 
@@ -771,13 +775,21 @@ const cancelEdit = () => {
     gap: 10px;
 }
 
+.message-input-container {
+    display: flex;  
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
 .message-form textarea {
     flex: 1;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 20px;
     resize: none;
-    height: 45px;
+    min-height: 45px;
+    max-height: 150px;
 }
 
 .message-form button {
@@ -789,6 +801,11 @@ const cancelEdit = () => {
     cursor: pointer;
 }
 
+.message-form button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
 .chat-placeholder {
     flex: 1;
     display: flex;
@@ -797,19 +814,17 @@ const cancelEdit = () => {
     color: #999;
     font-size: 1.2em;
 }
-.back{
-    display: none;
-}
 
 .add {
-
     position: relative;
     cursor: pointer;
 }
-.add img{
+
+.add img {
     width: 50px;
     height: 50px;
 }
+
 .add-select {
     display: none;
     flex-direction: column;
@@ -818,7 +833,7 @@ const cancelEdit = () => {
     left: 0;
     background: white;
     border: 1px solid #ddd;
-
+    border-radius: 8px;
     z-index: 1000;
     min-width: 150px;
 }
@@ -843,12 +858,14 @@ const cancelEdit = () => {
     display: none;
 }
 
-.message img {
+.message-image {
     max-width: 300px;
     height: auto;
     border-radius: 4px;
     margin-bottom: 5px;
+    cursor: pointer;
 }
+
 .message-video {
     max-width: 300px;
     max-height: 300px;
@@ -856,78 +873,13 @@ const cancelEdit = () => {
     margin-bottom: 5px;
     cursor: pointer;
 }
+
 .video-preview {
     max-width: 200px;
     max-height: 200px;
     border-radius: 4px;
 }
-.modal-video-content {
-    max-width: 90%;
-    max-height: 90vh;
-}
-.modal-video {
-    width: 100%;
-    max-height: 90vh;
-    border-radius: 8px;
-}
-.message-container{
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    padding: 10px;
-    transition: background-color 0.2s;
-}
 
-.message-container.right-clicked {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-.file-attachment{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 8px;
-}
-.file-attachment img{
-    margin-top: 5px;
-    width: 25px;
-    height: 25px;
-}
-.file-attachment span{
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items:center;
-    justify-content: center;
-}
-.file-download-circle{
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: none;
-    background: #007bff;
-    color: #fff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    transition: background-color 0.2s;
-
-}
-.file-download-circle:hover{
-    background: #005fcc;
-}
-.file-meta{
-    display: flex;
-    flex-direction: column;
-}
-.file-name{
-    font-size: 0.9em;
-}
-.file-size{
-    font-size: 0.8em;
-    color: #666;
-}
 .modal-overlay {
     display: none;
     position: fixed;
@@ -955,6 +907,17 @@ const cancelEdit = () => {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+.modal-video-content {
+    max-width: 90%;
+    max-height: 90vh;
+}
+
+.modal-video {
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 8px;
+}
+
 .modal-close {
     position: absolute;
     top: -40px;
@@ -970,23 +933,66 @@ const cancelEdit = () => {
 .modal-close:hover {
     color: #ddd;
 }
-.image-preview-container{
+
+.image-preview-container {
     gap: 10px;
     align-items: flex-start;
 }
-.message-input-container{
-    display: flex;  
-    align-items: center;
-    width: 100%;
-    gap: 10px;
-}
-.image-preview{
+
+.image-preview {
     width: 100px;
     height: auto;
     overflow: hidden;
     border-radius: 5px;
     margin-left: 10px;
 }
+
+.file-attachment {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.file-attachment img {
+    margin-top: 5px;
+    width: 25px;
+    height: 25px;
+}
+
+.file-download-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: background-color 0.2s;
+}
+
+.file-download-circle:hover {
+    background: #005fcc;
+}
+
+.file-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.file-name {
+    font-size: 0.9em;
+}
+
+.file-size {
+    font-size: 0.8em;
+    color: #666;
+}
+
 .context-menu {
     position: fixed;
     background: white;
@@ -997,39 +1003,30 @@ const cancelEdit = () => {
     min-width: 150px;
     padding: 5px 0;
 }
+
 .context-menu-item {
     padding: 10px 15px;
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.2s;
 }
+
 .context-menu-item:hover {
     background-color: #f8f9fa;
 }
+
 .context-menu-item.delete:hover {
     background-color: #ffe6e6;
     color: #dc3545;
 }
-.cancel-preview-btn {
-    border-radius: 20px;
-    border: none;
-    background: #dc3545;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-.cancel-preview-btn:hover {
-    background: #c82333;
-}
+
 .preview-actions {
     display: flex;
     flex-direction: column;
     gap: 5px;
     margin-left: 10px;
 }
+
 .select-other-btn {
     padding: 8px 12px;
     background: #007bff;
@@ -1039,33 +1036,25 @@ const cancelEdit = () => {
     cursor: pointer;
     transition: background-color 0.2s;
 }
+
 .select-other-btn:hover {
     background: #0056b3;
 }
-.file-select-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border: 1px solid #ddd;
+
+.cancel-preview-btn {
+    padding: 8px 12px;
     border-radius: 5px;
-    padding: 10px;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    min-width: 150px;
-}
-.file-select-menu label {
-    display: block;
-    padding: 8px 0;
+    border: none;
+    background: #dc3545;
+    color: white;
     cursor: pointer;
-    font-size: 14px;
+    transition: background-color 0.2s;
 }
-.file-select-menu label:hover {
-    background-color: #f8f9fa;
+
+.cancel-preview-btn:hover {
+    background: #c82333;
 }
-.file-select-menu input[type="file"] {
-    display: none;
-}
+
 .editing-indicator {
     display: flex;
     justify-content: space-between;
@@ -1076,6 +1065,7 @@ const cancelEdit = () => {
     font-size: 14px;
     color: #856404;
 }
+
 .cancel-edit-btn {
     background: none;
     border: none;
@@ -1089,7 +1079,14 @@ const cancelEdit = () => {
     align-items: center;
     justify-content: center;
 }
+
 .cancel-edit-btn:hover {
     color: #533f00;
+}
+
+.file-preview {
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 5px;
 }
 </style>
