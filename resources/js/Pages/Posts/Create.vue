@@ -208,7 +208,6 @@ form {
   transition: all 0.3s ease;
 }
 
-/* Область загрузки изображения */
 .upload-area {
   flex: 0 0 500px;
   height: 500px;
@@ -236,7 +235,6 @@ form {
   transform: scale(1.01);
 }
 
-/* Инструкции загрузки */
 .upload-instructions {
   display: flex;
   flex-direction: column;
@@ -269,7 +267,6 @@ form {
   justify-content: center;
 }
 
-/* Предпросмотр изображения */
 .upload-area img {
   width: 100%;
   height: 100%;
@@ -369,7 +366,6 @@ form {
   
 }
 
-/* Адаптивность */
 @media (max-width: 1000px) {
   .block {
     flex-direction: column;
