@@ -221,6 +221,8 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { router } from '@inertiajs/vue3'
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
 const props = defineProps({
   chats: Array,
@@ -610,7 +612,6 @@ const cancelEdit = () => {
 }
 
 onMounted(() => {
-  // Загрузка списка скачанных файлов
   try {
     const raw = window.localStorage.getItem('visket_downloaded_files')
     if (raw) {
@@ -621,19 +622,74 @@ onMounted(() => {
     console.error('Не удалось прочитать состояние скачанных файлов', e)
   }
 
-  // Добавляем слушатель для скрытия контекстного меню
   document.addEventListener('click', hideContextMenu)
 
-  // Прокручиваем к последнему сообщению
   scrollToBottom()
+
+  window.Pusher = Pusher;
+
+  window.Echo = new Echo({
+    broadcaster: 'reverb',
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
+    wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'false',
+    enabledTransports: ['ws', 'wss'],
+  });
+
+  if (props.activeChat) {
+  window.Echo.private(`chat.${props.activeChat.id}`)
+    .listen('.message.sent', (e) => {
+      console.log('New message received:', e);
+      router.reload({ only: ['activeChat'] })
+    })
+    .listen('.message.updated', (e) => {
+      console.log('Message updated:', e);
+      router.reload({ only: ['activeChat'] })
+    })
+    .listen('.message.deleted', (e) => {
+      console.log('Message deleted:', e);
+      router.reload({ only: ['activeChat'] })
+    });
+}
 })
 
 onUnmounted(() => {
-  // Удаляем слушатель при размонтировании компонента
+
   document.removeEventListener('click', hideContextMenu)
+  if (props.activeChat && window.Echo) {
+    window.Echo.leave(`chat.${props.activeChat.id}`)
+  }
 })
 
-// Следим за изменением количества сообщений
+watch(
+  () => props.activeChat?.id,
+  (newChatId, oldChatId) => {
+    if (!window.Echo) return;
+    
+    if (oldChatId) {
+      window.Echo.leave(`chat.${oldChatId}`)
+    }
+    
+    if (newChatId) {
+      window.Echo.private(`chat.${newChatId}`)
+        .listen('.message.sent', (e) => {
+          console.log('New message received:', e);
+          router.reload({ only: ['activeChat'] })
+        })
+        .listen('.message.updated', (e) => {
+          console.log('Message updated:', e);
+          router.reload({ only: ['activeChat'] })
+        })
+        .listen('.message.deleted', (e) => {
+          console.log('Message deleted:', e);
+          router.reload({ only: ['activeChat'] })
+        });
+    }
+  }
+)
+
 watch(
   () => props.activeChat?.messages?.length,
   (newLength, oldLength) => {
@@ -642,7 +698,11 @@ watch(
     }
   }
 )
+
 </script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script> -->
 
 <style scoped>
 .chat-container {
@@ -961,8 +1021,8 @@ watch(
 }
 
 .file-download-circle {
-    width: 48px;
-    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     border-radius: 50%;
     border: none;
     background: #007bff;
@@ -986,6 +1046,7 @@ watch(
 
 .file-name {
     font-size: 0.9em;
+    word-wrap: anywhere;
 }
 
 .file-size {

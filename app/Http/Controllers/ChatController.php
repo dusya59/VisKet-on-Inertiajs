@@ -177,7 +177,7 @@ class ChatController extends Controller
         $filePath = $request->file('document')->store('chat-files', 'public');
     }
 
-    Message::create([
+    $message = Message::create([
         'chat_id' => $chat->id,
         'user_id' => $user->id,
         'content' => $validated['content'] ?? '',
@@ -187,6 +187,8 @@ class ChatController extends Controller
     ]);
 
     $chat->touch();
+
+    event(new \App\Events\MessageSent($user, $message));
 
     return redirect()->route('chat', $chat);
 }
@@ -262,12 +264,16 @@ class ChatController extends Controller
         'file_path' => $filePath,
     ]);
 
+    event(new \App\Events\MessageUpdated($user, $message));
+
     return redirect()->route('chat', $chat);
 }
 
     public function deleteMessage(Chat $chat, Message $message)
     {
         $user = auth()->user();
+        $messageId = $message->id;
+        $chatId = $chat->id;
 
         if (!$chat->users->contains($user->id)) {
             abort(403, 'У вас нет доступа к этому чату.');
@@ -288,6 +294,8 @@ class ChatController extends Controller
         }
 
         $message->delete();
+
+        event(new \App\Events\MessageDeleted($messageId, $chatId));
 
         return redirect()->route('chat', $chat);
     }
