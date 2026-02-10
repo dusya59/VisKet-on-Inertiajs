@@ -2,7 +2,7 @@
   <div>
     <Head title="Главная"/>
 
-    <div class="block">
+    <div class="block1">
       <h1>Место, где работа находит работника<br/>и наоборот.</h1>
       <img :src="heroImage" alt="bruh" />
     </div>

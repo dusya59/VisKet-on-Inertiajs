@@ -1150,4 +1150,193 @@ watch(
     background: #f5f5f5;
     border-radius: 5px;
 }
+
+@media (max-width: 1000px) {
+    .chat-container {
+        padding: 60px 0 0 0;
+        border: none;
+        border-radius: 0;
+    }
+
+    .chat-list {
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 60px;
+        height: calc(100vh - 60px);
+        z-index: 10;
+        transition: transform 0.3s ease;
+    }
+
+    .chat-area {
+        max-width: 100%;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        height: 100vh;
+        background: white;
+        z-index: 20;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+
+    .chat-area.active {
+        transform: translateX(0);
+        height: calc(100vh - 60px);
+    }
+
+    .chat-item {
+        padding: 12px;
+    }
+
+    .chat-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .chat-user-info h3 {
+        font-size: 0.95em;
+    }
+
+    .chat-preview {
+        font-size: 0.85em;
+    }
+
+    .chat-header {
+        padding: 12px;
+    }
+
+    .chat-messages {
+        padding: 10px;
+    }
+
+    .message-container {
+        padding: 5px;
+        gap: 8px;
+    }
+
+    .message {
+        max-width: 75%;
+        padding: 8px 12px;
+    }
+
+    .message-image {
+        max-width: 200px;
+    }
+
+    .message-video {
+        max-width: 200px;
+        max-height: 200px;
+    }
+
+    .message-form {
+        padding: 10px;
+    }
+
+    .message-input-container {
+        gap: 8px;
+    }
+
+    .add img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .message-form textarea {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .message-form button {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+
+    .modal-content img {
+        width: 100%;
+        max-width: 90vw;
+    }
+
+    .modal-close {
+        top: 10px;
+        right: 10px;
+        font-size: 30px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .image-preview {
+        width: 80px;
+    }
+
+    .video-preview {
+        max-width: 150px;
+        max-height: 150px;
+    }
+
+    .file-download-circle {
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .file-attachment img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .file-name {
+        font-size: 0.85em;
+    }
+
+    .file-size {
+        font-size: 0.75em;
+    }
+
+    .context-menu {
+        min-width: 120px;
+    }
+
+    .context-menu-item {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .editing-indicator {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .preview-actions {
+        margin-left: 5px;
+    }
+
+    .select-other-btn,
+    .cancel-preview-btn {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .chat-placeholder {
+        font-size: 1em;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .add-select {
+        min-width: 120px;
+    }
+
+    .add-select label {
+        padding: 12px;
+        font-size: 14px;
+    }
+    .header-grey{
+      display: none;
+    }
+}
 </style>

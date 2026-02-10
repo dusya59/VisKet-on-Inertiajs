@@ -6,32 +6,38 @@
     box-sizing: border-box;
     font-family: "Montserrat", sans-serif;
 }
+
 @font-face {
     font-family: 'cakra';
     src: url('../Cakra-Normal.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
+
 @font-face {
     font-family: 'Krasnodar';
     src: url('../Krasnodar.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
+
 a.logo{
     display: flex;
     font-size: 36px;
     font-weight: 700;
     text-decoration: none;
 }
+
 .l1{
     color: rgb(255, 52, 52);
     text-decoration: none;
 }
+
 .l2{
     color: rgb(99, 99, 99);
     text-decoration: none;
 }
+
 header{
     padding: 0 50px 0 50px;
     position: absolute;
@@ -42,21 +48,26 @@ header{
     align-items: center;
     justify-content: space-between;
 }
+
 header div{
     display: flex;
     gap: 20px;
     align-items: center;
 }
+
 header a{
     text-decoration: none;
     color: black;
 }
+
 header a:hover{
     text-decoration: underline;
 }
+
 a.logo:hover{
     text-decoration: none;
 }
+
 header button{
     color: white;
     background-color: rgb(255, 52, 52);
@@ -64,6 +75,7 @@ header button{
     border-radius: 5px;
     padding: 10px;
 }
+
 header button:hover{
     background-color: rgb(230, 45, 45);
 }
@@ -71,11 +83,13 @@ header button:hover{
 header button:active{
     background-color: rgb(205, 45, 45);
 }
+
 header nav{
     display: flex;
     gap: 20px;
     align-items: center;
 }
+
 .block{
     width: 100%;
     height: 600px;
@@ -83,11 +97,13 @@ header nav{
     display: flex;
     justify-content:center;
 }
+
 .block img{
     width: 500px;
     height: 600px;
     align-self: end;
 }
+
 .block h1{
     font-size: 44px;
     margin: 150px 0 0 150px;
@@ -102,6 +118,7 @@ header nav{
     columns: 4 300px;
     column-gap: 85px;
 }
+
 .post{
     position: relative;
     overflow: hidden;
@@ -110,14 +127,17 @@ header nav{
     flex-direction: column;
     width: 300px; 
 }
+
 .post a{
     color: white; 
     text-decoration: none;
 }
+
 .post img{
     width: 300px; 
     height: auto; 
 }
+
 .post-content {
     width: 100%;
     position: absolute; 
@@ -162,7 +182,7 @@ header nav{
     gap: 100px;
     height: 100px;
     width: 100%;
-    border-bottom: 1px solid rgb(182, 182, 182);;
+    border-bottom: 1px solid rgb(182, 182, 182);
 }
 
 input[type="text"]{
@@ -173,11 +193,13 @@ input[type="text"]{
     width: 350px;
     height: 60px;
 }
+
 .block2 div{
     display: flex;
     gap: 20px;
     align-items:center;  
 }
+
 .block2 div button{
     background-color: rgb(255, 52, 52);
     border: none;
@@ -186,6 +208,7 @@ input[type="text"]{
     border-radius:10px ;
     font-size:16px;
 }
+
 .block2 div button:hover{
     background-color: rgb(230, 45, 45);
 }
@@ -197,104 +220,140 @@ input[type="text"]{
 .hidden{
     display: none;
 }
+
 footer{
     justify-content: space-evenly;
     width: 100%;
     height: 200px;
     background-color: rgb(211, 211, 211);
     display: flex;
-
 }
+
 footer div{
     height: 200px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
 }
+
 footer div a{
     cursor: pointer;
 }
 
-
 @media(max-width:1000px){
     header{
-        height: 100px;
-        font-size: 32px;
-        z-index: 10;
-    }
-    header button{
-        width: 150px;
+        padding: 0 20px;
         height: 60px;
-        font-size: 26px;
+        background: white;
+        z-index: 100;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    header div{
-        gap: 40px;
-        font-size:38px ;
-    }
-    header div a{
-        width: min-content;
-    }
+    
     a.logo{
-        font-size: 68px;
+        font-size: 28px;
     }
+    
+    header nav{
+        display: none;
+    }
+    
+    header button{
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    
     .block{
-        background-color: rgb(205, 205, 205);
-        height: 80vh;
+        height: calc(100vh - 60px);
+        margin-top: 60px;
+        position: relative;
+        background-color: rgb(211, 211, 211);
     }
-    .block h1{
-        margin: 150px 0 0 0;
-        width: 100px;
-        z-index: 10;
-        font-size: 130px;
-    }
+    
     .block img{
         position: absolute;
-        filter: blur(5px);
-        height: 60vh;
         width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: blur(3px);
+        opacity: 0.4;
     }
+    
+    .block h1{
+        position: relative;
+        z-index: 10;
+        margin: 0;
+        font-size: 48px;
+        text-align: center;
+        padding: 0 20px;
+    }
+    
     .block2{
-        justify-content: center;
-        height: 300px;
+        height: 80px;
+        padding: 0 15px;
+        gap: 0;
     }
+    
+    .block2 input[type="text"]{
+        width: 100%;
+        max-width: 500px;
+        height: 50px;
+        font-size: 16px;
+    }
+    
     .block2 div{
         display: none;
     }
-    .block2 input{
-        padding: 20px;
-        margin: 0;
-        height: 150px;
-        width: 800px;
-        border-radius: 20px;
-        font-size: 38px;
+    
+    .posts{
+        width: 100%;
+        padding: 15px;
+        columns: 1;
+        column-gap: 0;
     }
-
+    
     .post{
-        width: 400px;
-        font-size: 40px;
+        width: 100%;
+        margin-bottom: 15px;
     }
-    .post button{
-        width: 100px;
-        height: 100px;
-        font-size: 40px;
-        text-align: left;
-    }
-
+    
     .post img{
-        width: 400px;
+        width: 100%;
     }
+    
+    .post-content{
+        opacity: 1;
+        position: static;
+        background-color: rgba(0, 0, 0, 0.85);
+    }
+    
+    .post .title{
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .post .description{
+        font-size: 14px;
+    }
+    
+    #like{
+        font-size: 1.5rem;
+    }
+    
     footer{
-        font-size: 28px;
-        height:300px;
+        height: auto;
+        flex-direction: column;
+        padding: 20px;
+        gap: 20px;
     }
+    
     footer div{
-        width: 33vw;
-        height:300px;
-        display: flex;
-        align-items: center;
-        text-align: center;
+        width: 100%;
+        height: auto;
+        gap: 10px;
+        align-items: flex-start;
     }
+    
     footer div a{
-        height: 70px;
+        font-size: 14px;
     }
 }
