@@ -6,15 +6,27 @@
                 <h1>Подписчики {{ user.name }}</h1>
                 <Link :href="'/profile/' + user.id">← Вернуться в профиль</Link>
             </div>
-            <div v-for="subscription in followers.data" :key="subscription.id" class="user">
-                <Link :href="'/profile/' + subscription.id">
+            <div v-for="follower in followers.data" :key="follower.id" class="user">
+                <Link :href="'/profile/' + follower.id">
                     <img 
-                        :src="subscription.avatar ? `/storage/${subscription.avatar}` : '/images/User-avatar.svg.png'" 
+                        :src="follower.avatar ? `/storage/${follower.avatar}` : '/images/User-avatar.svg.png'" 
                         class="author-avatar"
-                        :alt="`Аватар ${subscription.name}`"
+                        :alt="`Аватар ${follower.name}`"
                     >
-                    {{ subscription.name }}
+                    {{ follower.name }}
                 </Link>
+                
+                <div v-if="auth.user && follower.id !== auth.user.id">
+                    <Link v-if="follower.is_mutual" :href="`/chats/start/${follower.id}`">
+                        <button type="button" class="btn-message">Написать сообщение</button>
+                    </Link>
+                    <form v-else-if="follower.is_subscribed" @submit.prevent="unsubscribe(follower.id)">
+                        <button type="submit" class="btn-unsubscribe">Отписаться</button>
+                    </form>
+                    <form v-else @submit.prevent="subscribe(follower.id)">
+                        <button type="submit" class="btn-subscribe">Подписаться</button>
+                    </form>
+                </div>
             </div>
         </div>
     </AppLayout>
@@ -22,13 +34,27 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
-defineProps({
+const props = defineProps({
     user: Object,
-    followers: Object,
-    subscription: Object
+    followers: Object
 })
+
+const page = usePage()
+const auth = computed(() => page.props.auth)
+
+const subscribe = (userId) => {
+    router.post(`/profile/${userId}/subscribe`, {}, {
+        preserveScroll: true
+    })
+}
+const unsubscribe = (userId) => {
+    router.delete(route('unsubscribe', userId), {
+        preserveScroll: true
+    })
+}
 </script>
 
 <style scoped>
@@ -79,7 +105,7 @@ defineProps({
     background-color: #f5f5f5;
 }
 
-.user a {
+.user > a {
     display: flex;
     align-items: center;
     gap: 15px;
@@ -96,22 +122,51 @@ defineProps({
     border: 2px solid #f0f0f0;
 }
 
-.user button {
-    background-color: rgb(255, 52, 52);
-    color: white;
+.btn-subscribe,
+.btn-unsubscribe,
+.btn-message {
     border: none;
     border-radius: 5px;
     padding: 10px 20px;
     cursor: pointer;
     transition: background-color 0.2s;
+    color: white;
 }
 
-.user button:hover {
+.btn-subscribe {
+    background-color: rgb(255, 52, 52);
+}
+
+.btn-subscribe:hover {
     background-color: rgb(230, 45, 45);
 }
 
-.user button:active {
+.btn-subscribe:active {
     background-color: rgb(205, 45, 45);
+}
+
+.btn-unsubscribe {
+    background-color: #666;
+}
+
+.btn-unsubscribe:hover {
+    background-color: #555;
+}
+
+.btn-unsubscribe:active {
+    background-color: #444;
+}
+
+.btn-message {
+    background-color: #007bff;
+}
+
+.btn-message:hover {
+    background-color: #0056b3;
+}
+
+.btn-message:active {
+    background-color: #004494;
 }
 
 footer {
@@ -158,7 +213,7 @@ footer div a {
         padding: 15px;
     }
 
-    .user a {
+    .user > a {
         font-size: 24px;
     }
 
@@ -167,7 +222,9 @@ footer div a {
         height: 70px;
     }
 
-    .user button {
+    .btn-subscribe,
+    .btn-unsubscribe,
+    .btn-message {
         padding: 15px 30px;
         font-size: 20px;
     }

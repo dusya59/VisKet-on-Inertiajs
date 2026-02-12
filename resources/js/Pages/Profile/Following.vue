@@ -34,7 +34,9 @@ const props = defineProps({
 })
 
 const unsubscribe = (userId) => {
-    router.delete(route('unsubscribe', userId))
+    router.delete(`/profile/${userId}/unsubscribe`, {
+        preserveScroll: true
+    })
 }
 </script>
 

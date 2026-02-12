@@ -36,16 +36,11 @@
       <div class="chat-area" :class="{ active: !!activeChat }">
         <template v-if="activeChat">
           <div class="chat-header">
-            <div
-              v-for="user in otherUsers"
-              :key="user.id"
-              class="chat-header-user"
-            >
-              <img :src="user.avatar_url" class="chat-avatar" />
-              <h2>{{ user.name }}</h2>
-            </div>
+            <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
+                <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
+                <h2>{{ otherUsers[0].name }}</h2>
+            </Link>
           </div>
-
           <div class="chat-messages" ref="messagesRef">
             <div
               v-for="message in activeChat.messages"
@@ -711,7 +706,6 @@ watch(
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
-    padding: 70px 0 0 0;
 }
 
 .chat-list {
@@ -776,11 +770,24 @@ watch(
 }
 
 .chat-header {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+
+}
+
+.chat-header-user{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.chat-header a{
+  text-decoration: none;
+  color: black;
+
 }
 
 .chat-area.active {

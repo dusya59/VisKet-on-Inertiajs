@@ -99,6 +99,7 @@ import Post from '@/Components/Post.vue'
 const props = defineProps({
   user: Object,
   posts: Object, 
+  auth: Object 
 });
 
 const page = usePage();
@@ -136,13 +137,19 @@ const submitAvatar = () => {
 };
 
 const toggleSubscription = () => {
-  if (!auth.value.user) {
-    router.visit(route('login'));
+  if (!props.auth?.user) {
+    router.visit('/login');
     return;
   }
-  const url = props.user.is_subscribed ? route('unsubscribe', props.user.username) : route('subscribe', props.user.username);
-  const method = props.user.is_subscribed ? 'delete' : 'post';
+
+  if (!props.user?.id) {
+    console.error("ID пользователя не найден в props.user");
+    return;
+  }
   
+  const url = `/profile/${props.user.id}/${props.user.is_subscribed ? 'unsubscribe' : 'subscribe'}`;
+  const method = props.user.is_subscribed ? 'delete' : 'post';
+
   router[method](url, {}, {
     preserveScroll: true,
     preserveState: true, 
@@ -161,7 +168,6 @@ const toggleSubscription = () => {
 
 .Profileblock {
     padding: 70px;
-    padding-top: 130px;
     width: 100%;
     display: flex;
     gap: 100px;

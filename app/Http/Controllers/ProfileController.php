@@ -87,9 +87,30 @@ class ProfileController extends Controller
 
     public function followers(User $user)
     {
+        $authUser = auth()->user();
+        
+        $followersData = $user->followers()->get()->map(function($follower) use ($authUser) {
+            $data = [
+                'id' => $follower->id,
+                'name' => $follower->name,
+                'avatar' => $follower->avatar,
+                'is_subscribed' => false,
+                'is_mutual' => false
+            ];
+            
+            if ($authUser) {
+                $data['is_subscribed'] = $authUser->isSubscribedTo($follower);
+                $data['is_mutual'] = $authUser->isSubscribedTo($follower) && $follower->isSubscribedTo($authUser);
+            }
+            
+            return $data;
+        });
+        
         return Inertia::render('Profile/Followers', [
             'user' => $user,
-            'followers' => $user->followers()->paginate(10)
+            'followers' => [
+                'data' => $followersData
+            ]
         ]);
     }
 
@@ -171,7 +192,7 @@ public function update(Request $request, User $user)
 
     public function subscribe(User $user)
     {
-        auth()->user()->following()->attach($user->id);
+        auth()->user()->following()->toggle($user->id);
         return back();
     }
 
