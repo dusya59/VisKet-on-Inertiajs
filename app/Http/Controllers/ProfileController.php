@@ -52,16 +52,28 @@ class ProfileController extends Controller
 
     public function likedPosts(User $user)
     {
-        $likedPosts = $user->likes()->with(['post.user'])->get()->map(function ($like) {
-            $post = $like->post;
-            $post->image_url = $post->image ? Storage::url($post->image) : null;
-            //$post->likes_count = $post->likes()->count();
-            return $post;
-        });
-
         return Inertia::render('Profile/LikedPosts', [
             'user' => $user,
-            'likedPosts' => $likedPosts,
+            'likedPosts' => $user->likes()->with(['post.user'])->get()->map(function($like) {
+                return [
+                    'id' => $like->id,
+                    'post' => [
+                        'id' => $like->post->id,
+                        'title' => $like->post->title,
+                        'description' => $like->post->description,
+                        'image_url' => $like->post->image ? Storage::url($like->post->image) : null, 
+                        'likes_count' => $like->post->likes->count(),
+                        'is_liked' => true,
+                        'show_url' => "/posts/{$like->post->id}", 
+                        'like_url' => "/posts/{$like->post->id}/like",
+                        'user' => [
+                            'id' => $like->post->user->id,
+                            'name' => $like->post->user->name,
+                            'profile_url' => "/profile/{$like->post->user->id}" 
+                        ]
+                    ]
+                ];
+            })
         ]);
     }
 
@@ -69,7 +81,7 @@ class ProfileController extends Controller
     {
         return Inertia::render('Profile/Following', [
             'user' => $user,
-            'following' => $user->following()->get()
+            'following' => $user->following()->paginate(10)
         ]);
     }
 
@@ -77,7 +89,7 @@ class ProfileController extends Controller
     {
         return Inertia::render('Profile/Followers', [
             'user' => $user,
-            'followers' => $user->followers()->get()
+            'followers' => $user->followers()->paginate(10)
         ]);
     }
 

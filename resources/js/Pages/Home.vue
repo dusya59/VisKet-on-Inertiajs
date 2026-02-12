@@ -38,7 +38,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { computed, ref } from 'vue'
-import { usePage, Head, Link } from '@inertiajs/inertia-vue3'
+import { Head, } from '@inertiajs/inertia-vue3'
 import Post from '@/Components/Post.vue'
 
 const props = defineProps({

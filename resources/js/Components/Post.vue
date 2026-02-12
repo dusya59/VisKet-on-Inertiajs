@@ -53,8 +53,6 @@ function toggleLike() {
   
   const previousLiked = isLiked.value
   const previousLikes = localLikes.value
-
-  // Оптимистичное обновление UI
   isLiked.value = !previousLiked
   localLikes.value = localLikes.value + (isLiked.value ? 1 : -1)
 
@@ -62,7 +60,6 @@ function toggleLike() {
     preserveScroll: true,
     onError: (error) => {
       console.error('Ошибка при лайке:', error)
-      // Откатываем состояние при ошибке
       isLiked.value = previousLiked
       localLikes.value = previousLikes
     }

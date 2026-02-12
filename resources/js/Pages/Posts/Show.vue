@@ -95,7 +95,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3' 
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref,} from 'vue'
 
 const props = defineProps({
   post: {
