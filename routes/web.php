@@ -40,6 +40,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/chats/{chat}/messages', [ChatController::class, 'storeMessage'])->name('chats.messages.store');
     Route::match(['PUT', 'POST'], '/chats/{chat}/messages/{message}', [ChatController::class, 'updateMessage'])->name('chats.messages.update');
     Route::delete('/chats/{chat}/messages/{message}', [ChatController::class, 'deleteMessage'])->name('chats.messages.delete');
+    Route::post('/posts/{post}/comments', [PostController::class, 'store'])->name('comments.store');
+    Route::get('/profile/{user}/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/{user}', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/{user}/aboutme', [ProfileController::class, 'updateAboutme'])->name('profile.update-aboutme');
+    Route::post('/profile/update-avatar', [ProfileController::class, 'updateAvatar'])->name('profile.update-avatar');
+    Route::post('/profile/{user}/subscribe', [ProfileController::class, 'subscribe'])->name('subscribe');
+    Route::delete('/profile/{user}/unsubscribe', [ProfileController::class, 'unsubscribe'])->name('unsubscribe');
 });
 
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
@@ -57,13 +64,6 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile');
-Route::get('/profile/{user}/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-Route::put('/profile/{user}', [ProfileController::class, 'update'])->name('profile.update');
-Route::put('/profile/{user}/aboutme', [ProfileController::class, 'updateAboutme'])->name('profile.update-aboutme');
-Route::post('/profile/update-avatar', [ProfileController::class, 'updateAvatar'])->name('profile.update-avatar');
-
-Route::post('/profile/{user}/subscribe', [ProfileController::class, 'subscribe'])->name('subscribe');
-Route::delete('/profile/{user}/unsubscribe', [ProfileController::class, 'unsubscribe'])->name('unsubscribe');
 
 Route::get('/profile/{user}/following', [ProfileController::class, 'following'])->name('following');
 Route::get('/profile/{user}/followers', [ProfileController::class, 'followers'])->name('followers');

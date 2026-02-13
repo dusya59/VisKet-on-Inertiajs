@@ -65,8 +65,10 @@ const mainClass = computed(() => {
   if (
     page.component === 'Home' ||
     page.component === 'Profile/Show' ||
+    page.component === 'Profile/Edit' ||
     page.component === 'Chat/Chats' ||
-    page.component === 'Posts/Show'
+    page.component === 'Posts/Show' 
+
   ) {
     return 'main-home'
   }

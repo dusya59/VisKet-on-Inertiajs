@@ -80,7 +80,9 @@ class PostController extends Controller
             'likes_count' => $post->likes->count(),
             'is_liked' => auth()->check() ? $post->likes->contains('user_id', auth()->id()) : false,
             'like_url' => route('posts.like', $post->id),
-            'show_url' => route('posts.show', $post->id), // Убедитесь, что это есть
+            'show_url' => route('posts.show', $post->id),
+            'edit_url' => $post->user_id === auth()->id() ? route('posts.edit', $post->id) : null,
+            'delete_url' => $post->user_id === auth()->id() ? route('posts.destroy', $post->id) : null,
             'user' => [
                 'id' => $post->user->id,
                 'name' => $post->user->name,
@@ -106,6 +108,7 @@ class PostController extends Controller
             'post' => $postData,
         ]);
     }
+    
     public function like(Post $post)
     {
         if (!auth()->check()) {
@@ -115,11 +118,9 @@ class PostController extends Controller
         $user = auth()->user();
         
         if ($post->likes()->where('user_id', $user->id)->exists()) {
-
             $post->likes()->where('user_id', $user->id)->delete();
             $liked = false;
         } else {
-
             $post->likes()->create(['user_id' => $user->id]);
             $liked = true;
         }
@@ -129,19 +130,24 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-
         if ($post->user_id !== auth()->id()) {
             abort(403);
         }
 
         return Inertia::render('Posts/Edit', [
-            'post' => $post->only(['id', 'title', 'description', 'image']),
+            'post' => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'description' => $post->description,
+                'image_url' => $post->image ? asset('storage/' . $post->image) : null,
+                'update_url' => route('posts.update', $post->id),
+                'show_url' => route('posts.show', $post->id),
+            ],
         ]);
     }
 
     public function update(Request $request, Post $post)
     {
-
         if ($post->user_id !== auth()->id()) {
             abort(403);
         }
@@ -153,7 +159,6 @@ class PostController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
             }
@@ -170,7 +175,6 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-
         if ($post->user_id !== auth()->id()) {
             abort(403);
         }
@@ -183,6 +187,22 @@ class PostController extends Controller
 
         return redirect()->route('home')
             ->with('success', 'Пост успешно удален!');
+    }
+
+    public function comment(Request $request, Post $post) {
+        $request->validate(['text' => 'required|string|max:1000']);
+    
+        $userId = auth()->id();
+        if ($userId === null) {
+            return redirect()->back()->withErrors(['message' => 'Пользователь не аутентифицирован.']);
+        }
+    
+        $post->comments()->create([
+            'user_id' => $userId,
+            'text' => $request->text
+        ]);
+    
+        return back();
     }
 
 }

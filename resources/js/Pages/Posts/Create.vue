@@ -3,12 +3,11 @@
     <Head title="Создать новый пост" />
 
     <div class="create-post-page">
-      <form @submit.prevent="submit" enctype="multipart/form-data">
-        <div class="block" :style="blockStyle">
+      <form @submit.prevent="submit">
+        <div class="block">
           <div 
-            id="image-upload-area" 
-            class="upload-area"
-            :class="{ dragging: isDragging }"
+            class="image-container"
+            :class="{ 'has-image': imagePreview }"
             @click="handleAreaClick"
             @dragover.prevent="handleDragOver"
             @dragleave="handleDragLeave"
@@ -22,40 +21,51 @@
               @change="handleFileSelect"
             >
 
-            <div v-if="!imagePreview" class="upload-instructions">
-              <p>Перетащите изображение сюда или кликните для выбора</p>
-              <button type="button" class="upload-button">+</button>
+            <div v-if="!imagePreview" class="upload-area" :class="{ dragging: isDragging }">
+              <div class="upload-instructions">
+                <p>Перетащите изображение сюда или кликните для выбора</p>
+                <button type="button" class="upload-button">+</button>
+              </div>
             </div>
 
             <img 
-              v-if="imagePreview" 
+              v-else
               :src="imagePreview" 
               ref="imagePreviewRef"
-              :style="imageStyle"
+              class="post-image"
               @load="handleImageLoad"
+              @click.stop="handleImageClick"
             >
+
+            <div v-if="imagePreview" class="image-overlay">
+              <button type="button" @click.stop="handleImageClick" class="change-image-btn">
+                Изменить фото
+              </button>
+            </div>
           </div>
 
-          <div class="desc" :style="descStyle">
-            <input 
-              type="text" 
-              v-model="form.title"
-              placeholder="Заголовок поста" 
-              required
-              class="title-input"
-            >
+          <div class="content-wrapper">
+            <div class="desc">
+              <input 
+                type="text" 
+                v-model="form.title"
+                placeholder="Заголовок поста" 
+                required
+                class="title-input"
+              >
 
-            <textarea 
-              v-model="form.description"
-              placeholder="Описание поста" 
-              required
-              class="description-textarea"
-            ></textarea>
+              <textarea 
+                v-model="form.description"
+                placeholder="Описание поста" 
+                required
+                class="description-textarea"
+              ></textarea>
 
-            <div class="form-actions">
-              <button type="submit" class="submit-button" :disabled="form.processing || !form.image">
-                {{ form.processing ? 'Публикация...' : 'Опубликовать' }}
-              </button>
+              <div class="form-actions">
+                <button type="submit" class="submit-button" :disabled="form.processing || !form.image">
+                  {{ form.processing ? 'Публикация...' : 'Опубликовать' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -66,19 +76,13 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { Head, useForm, router } from '@inertiajs/vue3'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import { ref } from 'vue'
 
 const fileInputRef = ref(null)
 const imagePreviewRef = ref(null)
 const imagePreview = ref(null)
 const isDragging = ref(false)
-const windowWidth = ref(window.innerWidth)
-
-const imageSize = ref({
-  width: 0,
-  height: 0
-})
 
 const form = useForm({
   title: '',
@@ -86,38 +90,14 @@ const form = useForm({
   image: null
 })
 
-const blockStyle = computed(() => {
-  if (imageSize.value.width > imageSize.value.height && windowWidth.value > 1000) {
-    return {
-      flexDirection: 'column',
-      width: '600px'
-    }
-  }
-  return {}
-})
-
-const descStyle = computed(() => {
-  if (imageSize.value.width > imageSize.value.height && windowWidth.value > 1000) {
-    return {
-      width: '600px'
-    }
-  }
-  return {}
-})
-
-const imageStyle = computed(() => {
-  if (imageSize.value.height > 900 && windowWidth.value > 1000) {
-    return {
-      width: '350px'
-    }
-  }
-  return {}
-})
-
-const handleAreaClick = (e) => {
-  if (e.target !== imagePreviewRef.value) {
+const handleAreaClick = () => {
+  if (!imagePreview.value) {
     fileInputRef.value.click()
   }
+}
+
+const handleImageClick = () => {
+  fileInputRef.value.click()
 }
 
 const handleFileSelect = (e) => {
@@ -128,7 +108,9 @@ const handleFileSelect = (e) => {
 }
 
 const handleDragOver = () => {
-  isDragging.value = true
+  if (!imagePreview.value) {
+    isDragging.value = true
+  }
 }
 
 const handleDragLeave = () => {
@@ -137,9 +119,11 @@ const handleDragLeave = () => {
 
 const handleDrop = (e) => {
   isDragging.value = false
-  const file = e.dataTransfer.files[0]
-  if (file && file.type.startsWith('image/')) {
-    processFile(file)
+  if (!imagePreview.value) {
+    const file = e.dataTransfer.files[0]
+    if (file && file.type.startsWith('image/')) {
+      processFile(file)
+    }
   }
 }
 
@@ -155,42 +139,28 @@ const processFile = (file) => {
 }
 
 const handleImageLoad = () => {
-  if (imagePreviewRef.value) {
-    const img = imagePreviewRef.value
-    const computedStyle = getComputedStyle(img)
-    imageSize.value.width = parseFloat(computedStyle.width)
-    imageSize.value.height = parseFloat(computedStyle.height)
-  }
-}
-
-const handleResize = () => {
-  windowWidth.value = window.innerWidth
-  if (imagePreviewRef.value) {
-    handleImageLoad()
-  }
 }
 
 const submit = () => {
-  form.post('/posts'), {
+  form.post('/posts', {
     forceFormData: true,
     preserveScroll: true,
     onSuccess: () => {
       form.reset()
       imagePreview.value = null
     }
-  }
+  })
 }
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
 </script>
 
 <style scoped>
+.create-post-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
 form {
   width: 100%;
   max-width: 1200px;
@@ -200,38 +170,45 @@ form {
 
 .block {
   display: flex;
-  gap: 30px;
+  max-width: 1200px;
+  width: 100%;
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
   transition: all 0.3s ease;
 }
 
+.image-container {
+  flex: 0 0 50%;
+  max-width: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  min-height: 400px;
+}
+
+.image-container.has-image {
+  background: none;
+  align-items: flex-start;
+}
+
 .upload-area {
-  flex: 0 0 500px;
-  height: 500px;
-  border: 3px dashed #d1d9e6;
-  border-radius: 16px;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.upload-area:hover {
-  border-color: rgb(255,52,52);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.1);
+  min-height: 400px;
 }
 
 .upload-area.dragging {
-  border-color: #4f46e5;
-  background: linear-gradient(145deg, #f0f4ff, #e8edff);
+  background: linear-gradient(145deg, #e8edff, #f0f4ff);
   transform: scale(1.01);
 }
 
@@ -257,7 +234,7 @@ form {
   height: 60px;
   border: none;
   border-radius: 50%;
-
+  background: rgb(255, 52, 52);
   color: white;
   font-size: 32px;
   cursor: pointer;
@@ -267,155 +244,190 @@ form {
   justify-content: center;
 }
 
-.upload-area img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 12px;
-  transition: transform 0.3s ease;
+.upload-button:hover {
+  background: rgb(222, 42, 42);
+  transform: scale(1.05);
 }
 
-.upload-area img:hover {
-  transform: scale(1.02);
+.post-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.image-container:hover .image-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+}
+
+.change-image-btn {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: white;
+  color: #334155;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.change-image-btn:hover {
+  background: #f8fafc;
+  transform: scale(1.05);
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .desc {
   flex: 1;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  min-width: 350px;
+  gap: 20px;
+  background: white;
 }
 
 .title-input {
   width: 100%;
-  padding: 18px 20px;
-  font-size: 28px;
-  font-weight: 600;
+  padding: 0;
+  font-size: 32px;
+  font-weight: 700;
   border: none;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid transparent;
   outline: none;
   transition: all 0.3s ease;
-  color: #1e293b;
+  color: #0f172a;
   background: transparent;
+  line-height: 1.3;
+  font-family: inherit;
 }
 
 .title-input::placeholder {
-  color: #bababa;
-  font-weight: 500;
+  color: #cbd5e1;
+  font-weight: 700;
 }
 
 .title-input:focus {
-  border-bottom-color: #bababa;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.1);
+  border-bottom-color: #e2e8f0;
 }
 
 .description-textarea {
   width: 100%;
   flex: 1;
-  min-height: 300px;
-  padding: 20px;
+  min-height: 200px;
+  padding: 0;
   font-size: 16px;
-  line-height: 1.6;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  line-height: 1.7;
+  border: none;
   outline: none;
   resize: none;
   transition: all 0.3s ease;
   color: #334155;
-  background: #f8fafc;
+  background: transparent;
+  font-family: inherit;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .description-textarea::placeholder {
-  color: #bababa;
-}
-
-.description-textarea:focus {
-  border-color: #bababa;
-  background: white;
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.08);
+  color: #cbd5e1;
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
   padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 2px solid #f1f5f9;
+  margin-top: auto;
 }
 
 .submit-button {
-  padding: 16px 40px;
-  font-size: 16px;
+  padding: 14px 32px;
+  font-size: 15px;
   font-weight: 600;
-  background: rgb(255,52,52);
+  background: rgb(255, 52, 52);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 40px;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: rgb(222, 42, 42)
+  background: rgb(222, 42, 42);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 52, 52, 0.3);
 }
 
 .submit-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  
+  transform: none;
 }
 
 @media (max-width: 1000px) {
   .block {
     flex-direction: column;
-    max-width: 600px;
-    width: 100%;
-    padding: 30px;
+    margin: 20px;
+    border-radius: 20px;
   }
-  
-  .upload-area {
+
+  .image-container {
     flex: none;
+    max-width: 100%;
     width: 100%;
-    height: 400px;
   }
-  
+
   .desc {
-    min-width: auto;
+    padding: 28px;
+  }
+
+  .title-input {
+    font-size: 28px;
   }
 }
 
 @media (max-width: 768px) {
   .create-post-page {
-    padding: 15px;
-    min-height: calc(100vh - 60px);
-  }
-  
-  .block {
-    padding: 25px;
-    gap: 25px;
-  }
-  
-  .upload-area {
-    height: 350px;
-  }
-  
-  .upload-instructions p {
-    font-size: 14px;
-  }
-  
-  .title-input {
-    font-size: 24px;
-    padding: 15px;
-  }
-  
-  .description-textarea {
-    min-height: 250px;
     padding: 16px;
   }
-  
+
+  .block {
+    margin: 0;
+    border-radius: 16px;
+  }
+
+  .desc {
+    padding: 24px;
+  }
+
+  .title-input {
+    font-size: 24px;
+  }
+
   .submit-button {
-    padding: 14px 32px;
     width: 100%;
   }
 }
@@ -424,16 +436,19 @@ form {
   .create-post-page {
     padding: 10px;
   }
-  
-  .block {
+
+  .desc {
     padding: 20px;
-    border-radius: 16px;
   }
-  
-  .upload-area {
-    height: 300px;
+
+  .title-input {
+    font-size: 22px;
   }
-  
+
+  .description-textarea {
+    font-size: 15px;
+  }
+
   .upload-button {
     width: 50px;
     height: 50px;

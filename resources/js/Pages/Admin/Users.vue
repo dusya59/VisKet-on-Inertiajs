@@ -104,8 +104,7 @@ import axios from 'axios';
       user.email.toLowerCase().includes(query)
     );
   });
-  
-  // Методы
+
   const fetchUsers = async () => {
     try {
       loading.value = true;

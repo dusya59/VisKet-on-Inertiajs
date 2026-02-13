@@ -3,41 +3,68 @@
     <Head :title="post.title" />
 
     <div class="block">
-      <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="post-image">
-      <div v-else class="no-image">
-        <span>Изображение отсутствует</span>
+      <div class="image-container" :class="{ sticky: isSticky }">
+        <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="post-image">
+        <div v-else class="no-image">
+          <span>Изображение отсутствует</span>
+        </div>
       </div>
 
-      <div class="desc">
+      <div class="content-wrapper">
+        <div class="desc">
+          <div class="header-actions">
+            <h2 class="title">{{ post.title }}</h2>
+            <div class="menu-container" v-if="canEdit">
+              <button @click="toggleMenu" class="menu-btn" type="button">
+                <img src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="">
+              </button>
+              <div v-if="menuOpen" class="dropdown-menu">
+                <button @click="sharePost" class="menu-item">
+                  <img src="../../../../public/build/assets/share-1-svgrepo-com.svg" alt="">Поделиться
+                </button>
+                <Link :href="post.edit_url" class="menu-item">
+                  <img src="../../../../public/build/assets/pencil-box-svgrepo-com.svg" alt="" style="width: 16px;height: 16px;">Редактировать
+                </Link>
+                <button @click="deletePost" class="menu-item delete">
+                  <img src="../../../../public/build/assets/trash-blank-svgrepo-com.svg" alt=""> Удалить
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <Link :href="post.user.profile_url" class="author-link">
+            <img 
+              v-if="post.user.avatar_url" 
+              :src="post.user.avatar_url" 
+              class="author-avatar"
+              :alt="post.user.name"
+            >
+            <img 
+              v-else 
+              src="../../../../public/images/User-avatar.svg.png" 
+              class="author-avatar"
+              :alt="post.user.name"
+            >
+            {{ post.user.name }}
+          </Link>
 
-        <h2 class="title">{{ post.title }}</h2>
-        
-        <Link :href="post.user.profile_url" class="author-link">
-          <img 
-            v-if="post.user.avatar_url" 
-            :src="post.user.avatar_url" 
-            class="author-avatar"
-            :alt="post.user.name"
-          >
-          <img 
-            v-else 
-            src="../../../../public/images/User-avatar.svg.png" 
-            class="author-avatar"
-            :alt="post.user.name"
-          >
-          {{ post.user.name }}
-        </Link>
-        <div class="post-actions">
-          <button @click="toggleLike" type="button" class="like-btn" :class="{ liked: post.is_liked }">
-            {{ post.is_liked ? '❤️' : '🤍' }} {{ post.likes_count }}
-          </button>
-        </div>
-        <p class="description">{{ post.description }}</p>
-        
-        <div class="meta">
-          <small>{{ formattedDate }}</small>
-        </div>
+          <div class="post-actions">
+            <button @click="toggleLike" type="button" class="like-btn" :class="{ liked: post.is_liked }">
+              {{ post.is_liked ? '❤️' : '🤍' }} {{ post.likes_count }}
+            </button>
+          </div>
 
+          <p class="description">{{ post.description }}</p>
+          
+          <div class="meta">
+            <small>{{ formattedDate }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comments-section-wrapper">
+      <div class="comments-section">
         <div v-if="$page.props.auth.user" class="comment-form">
           <form @submit.prevent="submitComment">
             <div v-if="commentErrors.text" class="error">{{ commentErrors.text }}</div>
@@ -95,7 +122,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3' 
-import { computed, ref,} from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   post: {
@@ -106,9 +133,15 @@ const props = defineProps({
 
 const page = usePage()
 const commentErrors = ref({})
+const menuOpen = ref(false)
+const isSticky = ref(false)
 
 const commentForm = useForm({
   text: ''
+})
+
+const canEdit = computed(() => {
+  return page.props.auth.user && page.props.auth.user.id === props.post.user.id
 })
 
 const formattedDate = computed(() => {
@@ -141,6 +174,56 @@ const formatDate = (dateString) => {
   })
 }
 
+const handleScroll = () => {
+  const block = document.querySelector('.block')
+  if (block) {
+    const rect = block.getBoundingClientRect()
+    isSticky.value = rect.top <= 0 && rect.bottom > window.innerHeight
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  document.addEventListener('click', closeMenuOnClickOutside)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+  document.removeEventListener('click', closeMenuOnClickOutside)
+})
+
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value
+}
+
+const closeMenuOnClickOutside = (event) => {
+  const menuContainer = document.querySelector('.menu-container')
+  if (menuContainer && !menuContainer.contains(event.target)) {
+    menuOpen.value = false
+  }
+}
+
+const sharePost = () => {
+  if (navigator.share) {
+    navigator.share({
+      title: props.post.title,
+      text: props.post.description,
+      url: window.location.href
+    })
+  } else {
+    navigator.clipboard.writeText(window.location.href)
+    alert('Ссылка скопирована в буфер обмена')
+  }
+  menuOpen.value = false
+}
+
+const deletePost = () => {
+  if (confirm('Вы уверены, что хотите удалить этот пост?')) {
+    router.delete(props.post.delete_url)
+  }
+  menuOpen.value = false
+}
+
 const toggleLike = () => {
   router.post(props.post.like_url, {}, { 
     preserveScroll: true,
@@ -148,15 +231,13 @@ const toggleLike = () => {
   })
 }
 
-
 const submitComment = () => {
-  commentForm.post_id(route('comments.store', props.post.id), {
+  commentForm.post(`/posts/${props.post.id}/comments`, {
     preserveScroll: true,
     onSuccess: () => {
       commentForm.reset()
       commentErrors.value = {}
       router.reload({ only: ['post'] })
-      delete commentForm.post_id; 
     },
     onError: (errors) => {
       commentErrors.value = errors
@@ -164,8 +245,9 @@ const submitComment = () => {
   })
 }
 </script>
+
 <style scoped>
-header{
+header {
   position: relative;
 }
 
@@ -177,22 +259,36 @@ header{
   background: white;
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.3s ease;
 }
 
-.post-image {
+.image-container {
   flex: 0 0 50%;
   max-width: 50%;
+  height: fit-content;
+  transition: all 0.3s ease;
+  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  min-height: 400px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.image-container.sticky {
+  position: sticky;
+  top: 20px;
+}
+
+.post-image {
+  width: 100%;
+  height: auto;
   display: block;
   object-fit: contain;
-  align-self: flex-start;
-  height: auto;
 }
 
 .no-image {
-  flex: 0 0 50%;
-  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,13 +299,25 @@ header{
   min-height: 400px;
 }
 
-.desc {
+.content-wrapper {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.desc {
   padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   background: white;
+}
+
+.header-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .title {
@@ -219,6 +327,93 @@ header{
   line-height: 1.3;
   word-break: break-word;
   margin: 0;
+  flex: 1;
+}
+
+.menu-container {
+  position: relative;
+}
+
+.menu-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 8px;
+}
+
+.menu-btn:hover {
+  background: #e2e8f0;
+  transform: scale(1.05);
+}
+
+.menu-btn img {
+  width: 75%;
+  height: 75%;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  background: white;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.menu-item:hover {
+  background: #f8fafc;
+}
+
+.menu-item.delete {
+  color: #ef4444;
+}
+
+.menu-item.delete:hover {
+  background: #fee2e2;
+}
+
+.menu-item img {
+  width: 18px;
+  height: 18px;
 }
 
 .author-link {
@@ -290,10 +485,21 @@ header{
   font-size: 14px;
 }
 
+.comments-section-wrapper {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto 40px;
+}
+
+.comments-section {
+  padding: 32px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
 .comment-form {
-  margin-top: 16px;
-  padding-top: 24px;
-  border-top: 2px solid #f1f5f9;
+  margin-bottom: 24px;
 }
 
 .comment-form form {
@@ -359,7 +565,7 @@ header{
 }
 
 .login-prompt {
-  margin-top: 20px;
+  margin-bottom: 24px;
   padding: 20px;
   background: #f8fafc;
   border-radius: 16px;
@@ -384,7 +590,7 @@ h3 {
   font-size: 20px;
   font-weight: 700;
   color: #0f172a;
-  margin: 24px 0 16px;
+  margin: 0 0 16px;
 }
 
 .no-comments {
@@ -463,7 +669,6 @@ h3 {
   white-space: pre-wrap;
 }
 
-/* Адаптивность */
 @media (max-width: 1000px) {
   .block {
     flex-direction: column;
@@ -471,17 +676,15 @@ h3 {
     border-radius: 20px;
   }
 
-  .post-image,
-  .no-image {
+  .image-container {
     flex: none;
     max-width: 100%;
     width: 100%;
-    height: auto;
-    max-height: 500px;
+    position: static !important;
   }
 
-  .no-image {
-    min-height: 300px;
+  .image-container.sticky {
+    position: static !important;
   }
 
   .desc {
@@ -490,6 +693,14 @@ h3 {
 
   .title {
     font-size: 28px;
+  }
+
+  .comments-section-wrapper {
+    margin: 0 20px 20px;
+  }
+
+  .comments-section {
+    padding: 28px;
   }
 }
 
@@ -510,6 +721,14 @@ h3 {
   .author-avatar {
     width: 40px;
     height: 40px;
+  }
+
+  .comments-section-wrapper {
+    margin: 0 16px 16px;
+  }
+
+  .comments-section {
+    padding: 24px;
   }
 
   .comment-form button {
@@ -540,6 +759,10 @@ h3 {
     font-size: 15px;
   }
 
+  .comments-section {
+    padding: 20px;
+  }
+
   .comment {
     padding: 16px;
   }
@@ -563,6 +786,11 @@ h3 {
 
   .comment-body p {
     font-size: 14px;
+  }
+
+  .menu-btn {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>
