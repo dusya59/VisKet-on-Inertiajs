@@ -184,8 +184,10 @@ header{
 .post-image {
   flex: 0 0 50%;
   max-width: 50%;
-  object-fit: cover;
   display: block;
+  object-fit: contain;
+  align-self: flex-start;
+  height: auto;
 }
 
 .no-image {
