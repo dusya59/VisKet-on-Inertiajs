@@ -3,8 +3,13 @@
     <Head :title="post.title" />
 
     <div class="block">
-      <div class="image-container" :class="{ sticky: isSticky }">
-        <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="post-image">
+      <div class="image-container">
+        <img
+          v-if="post.image_url"
+          :src="post.image_url"
+          :alt="post.title"
+          class="post-image"
+        >
         <div v-else class="no-image">
           <span>Изображение отсутствует</span>
         </div>
@@ -23,7 +28,7 @@
                   <img src="../../../../public/build/assets/share-1-svgrepo-com.svg" alt="">Поделиться
                 </button>
                 <Link :href="post.edit_url" class="menu-item">
-                  <img src="../../../../public/build/assets/pencil-box-svgrepo-com.svg" alt="" style="width: 16px;height: 16px;">Редактировать
+                  <img src="../../../../public/build/assets/pencil-box-svgrepo-com.svg" alt="">Редактировать
                 </Link>
                 <button @click="deletePost" class="menu-item delete">
                   <img src="../../../../public/build/assets/trash-blank-svgrepo-com.svg" alt=""> Удалить
@@ -31,17 +36,17 @@
               </div>
             </div>
           </div>
-          
+
           <Link :href="post.user.profile_url" class="author-link">
-            <img 
-              v-if="post.user.avatar_url" 
-              :src="post.user.avatar_url" 
+            <img
+              v-if="post.user.avatar_url"
+              :src="post.user.avatar_url"
               class="author-avatar"
               :alt="post.user.name"
             >
-            <img 
-              v-else 
-              src="../../../../public/images/User-avatar.svg.png" 
+            <img
+              v-else
+              src="../../../../public/images/User-avatar.svg.png"
               class="author-avatar"
               :alt="post.user.name"
             >
@@ -55,7 +60,7 @@
           </div>
 
           <p class="description">{{ post.description }}</p>
-          
+
           <div class="meta">
             <small>{{ formattedDate }}</small>
           </div>
@@ -68,9 +73,9 @@
         <div v-if="$page.props.auth.user" class="comment-form">
           <form @submit.prevent="submitComment">
             <div v-if="commentErrors.text" class="error">{{ commentErrors.text }}</div>
-            <textarea 
-              v-model="commentForm.text" 
-              required 
+            <textarea
+              v-model="commentForm.text"
+              required
               placeholder="Напишите комментарий"
               :disabled="commentForm.processing"
             ></textarea>
@@ -84,24 +89,24 @@
         </div>
 
         <h3>Комментарии ({{ post.comments.length }})</h3>
-        
+
         <div v-if="post.comments.length === 0" class="no-comments">
           <p>Комментариев пока нет. Будьте первым!</p>
         </div>
-        
+
         <div v-else class="comments">
           <div v-for="comment in post.comments" :key="comment.id" class="comment">
             <div class="comment-header">
               <Link :href="comment.user.profile_url" class="comment-author">
-                <img 
-                  v-if="comment.user.avatar_url" 
-                  :src="comment.user.avatar_url" 
+                <img
+                  v-if="comment.user.avatar_url"
+                  :src="comment.user.avatar_url"
                   class="comment-avatar"
                   :alt="comment.user.name"
                 >
-                <img 
-                  v-else 
-                  src="../../../../public/images/User-avatar.svg.png" 
+                <img
+                  v-else
+                  src="../../../../public/images/User-avatar.svg.png"
                   class="comment-avatar"
                   :alt="comment.user.name"
                 >
@@ -121,8 +126,11 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3' 
+import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+
+const menuOpen = ref(false)
+const commentErrors = ref({})
 
 const props = defineProps({
   post: {
@@ -132,9 +140,6 @@ const props = defineProps({
 })
 
 const page = usePage()
-const commentErrors = ref({})
-const menuOpen = ref(false)
-const isSticky = ref(false)
 
 const commentForm = useForm({
   text: ''
@@ -162,35 +167,17 @@ const formatDate = (dateString) => {
   const date = new Date(dateString)
   const now = new Date()
   const diffInSeconds = Math.floor((now - date) / 1000)
-  
+
   if (diffInSeconds < 60) return 'только что'
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} мин. назад`
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ч. назад`
-  
+
   return date.toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'short',
     year: diffInSeconds > 31536000 ? 'numeric' : undefined
   })
 }
-
-const handleScroll = () => {
-  const block = document.querySelector('.block')
-  if (block) {
-    const rect = block.getBoundingClientRect()
-    isSticky.value = rect.top <= 0 && rect.bottom > window.innerHeight
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-  document.addEventListener('click', closeMenuOnClickOutside)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-  document.removeEventListener('click', closeMenuOnClickOutside)
-})
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
@@ -225,7 +212,7 @@ const deletePost = () => {
 }
 
 const toggleLike = () => {
-  router.post(props.post.like_url, {}, { 
+  router.post(props.post.like_url, {}, {
     preserveScroll: true,
     forceFormData: true
   })
@@ -244,6 +231,14 @@ const submitComment = () => {
     }
   })
 }
+
+onMounted(() => {
+  document.addEventListener('click', closeMenuOnClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenuOnClickOutside)
+})
 </script>
 
 <style scoped>
@@ -258,25 +253,23 @@ header {
   margin: 40px auto;
   background: white;
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  overflow: visible;
+  border: 2px solid #e2e8f0;
   transition: all 0.3s ease;
+  flex-wrap: wrap;
 }
 
 .image-container {
   flex: 0 0 50%;
   max-width: 50%;
   height: fit-content;
-  transition: all 0.3s ease;
-  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
   min-height: 400px;
   display: flex;
   align-items: flex-start;
-}
-
-.image-container.sticky {
+  transition: all 0.3s ease;
   position: sticky;
   top: 20px;
+  align-self: flex-start;
+  z-index: 10;
 }
 
 .post-image {
@@ -284,6 +277,7 @@ header {
   height: auto;
   display: block;
   object-fit: contain;
+  border-radius: 22px 0 0 22px;
 }
 
 .no-image {
@@ -310,7 +304,6 @@ header {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  background: white;
 }
 
 .header-actions {
@@ -492,10 +485,8 @@ header {
 }
 
 .comments-section {
-  padding: 32px;
   background: white;
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
 .comment-form {
@@ -677,14 +668,10 @@ h3 {
   }
 
   .image-container {
-    flex: none;
-    max-width: 100%;
+    position: static;
     width: 100%;
-    position: static !important;
-  }
-
-  .image-container.sticky {
-    position: static !important;
+    max-width: 100%;
+    margin: 0;
   }
 
   .desc {

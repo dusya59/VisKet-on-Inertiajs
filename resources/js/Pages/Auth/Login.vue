@@ -96,6 +96,9 @@ form input{
     border-radius: 5px;
     font-size: 14px;
 }
+form input[type="password"] {
+  font-size: 10px;
+}
 form button{
     margin: 100px 0 20px 0;
     width: 300px;
