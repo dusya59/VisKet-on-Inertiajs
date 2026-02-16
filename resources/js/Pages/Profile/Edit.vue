@@ -59,7 +59,16 @@
                   name="aboutme" 
                   id="aboutme"
                   v-model="form.aboutme"
+                  :maxlength="maxLength"
                 ></textarea>
+                <div class="char-counter" :class="{ warning: remainingChars <= warningThreshold }">
+                  <span v-if="remainingChars <= warningThreshold">
+                    Осталось {{ remainingChars }} {{ pluralizeChars(remainingChars) }}
+                  </span>
+                  <span v-else>
+                    {{ currentLength }} / {{ maxLength }}
+                  </span>
+                </div>
               </div>
 
               <div class="form-actions">
@@ -81,19 +90,30 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   user: Object
 })
 
 const avatarPreview = ref(null)
+const maxLength = 1000
+const warningThreshold = 50
 
 const form = useForm({
   name: props.user.name,
   aboutme: props.user.aboutme || '',
   _method: 'PUT'
 })
+
+const currentLength = computed(() => (form.aboutme || '').length)
+const remainingChars = computed(() => maxLength - currentLength.value)
+
+const pluralizeChars = (count) => {
+  if (count === 1) return 'символ'
+  if (count >= 2 && count <= 4) return 'символа'
+  return 'символов'
+}
 
 const handleAvatarChange = (e) => {
   const file = e.target.files[0]
@@ -131,13 +151,14 @@ function submit() {
     width: 1200px;
     margin: 0 auto;
     padding: 30px;
-    border: 1px solid rgb(182, 182, 182);
+    border-radius: 24px;
+    border: 2px solid #e2e8f0;
 }
 
 .edit-container .back-link {
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgb(182, 182, 182);
+    border-bottom: 2px solid #e2e8f0;
 }
 
 .edit-container .back-link a {
@@ -182,6 +203,7 @@ function submit() {
 
 .edit-content .form-group {
     margin-bottom: 25px;
+    position: relative;
 }
 
 .edit-content .form-group label {
@@ -208,6 +230,19 @@ function submit() {
     font-size: 16px;
     resize: none;
     overflow-y: auto;
+}
+
+.char-counter {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #666;
+    text-align: right;
+    transition: color 0.3s;
+}
+
+.char-counter.warning {
+    color: rgb(255, 52, 52);
+    font-weight: 500;
 }
 
 .edit-content .form-actions {

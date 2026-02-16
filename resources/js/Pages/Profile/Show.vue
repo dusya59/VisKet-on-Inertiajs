@@ -43,17 +43,19 @@
               <button type="submit" :disabled="aboutMeForm.processing">Сохранить</button>
             </form>
           </div>
-          <div v-else class="aboutme-content">
-            <p>{{ user.aboutme }}</p>
+          <div v-else class="aboutme-content" :class="{ expanded: isExpanded }" ref="aboutmeContent">
+            <p ref="aboutmeText">{{ user.aboutme }}</p>
           </div>
         </div>
         <div v-else class="aboutme-body">
-          <div class="aboutme-content">
-            <p class="truncated-text">{{ user.aboutme || 'Пользователь пока не добавил информацию о себе.' }}</p>
+          <div class="aboutme-content" :class="{ expanded: isExpanded }" ref="aboutmeContent">
+            <p class="truncated-text" ref="aboutmeText">{{ user.aboutme || 'Пользователь пока не добавил информацию о себе.' }}</p>
           </div>
         </div>
 
-        <a v-if="user.aboutme" class="expand">Развернуть</a>
+        <a v-if="showExpandButton" @click="toggleExpand" class="expand">
+          {{ isExpanded ? 'Свернуть' : 'Развернуть' }}
+        </a>
 
         <div v-if="!isOwnProfile && auth.user" class="profile-actions">
           <form @submit.prevent="toggleSubscription">
@@ -93,7 +95,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref, onMounted, nextTick } from 'vue';
 import Post from '@/Components/Post.vue'
 
 const props = defineProps({
@@ -106,6 +108,31 @@ const page = usePage();
 const auth = computed(() => page.props.auth);
 const isOwnProfile = computed(() => auth.value.user && auth.value.user.id === props.user.id);
 
+const aboutmeText = ref(null);
+const aboutmeContent = ref(null);
+const showExpandButton = ref(false);
+const isExpanded = ref(false);
+
+const checkTextHeight = () => {
+  if (aboutmeText.value) {
+    const lineHeight = parseFloat(getComputedStyle(aboutmeText.value).lineHeight);
+    const textHeight = aboutmeText.value.scrollHeight;
+    const maxHeight = lineHeight * 15;
+    
+    showExpandButton.value = textHeight > maxHeight;
+  }
+};
+
+const toggleExpand = () => {
+  isExpanded.value = !isExpanded.value;
+};
+
+onMounted(() => {
+  nextTick(() => {
+    checkTextHeight();
+  });
+});
+
 const aboutMeForm = useForm({
   aboutme: props.user.aboutme || '',
 });
@@ -115,6 +142,9 @@ const submitAboutMe = () => {
   aboutMeForm.put(route('profile.update-aboutme', props.user.username), {
     preserveScroll: true,
     onSuccess: () => {
+      nextTick(() => {
+        checkTextHeight();
+      });
     },
   });
 };
@@ -247,7 +277,7 @@ const toggleSubscription = () => {
     font-size: 18px;
     text-decoration: underline;
     user-select: none;
-    display: none;
+    display: block;
 }
 .aboutme-body {
     flex: 1;

@@ -33,14 +33,30 @@
         </Link>
       </div>
 
-      <div class="chat-area" :class="{ active: !!activeChat }">
+      <div class="chat-area" :class="{ active: !!activeChat, sliding: isSliding }" ref="chatArea" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd">
         <template v-if="activeChat">
           <div class="chat-header">
+            <Link class="back" @click="handleBackClick"> 
+              <img src="../../../../public/build/assets/left-arrow-svgrepo-com.svg" alt="">
+            </Link>
             <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
                 <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
                 <h2>{{ otherUsers[0].name }}</h2>
             </Link>
+            <img class="chat-options" src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="" @click="toggleOptionsMenu">
           </div>
+
+          <div
+            v-if="optionsMenu.show"
+            class="options-menu"
+            :style="{ right: optionsMenu.x + 'px', top: optionsMenu.y + 'px' }"
+          >
+            <div class="options-menu-item" @click="handleChatFiles">Файлы чата</div>
+            <div class="options-menu-item" @click="handleAddParticipant">Добавить участника в чат</div>
+            <div class="options-menu-item" @click="handleSearchChat">Поиск по чату</div>
+            <div class="options-menu-item delete" @click="handleDeleteChat">Удалить чат</div>
+          </div>
+
           <div class="chat-messages" ref="messagesRef">
             <div
               v-for="message in activeChat.messages"
@@ -238,6 +254,7 @@ const form = useForm({
 
 const textareaRef = ref(null)
 const messagesRef = ref(null)
+const chatArea = ref(null)
 const photoPreviewUrl = ref(null)
 const videoPreviewUrl = ref(null)
 const documentPreviewName = ref(null)
@@ -253,6 +270,17 @@ const contextMenu = ref({
 })
 const rightClickedMessage = ref(null)
 const editingMessage = ref(null)
+const optionsMenu = ref({
+  show: false,
+  x: 15,
+  y: 60
+})
+const isSliding = ref(false)
+const touchStartX = ref(0)
+const touchCurrentX = ref(0)
+const isSwiping = ref(false)
+
+const isMobile = () => window.innerWidth <= 1000
 
 const otherUsers = computed(() => {
   if (!props.activeChat) return []
@@ -442,13 +470,11 @@ const downloadFile = (message) => {
 }
 
 const getCsrfToken = () => {
-  // Получение из meta тега
   const tokenMeta = document.querySelector('meta[name="csrf-token"]')
   if (tokenMeta) {
     return tokenMeta.getAttribute('content')
   }
   
-  // Альтернативный способ - из cookie
   const csrfCookie = document.cookie
     .split(';')
     .find(c => c.trim().startsWith('XSRF-TOKEN='))
@@ -469,7 +495,6 @@ const sendMessage = () => {
 
   const wasEditing = !!editingMessage.value
 
-  // Если есть файлы, используем FormData и fetch
   if (form.photo || form.video || form.document) {
     const formData = new FormData()
 
@@ -508,7 +533,6 @@ const sendMessage = () => {
         if (!wasEditing) {
           scrollToBottom()
         }
-        // Перезагружаем страницу для обновления сообщений
         router.reload({ only: ['activeChat'] })
       } else {
         return response.text().then(text => {
@@ -525,7 +549,6 @@ const sendMessage = () => {
     return
   }
 
-  // Обычная отправка без файлов
   const method = wasEditing ? 'put' : 'post'
 
   form[method](url, {
@@ -553,7 +576,7 @@ const formatSize = (bytes) => {
 }
 
 const showContextMenu = (event, message) => {
-  if (!message.is_mine) return // Показываем только для своих сообщений
+  if (!message.is_mine) return
   
   contextMenu.value = {
     show: true,
@@ -586,14 +609,12 @@ const editMessage = (message) => {
   editingMessage.value = message
   form.content = message.content || ''
 
-  // Показываем превью существующих файлов
   photoPreviewUrl.value = message.image_url || null
   videoPreviewUrl.value = message.video_url || null
   documentPreviewName.value = message.file_url ? message.file_name : null
 
   hideContextMenu()
   
-  // Фокусируемся на textarea
   nextTick(() => {
     if (textareaRef.value) {
       textareaRef.value.focus()
@@ -604,6 +625,86 @@ const editMessage = (message) => {
 
 const cancelEdit = () => {
   resetForm()
+}
+
+const toggleOptionsMenu = () => {
+  optionsMenu.value.show = !optionsMenu.value.show
+}
+
+const hideOptionsMenu = () => {
+  optionsMenu.value.show = false
+}
+
+const handleChatFiles = () => {
+  console.log('Файлы чата')
+  hideOptionsMenu()
+}
+
+const handleAddParticipant = () => {
+  console.log('Добавить участника')
+  hideOptionsMenu()
+}
+
+const handleSearchChat = () => {
+  console.log('Поиск по чату')
+  hideOptionsMenu()
+}
+
+const handleDeleteChat = () => {
+  if (confirm('Вы уверены, что хотите удалить этот чат?')) {
+    console.log('Удалить чат')
+  }
+  hideOptionsMenu()
+}
+
+const handleBackClick = () => {
+  if (isMobile()) {
+    isSliding.value = true
+    setTimeout(() => {
+      router.visit('/chats')
+    }, 300)
+  } else {
+    router.visit('/chats')
+  }
+}
+
+const onTouchStart = (e) => {
+  if (!isMobile()) return
+  touchStartX.value = e.touches[0].clientX
+  touchCurrentX.value = e.touches[0].clientX
+  isSwiping.value = touchStartX.value < 50
+}
+
+const onTouchMove = (e) => {
+  if (!isMobile() || !isSwiping.value) return
+  touchCurrentX.value = e.touches[0].clientX
+  const deltaX = touchCurrentX.value - touchStartX.value
+  
+  if (deltaX > 0 && chatArea.value) {
+    chatArea.value.style.transform = `translateX(${deltaX}px)`
+  }
+}
+
+const onTouchEnd = () => {
+  if (!isMobile() || !isSwiping.value) return
+  
+  const deltaX = touchCurrentX.value - touchStartX.value
+  
+  if (deltaX > 100) {
+    isSliding.value = true
+    if (chatArea.value) {
+      chatArea.value.style.transform = 'translateX(100%)'
+    }
+    setTimeout(() => {
+      router.visit('/chats')
+    }, 300)
+  } else {
+    if (chatArea.value) {
+      chatArea.value.style.transform = ''
+    }
+  }
+  
+  isSwiping.value = false
 }
 
 onMounted(() => {
@@ -618,6 +719,7 @@ onMounted(() => {
   }
 
   document.addEventListener('click', hideContextMenu)
+  document.addEventListener('click', hideOptionsMenu)
 
   scrollToBottom()
 
@@ -653,6 +755,7 @@ onMounted(() => {
 onUnmounted(() => {
 
   document.removeEventListener('click', hideContextMenu)
+  document.removeEventListener('click', hideOptionsMenu)
   if (props.activeChat && window.Echo) {
     window.Echo.leave(`chat.${props.activeChat.id}`)
   }
@@ -696,10 +799,8 @@ watch(
 
 </script>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script> -->
-
 <style scoped>
+
 .chat-container {
     display: flex;
     height: 100vh;
@@ -749,6 +850,8 @@ watch(
     height: 45px;
     border-radius: 50%;
     object-fit: cover;
+    position: sticky;
+    bottom: 0;
 }
 
 .chat-preview {
@@ -767,16 +870,36 @@ watch(
     flex: 1;
     display: flex;
     flex-direction: column;
+    transition: transform 0.3s ease;
+}
+
+.chat-area.sliding {
+    transform: translateX(100%);
 }
 
 .chat-header {
+  display: flex;
+  justify-content: space-between;
   padding: 15px;
   border-bottom: 1px solid #eee;
   display: flex;
   align-items: center;
 
 }
-
+.chat-options{
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+.back{
+  background: none;
+  border: none;
+}
+.back img{
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
 .chat-header-user{
   display: flex;
   justify-content: center;
@@ -824,6 +947,7 @@ watch(
 }
 
 .my-message {
+  justify-self: flex-end;
     background: #dcf8c6;
 }
 
@@ -1088,6 +1212,33 @@ watch(
     color: #dc3545;
 }
 
+.options-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 2000;
+    min-width: 200px;
+    padding: 5px 0;
+}
+
+.options-menu-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.options-menu-item:hover {
+    background-color: #f8f9fa;
+}
+
+.options-menu-item.delete:hover {
+    background-color: #ffe6e6;
+    color: #dc3545;
+}
+
 .preview-actions {
     display: flex;
     flex-direction: column;
@@ -1160,7 +1311,7 @@ watch(
 
 @media (max-width: 1000px) {
     .chat-container {
-        padding: 60px 0 0 0;
+        padding: 0;
         border: none;
         border-radius: 0;
     }
@@ -1170,12 +1321,13 @@ watch(
         position: absolute;
         left: 0;
         top: 60px;
-        height: calc(100vh - 60px);
+        height: calc(100vh);
         z-index: 10;
         transition: transform 0.3s ease;
     }
 
     .chat-area {
+
         max-width: 100%;
         width: 100%;
         position: absolute;
@@ -1189,7 +1341,7 @@ watch(
 
     .chat-area.active {
         transform: translateX(0);
-        height: calc(100vh - 60px);
+        height: 100vh;
     }
 
     .chat-item {
@@ -1313,6 +1465,15 @@ watch(
         font-size: 15px;
     }
 
+    .options-menu {
+        min-width: 180px;
+    }
+
+    .options-menu-item {
+        padding: 14px 18px;
+        font-size: 15px;
+    }
+
     .editing-indicator {
         padding: 10px;
         font-size: 13px;
@@ -1342,7 +1503,7 @@ watch(
         padding: 12px;
         font-size: 14px;
     }
-    .header-grey{
+    header{
       display: none;
     }
 }

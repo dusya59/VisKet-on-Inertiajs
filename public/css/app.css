@@ -90,7 +90,9 @@ header nav{
     gap: 20px;
     align-items: center;
 }
-
+header img{
+    display: none;
+}
 .block1{
     width: 100%;
     height: 600px;
@@ -258,14 +260,14 @@ footer div a{
         display: none;
     }
     
-    header button{
-        padding: 8px 15px;
-        font-size: 14px;
+    header img{
+        height: 25px;
+        width: 25px;
     }
     
     .block1{
-        height: calc(100vh - 60px);
-        margin-top: 60px;
+        height:60vh;
+        padding-top: 20px;
         position: relative;
         background-color: rgb(211, 211, 211);
     }
@@ -284,7 +286,6 @@ footer div a{
         z-index: 10;
         margin: 0;
         font-size: 48px;
-        text-align: center;
         padding: 0 20px;
     }
     
@@ -308,13 +309,12 @@ footer div a{
     .posts{
         width: 100%;
         padding: 15px;
-        columns: 1;
-        column-gap: 0;
+        columns: 2;
+        column-gap: 15px;
     }
     
     .post{
         width: 100%;
-        margin-bottom: 15px;
     }
     
     .post img{
@@ -322,9 +322,7 @@ footer div a{
     }
     
     .post-content{
-        opacity: 1;
-        position: static;
-        background-color: rgba(0, 0, 0, 0.85);
+        display: none;
     }
     
     .post .title{

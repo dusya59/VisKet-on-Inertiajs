@@ -24,6 +24,7 @@
           <Link href="/register">Регистрация</Link>
         </template>
       </nav>
+      <img class="burger-menu" src="../../../public/build/assets/burger-menu-svgrepo-com.svg" alt="burger-menu" >
     </header>
 
     <main :class="mainClass">
