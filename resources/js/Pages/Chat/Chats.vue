@@ -43,7 +43,7 @@
                 <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
                 <h2>{{ otherUsers[0].name }}</h2>
             </Link>
-            <img class="chat-options" src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="" @click="toggleOptionsMenu">
+            <img class="chat-options" src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="" @click.stop="toggleOptionsMenu">
           </div>
 
           <div
@@ -707,6 +707,14 @@ const onTouchEnd = () => {
   isSwiping.value = false
 }
 
+const syncBodyClass = (hasActiveChat) => {
+  if (hasActiveChat) {
+    document.body.classList.add('mobile-chat-open')
+  } else {
+    document.body.classList.remove('mobile-chat-open')
+  }
+}
+
 onMounted(() => {
   try {
     const raw = window.localStorage.getItem('visket_downloaded_files')
@@ -721,6 +729,7 @@ onMounted(() => {
   document.addEventListener('click', hideContextMenu)
   document.addEventListener('click', hideOptionsMenu)
 
+  syncBodyClass(!!props.activeChat)
   scrollToBottom()
 
   window.Pusher = Pusher;
@@ -736,30 +745,35 @@ onMounted(() => {
   });
 
   if (props.activeChat) {
-  window.Echo.private(`chat.${props.activeChat.id}`)
-    .listen('.message.sent', (e) => {
-      console.log('New message received:', e);
-      router.reload({ only: ['activeChat'] })
-    })
-    .listen('.message.updated', (e) => {
-      console.log('Message updated:', e);
-      router.reload({ only: ['activeChat'] })
-    })
-    .listen('.message.deleted', (e) => {
-      console.log('Message deleted:', e);
-      router.reload({ only: ['activeChat'] })
-    });
-}
+    window.Echo.private(`chat.${props.activeChat.id}`)
+      .listen('.message.sent', (e) => {
+        router.reload({ only: ['activeChat'] })
+      })
+      .listen('.message.updated', (e) => {
+        router.reload({ only: ['activeChat'] })
+      })
+      .listen('.message.deleted', (e) => {
+        router.reload({ only: ['activeChat'] })
+      });
+  }
 })
 
 onUnmounted(() => {
-
   document.removeEventListener('click', hideContextMenu)
   document.removeEventListener('click', hideOptionsMenu)
+  document.body.classList.remove('mobile-chat-open')
+
   if (props.activeChat && window.Echo) {
     window.Echo.leave(`chat.${props.activeChat.id}`)
   }
 })
+
+watch(
+  () => props.activeChat,
+  (newVal) => {
+    syncBodyClass(!!newVal)
+  }
+)
 
 watch(
   () => props.activeChat?.id,
@@ -773,15 +787,12 @@ watch(
     if (newChatId) {
       window.Echo.private(`chat.${newChatId}`)
         .listen('.message.sent', (e) => {
-          console.log('New message received:', e);
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.updated', (e) => {
-          console.log('Message updated:', e);
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.deleted', (e) => {
-          console.log('Message deleted:', e);
           router.reload({ only: ['activeChat'] })
         });
     }
@@ -796,14 +807,13 @@ watch(
     }
   }
 )
-
 </script>
 
 <style scoped>
 
 .chat-container {
     display: flex;
-    height: 100vh;
+    height: 93vh;
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
@@ -850,8 +860,6 @@ watch(
     height: 45px;
     border-radius: 50%;
     object-fit: cover;
-    position: sticky;
-    bottom: 0;
 }
 
 .chat-preview {
@@ -884,22 +892,25 @@ watch(
   border-bottom: 1px solid #eee;
   display: flex;
   align-items: center;
-
 }
+
 .chat-options{
   width: 20px;
   height: 20px;
   cursor: pointer;
 }
+
 .back{
   background: none;
   border: none;
 }
+
 .back img{
   width: 30px;
   height: 30px;
   cursor: pointer;
 }
+
 .chat-header-user{
   display: flex;
   justify-content: center;
@@ -910,11 +921,10 @@ watch(
 .chat-header a{
   text-decoration: none;
   color: black;
-
 }
 
 .chat-area.active {
-    height: 90vh;
+    height: 93vh;
 }
 
 .chat-messages {
@@ -935,7 +945,10 @@ watch(
 .message-container.right-clicked {
     background-color: rgba(0, 0, 0, 0.05);
 }
-
+.message-container .chat-avatar{
+    position: sticky;
+    bottom: 0;
+}
 .message {
     max-width: 60%;
     width: max-content;
@@ -1321,27 +1334,31 @@ watch(
         position: absolute;
         left: 0;
         top: 60px;
-        height: calc(100vh);
+        height: calc(100vh - 60px);
         z-index: 10;
-        transition: transform 0.3s ease;
     }
 
     .chat-area {
-
+        display: none;
         max-width: 100%;
         width: 100%;
         position: absolute;
         left: 0;
+        top: 0;
         height: 100vh;
         background: white;
         z-index: 20;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
     }
 
     .chat-area.active {
-        transform: translateX(0);
+        display: flex;
+        flex-direction: column;
         height: 100vh;
+        transform: none;
+    }
+
+    .chat-area.sliding {
+        transform: translateX(100%);
     }
 
     .chat-item {
@@ -1502,9 +1519,6 @@ watch(
     .add-select label {
         padding: 12px;
         font-size: 14px;
-    }
-    header{
-      display: none;
     }
 }
 </style>

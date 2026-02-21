@@ -130,4 +130,9 @@ const footerClass = computed(() => {
   display: none;
 }
 
+@media (max-width: 1000px) {
+  body.mobile-chat-open header {
+    display: none;
+  }
+}
 </style>
