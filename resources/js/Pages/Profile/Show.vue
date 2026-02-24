@@ -29,6 +29,9 @@
           <Link :href="'/profile/' + user.id + '/followers'">
             Подписчики<br> {{ user.followers_count }}
           </Link>
+          <Link v-if="user.rating" :href="'/ratings/' + user.id">
+            Рейтинг<br> {{ user.rating }}
+          </Link>
           <Link :href="'/profile/' + user.id + '/liked-posts'">Лайки</Link>
           <Link v-if="isOwnProfile" :href="'/profile/' + user.id + '/edit'" class="btn-edit">
             <img src="../../../../public/images/54512.png" alt="Редактировать профиль">

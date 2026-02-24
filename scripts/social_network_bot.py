@@ -41,15 +41,42 @@ class FreelancerNetworkBot:
         )
         
         if response.status_code == 201:
+            data = response.json()
             print(f"✓ Пользователь {username} ({user_type}) зарегистрирован")
-            # Если используете Sanctum, сохраните токен
-            if 'token' in response.json():
+            
+            # Сохраняем токен
+            if 'token' in data:
                 self.session.headers.update({
-                    'Authorization': f"Bearer {response.json()['token']}"
+                    'Authorization': f"Bearer {data['token']}"
                 })
-            return response.json()
+            return data
         else:
-            print(f"✗ Ошибка регистрации: {response.text}")
+            # Если email уже занят - пробуем залогиниться
+            print(f"⚠ Email {email} уже занят, пробую войти...")
+            return self.login_user(email, password)
+    
+    def login_user(self, email: str, password: str) -> Dict:
+        """Вход существующего пользователя"""
+        response = self.session.post(
+            f"{self.base_url}/api/login",
+            json={
+                "email": email,
+                "password": password
+            }
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✓ Вход выполнен для {email}")
+            
+            # Сохраняем токен
+            if 'token' in data:
+                self.session.headers.update({
+                    'Authorization': f"Bearer {data['token']}"
+                })
+            return data
+        else:
+            print(f"✗ Ошибка входа: {response.text}")
             return None
     
     def generate_post_content(self, post_type: str = 'portfolio_case', prompt: str = None) -> Dict:
@@ -152,14 +179,17 @@ class FreelancerNetworkBot:
         """
         Создает реалистичный сценарий с разными типами пользователей и постов
         """
-        print("\n🎬 Запуск реалистичного сценария...\n")
+        import random
+        scenario_id = random.randint(1000, 9999)
+        
+        print(f"\n🎬 Запуск реалистичного сценария (ID: {scenario_id})...\n")
         
         # Создаем работодателей
         employers = []
         for i in range(3):
             employer = {
-                'username': f'employer_{i+1}',
-                'email': f'employer{i+1}@example.com',
+                'username': f'employer_{scenario_id}_{i+1}',
+                'email': f'employer{scenario_id}_{i+1}@example.com',
                 'password': 'password123'
             }
             self.register_user(employer['username'], employer['email'], employer['password'], 'employer')
@@ -170,8 +200,8 @@ class FreelancerNetworkBot:
         freelancers = []
         for i in range(5):
             freelancer = {
-                'username': f'freelancer_{i+1}',
-                'email': f'freelancer{i+1}@example.com',
+                'username': f'freelancer_{scenario_id}_{i+1}',
+                'email': f'freelancer{scenario_id}_{i+1}@example.com',
                 'password': 'password123'
             }
             self.register_user(freelancer['username'], freelancer['email'], freelancer['password'], 'freelancer')
@@ -181,10 +211,7 @@ class FreelancerNetworkBot:
         print("\n📝 Создаем вакансии от работодателей...")
         for employer in employers:
             # Логинимся как работодатель
-            self.session.post(
-                f"{self.base_url}/api/login",
-                json={'email': employer['email'], 'password': employer['password']}
-            )
+            self.login_user(employer['email'], employer['password'])
             
             # Создаем 2 вакансии
             for _ in range(2):
@@ -197,10 +224,7 @@ class FreelancerNetworkBot:
         print("\n💼 Создаем портфолио от фрилансеров...")
         for freelancer in freelancers:
             # Логинимся как фрилансер
-            self.session.post(
-                f"{self.base_url}/api/login",
-                json={'email': freelancer['email'], 'password': freelancer['password']}
-            )
+            self.login_user(freelancer['email'], freelancer['password'])
             
             # Создаем 3 кейса
             for _ in range(3):
@@ -219,10 +243,7 @@ class FreelancerNetworkBot:
         print("\n⭐ Создаем отзывы...")
         # Некоторые работодатели оставляют отзывы
         for employer in employers[:2]:
-            self.session.post(
-                f"{self.base_url}/api/login",
-                json={'email': employer['email'], 'password': employer['password']}
-            )
+            self.login_user(employer['email'], employer['password'])
             
             content = self.generate_post_content('review')
             if content:
@@ -249,24 +270,29 @@ if __name__ == "__main__":
     
     # Для автоматического запуска раскомментируйте нужный вариант:
     
-    # Вариант 1: Быстрый тест
-    bot.register_user("test_user", "test@example.com", "password123", "freelancer")
+    # Вариант 1: Быстрый тест (используем уникальный email)
+    import random
+    random_id = random.randint(1000, 9999)
+    bot.register_user(f"test_user_{random_id}", f"test{random_id}@example.com", "password123", "freelancer")
     bot.create_multiple_posts(count=5, delay=0.5)
     
     # Вариант 2: Реалистичный сценарий
     # bot.create_realistic_scenario()
     
     # Вариант 3: Только вакансии
-    # bot.register_user("employer_test", "employer@example.com", "password123", "employer")
+    # random_id = random.randint(1000, 9999)
+    # bot.register_user(f"employer_{random_id}", f"employer{random_id}@example.com", "password123", "employer")
     # prompts = [generate_vacancy_prompt() for _ in range(10)]
     # bot.create_multiple_posts(count=10, post_types=['vacancy']*10, prompts=prompts, delay=0.5)
     
     # Вариант 4: Только кейсы
-    # bot.register_user("freelancer_test", "freelancer@example.com", "password123", "freelancer")
+    # random_id = random.randint(1000, 9999)
+    # bot.register_user(f"freelancer_{random_id}", f"freelancer{random_id}@example.com", "password123", "freelancer")
     # prompts = [generate_case_prompt() for _ in range(10)]
     # bot.create_multiple_posts(count=10, post_types=['portfolio_case']*10, prompts=prompts, delay=0.5)
     
     # Вариант 5: Микс разных типов
-    # bot.register_user("mixed_user", "mixed@example.com", "password123")
+    # random_id = random.randint(1000, 9999)
+    # bot.register_user(f"mixed_{random_id}", f"mixed{random_id}@example.com", "password123")
     # post_types = ['vacancy', 'portfolio_case', 'review', 'service_offer', 'collaboration'] * 2
     # bot.create_multiple_posts(count=10, post_types=post_types, delay=0.5)

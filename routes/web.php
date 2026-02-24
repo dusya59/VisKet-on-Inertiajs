@@ -1,14 +1,12 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\ChatController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
 
@@ -18,7 +16,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
-
 
     Route::middleware('admin')->group(function () {
 
@@ -62,9 +59,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile');
 
 Route::get('/profile/{user}/following', [ProfileController::class, 'following'])->name('following');
 Route::get('/profile/{user}/followers', [ProfileController::class, 'followers'])->name('followers');
 Route::get('/profile/{user}/liked-posts', [ProfileController::class, 'likedPosts'])->name('liked-posts');
+Route::get('/ratings/{user}', [ProfileController::class, 'ratings'])->name('ratings');
