@@ -38,9 +38,11 @@ class ProfileController extends Controller
             'aboutme' => $user->aboutme,
             'avatar_url' => $user->avatar ? Storage::url($user->avatar) : null,
             'rating' => $user->rating,
+            'balance' => $user->balance,
             'following_count' => $user->following()->count(),
             'followers_count' => $user->followers()->count(),
             'is_subscribed' => $authUser ? $authUser->isSubscribedTo($user) : false,
+            'created_at' => $user->created_at->format('d.m.Y'),
         ];
 
         return Inertia::render('Profile/Show', [
@@ -167,7 +169,7 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('profile', $user->id);
+        return Inertia::location(route('profile', $user->id));
     }
 
     public function updateAvatar(Request $request)
@@ -185,7 +187,7 @@ class ProfileController extends Controller
         $path = $request->file('avatar')->store('avatars', 'public');
         $user->update(['avatar' => $path]);
 
-        return redirect()->route('profile', $user->id);
+        return Inertia::location(route('profile', $user->id));
     }
 
     public function subscribe(User $user)

@@ -18,7 +18,12 @@
       <div class="content-wrapper">
         <div class="desc">
           <div class="header-actions">
-            <h2 class="title">{{ post.title }}</h2>
+            <template v-if="post.is_vacancy">
+              <h2 class="title">Вакансия: {{ post.vacancy.position }}</h2>
+            </template>
+            <template v-else>
+              <h2 class="title">{{ post.title }}</h2>
+            </template>
             <div class="menu-container" v-if="canEdit">
               <button @click="toggleMenu" class="menu-btn" type="button">
                 <img src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="">
@@ -46,7 +51,7 @@
             >
             <img
               v-else
-              src="../../../../public/images/User-avatar.svg.png"
+              src="../../../../public/images/User-avatar.png"
               class="author-avatar"
               :alt="post.user.name"
             >
@@ -59,7 +64,56 @@
             </button>
           </div>
 
-          <p class="description">{{ post.description }}</p>
+          <template v-if="post.is_vacancy">
+            <div class="vacancy-info">
+              <div v-if="post.vacancy.budget_min || post.vacancy.budget_max" class="vacancy-budget">
+                <span class="label">Бюджет:</span>
+                <span class="value">
+                  {{ post.vacancy.budget_min ? post.vacancy.budget_min + ' ₽' : '' }}
+                  {{ post.vacancy.budget_min && post.vacancy.budget_max ? ' - ' : '' }}
+                  {{ post.vacancy.budget_max ? post.vacancy.budget_max + ' ₽' : '' }}
+                </span>
+              </div>
+
+              <div v-if="post.vacancy.deadline" class="vacancy-deadline">
+                <span class="label">Срок:</span>
+                <span class="value">{{ formatDeadline(post.vacancy.deadline) }}</span>
+              </div>
+
+              <div v-if="post.vacancy.skills && post.vacancy.skills.length > 0" class="vacancy-skills">
+                <span class="label">Требуемые навыки:</span>
+                <div class="skills-list">
+                  <span 
+                    v-for="skill in post.vacancy.skills" 
+                    :key="skill.id" 
+                    class="skill-tag"
+                    :class="getSkillClass(skill.name)"
+                  >
+                    {{ skill.name }} <span class="skill-level">({{ skill.level }})</span>
+                  </span>
+                </div>
+
+              <div v-if="post.vacancy.requirements" class="vacancy-requirements">
+                <span class="label">Требования:</span>
+                <p class="requirements-text">{{ post.vacancy.requirements }}</p>
+              </div>
+            </div>
+            </div>
+
+            <div v-if="post.vacancy && post.vacancy.status === 'open'" class="vacancy-actions">
+              <button 
+                v-if="!isAuthor && post.respond_url" 
+                @click="showRespondModal = true" 
+                class="respond-btn"
+                :disabled="post.has_application"
+              >
+                {{ post.has_application ? 'Вы уже откликнулись' : 'Откликнуться' }}
+              </button>
+            </div>
+          </template>
+          <template v-else>
+            <p class="description">{{ post.description }}</p>
+          </template>
 
           <div class="meta">
             <small>{{ formattedDate }}</small>
@@ -106,7 +160,7 @@
                 >
                 <img
                   v-else
-                  src="../../../../public/images/User-avatar.svg.png"
+                  src="../../../../public/images/User-avatar.png"
                   class="comment-avatar"
                   :alt="comment.user.name"
                 >
@@ -121,6 +175,41 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showRespondModal" class="modal-overlay" @click.self="showRespondModal = false">
+      <div class="modal-content">
+        <button class="modal-close" @click="showRespondModal = false">&times;</button>
+        <h2>Отклик на вакансию</h2>
+        <form @submit.prevent="submitRespond">
+          <div class="form-group">
+            <label for="cover_letter">Сопроводительное письмо *</label>
+            <textarea
+              id="cover_letter"
+              v-model="respondForm.cover_letter"
+              required
+              placeholder="Расскажите о себе и почему вы подходите на эту вакансию..."
+              rows="6"
+            ></textarea>
+            <div v-if="respondForm.errors.cover_letter" class="error">{{ respondForm.errors.cover_letter }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="proposed_price">Предложенная цена (₽)</label>
+            <input
+              type="number"
+              id="proposed_price"
+              v-model="respondForm.proposed_price"
+              min="1"
+              placeholder="Ваша цена"
+            >
+          </div>
+
+          <button type="submit" class="submit-btn" :disabled="respondForm.processing">
+            {{ respondForm.processing ? 'Отправка...' : 'Отправить отклик' }}
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -131,6 +220,11 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const menuOpen = ref(false)
 const commentErrors = ref({})
+const showRespondModal = ref(false)
+const respondForm = useForm({
+  cover_letter: '',
+  proposed_price: ''
+})
 
 const props = defineProps({
   post: {
@@ -148,6 +242,20 @@ const commentForm = useForm({
 const canEdit = computed(() => {
   return page.props.auth.user && page.props.auth.user.id === props.post.user.id
 })
+
+const isAuthor = computed(() => {
+  return page.props.auth.user && page.props.auth.user.id === props.post.user.id
+})
+
+const submitRespond = () => {
+  respondForm.post(props.post.respond_url, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showRespondModal.value = false
+      respondForm.reset()
+    }
+  })
+}
 
 const formattedDate = computed(() => {
   if (props.post.created_at) {
@@ -177,6 +285,47 @@ const formatDate = (dateString) => {
     month: 'short',
     year: diffInSeconds > 31536000 ? 'numeric' : undefined
   })
+}
+
+const formatDeadline = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+const getSkillClass = (skillName) => {
+  const name = skillName.toLowerCase()
+  const skillClasses = {
+    'php': 'skill-php',
+    'laravel': 'skill-laravel',
+    'javascript': 'skill-js',
+    'vue.js': 'skill-vue',
+    'react': 'skill-react',
+    'node.js': 'skill-node',
+    'python': 'skill-python',
+    'django': 'skill-django',
+    'design': 'skill-design',
+    'ui/ux': 'skill-uiux',
+    'figma': 'skill-figma',
+    'photoshop': 'skill-photoshop',
+    'illustrator': 'skill-illustrator',
+    'copywriting': 'skill-copywriting',
+    'marketing': 'skill-marketing',
+    'seo': 'skill-seo',
+    'smm': 'skill-smm',
+    'content writing': 'skill-content',
+    'video editing': 'skill-video',
+    '3d modeling': 'skill-3d',
+    'animation': 'skill-animation',
+    'motion design': 'skill-motion',
+    'translation': 'skill-translation',
+    'data analysis': 'skill-data',
+    'excel': 'skill-excel'
+  }
+  return skillClasses[name] || 'skill-default'
 }
 
 const toggleMenu = () => {
@@ -267,7 +416,7 @@ header {
   align-items: flex-start;
   transition: all 0.3s ease;
   position: sticky;
-  top: 20px;
+  top: 80px;
   align-self: flex-start;
   z-index: 10;
 }
@@ -476,6 +625,173 @@ header {
 .meta {
   color: #64748b;
   font-size: 14px;
+}
+
+.vacancy-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.vacancy-budget,
+.vacancy-deadline {
+  display: flex;
+  gap: 8px;
+}
+
+.vacancy-budget .label,
+.vacancy-deadline .label,
+.vacancy-skills .label,
+.vacancy-requirements .label {
+  font-weight: 600;
+  color: #334155;
+}
+
+.vacancy-budget .value,
+.vacancy-deadline .value {
+  color: #0f172a;
+}
+
+.vacancy-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-tag {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.skill-tag.skill-php {
+  background: #6b21a8;
+  color: white;
+}
+
+.skill-tag.skill-laravel {
+  background: #ff5722;
+  color: white;
+}
+
+.skill-tag.skill-js {
+  background: #fbbf24;
+  color: #1f2937;
+}
+
+.skill-tag.skill-vue {
+  background: #16a34a;
+  color: white;
+}
+
+.skill-tag.skill-react {
+  background: #0ea5e9;
+  color: white;
+}
+
+.skill-tag.skill-node {
+  background: #15803d;
+  color: white;
+}
+
+.skill-tag.skill-python {
+  background: #2563eb;
+  color: white;
+}
+
+.skill-tag.skill-django {
+  background: #0f766e;
+  color: white;
+}
+
+.skill-tag.skill-design,
+.skill-tag.skill-uiux {
+  background: #ec4899;
+  color: white;
+}
+
+.skill-tag.skill-figma {
+  background: #f59e0b;
+  color: #1f2937;
+}
+
+.skill-tag.skill-photoshop,
+.skill-tag.skill-illustrator {
+  background: #3b82f6;
+  color: white;
+}
+
+.skill-tag.skill-copywriting,
+.skill-tag.skill-content {
+  background: #8b5cf6;
+  color: white;
+}
+
+.skill-tag.skill-marketing,
+.skill-tag.skill-seo,
+.skill-tag.skill-smm {
+  background: #14b8a6;
+  color: white;
+}
+
+.skill-tag.skill-video {
+  background: #ef4444;
+  color: white;
+}
+
+.skill-tag.skill-3d {
+  background: #f97316;
+  color: white;
+}
+
+.skill-tag.skill-animation,
+.skill-tag.skill-motion {
+  background: #d946ef;
+  color: white;
+}
+
+.skill-tag.skill-translation {
+  background: #06b6d4;
+  color: white;
+}
+
+.skill-tag.skill-data,
+.skill-tag.skill-excel {
+  background: #22c55e;
+  color: white;
+}
+
+.skill-tag.skill-default {
+  background: #64748b;
+  color: white;
+}
+
+.skill-level {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.vacancy-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.requirements-text {
+  color: #334155;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .comments-section-wrapper {
@@ -779,6 +1095,121 @@ h3 {
     width: 36px;
     height: 36px;
   }
+}
+
+.vacancy-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.respond-btn {
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  background: rgb(255, 52, 52);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.respond-btn:hover:not(:disabled) {
+  background: rgb(222, 42, 42);
+}
+
+.respond-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-content h2 {
+  margin-bottom: 24px;
+  font-size: 24px;
+  color: #0f172a;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group textarea,
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.form-group textarea:focus,
+.form-group input:focus {
+  border-color: rgb(255, 52, 52);
+  outline: none;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: rgb(255, 52, 52);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: rgb(222, 42, 42);
+}
+
+.submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 </style>
 

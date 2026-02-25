@@ -90,7 +90,7 @@ import axios from 'axios';
   const sendingMessage = ref(null);
   
   // Константы
-  const DEFAULT_AVATAR = '/images/User-avatar.svg.png';
+  const DEFAULT_AVATAR = '/images/User-avatar.png';
   
   // Вычисляемые свойства
   const filteredUsers = computed(() => {

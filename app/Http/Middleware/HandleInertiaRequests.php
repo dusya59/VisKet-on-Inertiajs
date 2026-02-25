@@ -42,11 +42,12 @@ class HandleInertiaRequests extends Middleware
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
                     'is_admin' => $request->user()->is_admin ?? false,
+                    'balance' => $request->user()->balance ?? 0,
                     'profile_url' => '/profile',
                 ] : null,
             ],
             'flash' => [
-                'message' => fn () => $request->session()->get('message')
+                'message' => fn () => $request->session()->get('message'),
             ],
         ]);
     }

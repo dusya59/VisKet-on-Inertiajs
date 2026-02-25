@@ -18,6 +18,6 @@ class Skill extends Model
 
     public function vacancies()
     {
-        return $this->belongsToMany(Vacancy::class, 'vacancy_skills');
+        return $this->belongsToMany(Vacancy::class, 'vacancy_skills')->withPivot('level');
     }
 }

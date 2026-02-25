@@ -445,7 +445,8 @@ CREATE TABLE `vacancies` (
 
 CREATE TABLE `vacancy_skills` (
   `vacancy_id` bigint(20) UNSIGNED NOT NULL,
-  `skill_id` bigint(20) UNSIGNED NOT NULL
+  `skill_id` bigint(20) UNSIGNED NOT NULL,
+  `level`tinyint(4) UNSIGNED NUll
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -94,7 +94,7 @@
   const error = ref(null);
   const deleting = ref(null);
   
-  const DEFAULT_AVATAR = '../../../../public/images/User-avatar.svg.png';
+  const DEFAULT_AVATAR = '../../../../public/images/User-avatar.png';
 
   const filteredComments = computed(() => {
     if (!searchQuery.value) {

@@ -13,6 +13,7 @@
 </template>
 <Link href="/chats">Список чатов</Link>
 <Link :href="'/profile/' + authUser.id">Мой профиль</Link>
+<Link href="/balance">Баланс: {{ authUser.balance }} ₽</Link>
 <button type="button" @click="handleLogout">Выйти</button>
 </template>
 <template v-else>
@@ -41,6 +42,7 @@
     </template>
     <Link href="/chats" @click="closeMenu">Чаты</Link>
     <Link :href="'/profile/' + authUser.id" @click="closeMenu">Профиль</Link>
+    <Link href="/balance" @click="closeMenu">Баланс: {{ authUser.balance }} ₽</Link>
     <div class="mobile-menu-footer">
       <button type="button" @click="handleLogout">Выйти</button>
     </div>

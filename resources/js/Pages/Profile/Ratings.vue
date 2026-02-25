@@ -8,7 +8,7 @@
             
             <div class="rating-header">
                 <img 
-                    :src="user.avatar_url ? user.avatar_url : '/images/User-avatar.svg.png'" 
+                    :src="user.avatar ? '/storage/' + user.avatar : '../../../../images/User-avatar.png'" 
                     class="author-avatar"
                     :alt="`Аватар ${user.name}`"
                 >
@@ -31,7 +31,7 @@
                     <div class="review-header">
                         <Link :href="review.reviewer.profile_url">
                             <img 
-                                :src="review.reviewer.avatar_url ? review.reviewer.avatar_url : '/images/User-avatar.svg.png'" 
+                                :src="review.reviewer.avatar_url ? review.reviewer.avatar_url : '/images/User-avatar.png'" 
                                 class="reviewer-avatar"
                                 :alt="`Аватар ${review.reviewer.name}`"
                             >

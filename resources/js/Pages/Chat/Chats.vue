@@ -57,6 +57,43 @@
             <div class="options-menu-item delete" @click="handleDeleteChat">Удалить чат</div>
           </div>
 
+          <div 
+            v-if="showApplicationBlock" 
+            class="application-block"
+          >
+            <div class="application-card">
+              <img 
+                :src="activeChat.application.user.avatar_url" 
+                class="application-avatar"
+              />
+              <h3>{{ activeChat.application.user.name }}</h3>
+              <p class="account-age">Аккаунт создан {{ formatAccountAge(activeChat.application.user.created_at) }}</p>
+              
+              <div v-if="activeChat.application.user.rating" class="application-rating">
+                <span>Рейтинг: {{ activeChat.application.user.rating }}</span>
+              </div>
+              
+              <div class="application-cover-letter">
+                <h4>Сопроводительное письмо:</h4>
+                <p>{{ activeChat.application.cover_letter }}</p>
+              </div>
+              
+              <div v-if="activeChat.application.proposed_price" class="application-price">
+                <span class="label">Предложенная цена:</span>
+                <span class="value">{{ activeChat.application.proposed_price }} ₽</span>
+              </div>
+              
+              <div v-if="isVacancyAuthor" class="application-actions">
+                <form @submit.prevent="acceptApplication">
+                  <button type="submit" class="accept-btn">Принять отклик</button>
+                </form>
+                <form @submit.prevent="rejectApplication">
+                  <button type="submit" class="reject-btn">Отклонить</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
           <div class="chat-messages" ref="messagesRef">
             <div
               v-for="message in activeChat.messages"
@@ -287,6 +324,44 @@ const otherUsers = computed(() => {
   const currentId = page.props.auth?.user?.id
   return props.activeChat.users.filter((u) => u.id !== currentId)
 })
+
+const showApplicationBlock = computed(() => {
+  if (!props.activeChat) return false
+  if (!props.activeChat.application) return false
+  if (props.activeChat.messages.length > 0) return false
+  if (props.activeChat.application.status !== 'pending') return false
+  return true
+})
+
+const isVacancyAuthor = computed(() => {
+  if (!props.activeChat || !props.activeChat.application) return false
+  const currentUserId = page.props.auth?.user?.id
+  const applicantId = props.activeChat.application.user.id
+  return currentUserId !== applicantId
+})
+
+const formatAccountAge = (createdAt) => {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMs = now - created
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 30) return `${diffDays} дней назад`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} мес. назад`
+  return `${Math.floor(diffDays / 365)} лет назад`
+}
+
+const acceptApplication = () => {
+  router.post(`/applications/${props.activeChat.application.id}/accept`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const rejectApplication = () => {
+  router.post(`/applications/${props.activeChat.application.id}/reject`, {}, {
+    preserveScroll: true,
+  })
+}
 
 const truncate = (text, length) => {
   if (!text) return ''
@@ -1296,6 +1371,124 @@ watch(
     border-bottom: 1px solid #ffeaa7;
     font-size: 14px;
     color: #856404;
+  }
+
+.application-block {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+.application-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.application-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+.application-card h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.account-age {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.application-rating {
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.application-cover-letter {
+  text-align: left;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.application-cover-letter h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.application-cover-letter p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.application-price {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.application-price .label {
+  color: #475569;
+}
+
+.application-price .value {
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.application-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.accept-btn {
+  padding: 10px 20px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.accept-btn:hover {
+  background: #15803d;
+}
+
+.reject-btn {
+  padding: 10px 20px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.reject-btn:hover {
+  background: #b91c1c;
 }
 
 .cancel-edit-btn {

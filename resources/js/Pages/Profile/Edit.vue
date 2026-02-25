@@ -23,7 +23,7 @@
               >
               <img 
                 v-else 
-                src="../../../../public/images/User-avatar.svg.png" 
+                src="../../../../public/images/User-avatar.png" 
                 alt="Аватарка по умолчанию"
               >
             </div>
@@ -103,6 +103,7 @@ const warningThreshold = 50
 const form = useForm({
   name: props.user.name,
   aboutme: props.user.aboutme || '',
+  avatar: null,
   _method: 'PUT'
 })
 
