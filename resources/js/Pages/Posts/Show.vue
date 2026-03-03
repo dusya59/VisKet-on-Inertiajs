@@ -101,6 +101,9 @@
             </div>
 
             <div v-if="post.vacancy && post.vacancy.status === 'open'" class="vacancy-actions">
+              <div v-if="post.vacancy.applications_count > 0" class="applications-count">
+                {{ post.vacancy.applications_count }} {{ getApplicationsWord(post.vacancy.applications_count) }} на эту вакансию
+              </div>
               <button 
                 v-if="!isAuthor && post.respond_url" 
                 @click="showRespondModal = true" 
@@ -200,8 +203,10 @@
               id="proposed_price"
               v-model="respondForm.proposed_price"
               min="1"
+              max="9999999999"
               placeholder="Ваша цена"
             >
+            <div v-if="respondForm.errors.proposed_price" class="error">{{ respondForm.errors.proposed_price }}</div>
           </div>
 
           <button type="submit" class="submit-btn" :disabled="respondForm.processing">
@@ -248,6 +253,20 @@ const isAuthor = computed(() => {
 })
 
 const submitRespond = () => {
+  respondForm.clearErrors()
+  
+  if (!respondForm.cover_letter || respondForm.cover_letter.trim().length < 10) {
+    respondForm.errors.cover_letter = 'Сопроводительное письмо должно содержать минимум 10 символов'
+  }
+  
+  if (respondForm.proposed_price && respondForm.proposed_price > 9999999999) {
+    respondForm.errors.proposed_price = 'Максимальная сумма - 9 999 999 999 ₽'
+  }
+  
+  if (Object.keys(respondForm.errors).length > 0) {
+    return
+  }
+  
   respondForm.post(props.post.respond_url, {
     preserveScroll: true,
     onSuccess: () => {
@@ -270,6 +289,11 @@ const formattedDate = computed(() => {
   }
   return ''
 })
+
+const getApplicationsWord = (count) => {
+  const cases = [2, 0, 1, 1, 1, 2]
+  return ['отклик', 'отклика', 'откликов'][count % 100 > 4 && count % 100 < 20 ? 2 : cases[Math.min(count % 10, 5)]]
+}
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)
@@ -570,7 +594,7 @@ header {
 }
 
 .author-link:hover {
-  color: #4f46e5;
+  color: rgb(222, 42, 42);
   text-decoration: none;
 }
 
@@ -890,7 +914,7 @@ header {
 
 .login-prompt a:hover {
   text-decoration: underline;
-  color: #4338ca;
+  color: rgb(222,42,42);
 }
 
 h3 {
@@ -1100,7 +1124,15 @@ h3 {
 .vacancy-actions {
   margin-top: 20px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.applications-count {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .respond-btn {

@@ -437,3 +437,26 @@ footer div a{
         font-size: 14px;
     }
 }
+
+.main-home {
+  padding: 0;
+}
+.main-padded {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 100px;
+  min-height: 95vh;
+  height: fit-content;
+  flex-direction: column;
+}
+.footer-hidden {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  body.mobile-chat-open header {
+    display: none;
+  }
+}

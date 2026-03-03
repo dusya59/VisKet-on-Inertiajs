@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post;
 use App\Models\Application;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -75,6 +75,7 @@ class PostController extends Controller
 
         $vacancyData = null;
         if ($post->vacancy) {
+            $post->vacancy->load('applications');
             $vacancyData = [
                 'position' => $post->vacancy->position,
                 'budget_min' => $post->vacancy->budget_min,
@@ -82,6 +83,7 @@ class PostController extends Controller
                 'deadline' => $post->vacancy->deadline,
                 'requirements' => $post->vacancy->requirements,
                 'status' => $post->vacancy->status,
+                'applications_count' => $post->vacancy->applications->count(),
                 'skills' => $post->vacancy->skills->map(function ($skill) {
                     return [
                         'id' => $skill->id,
@@ -171,6 +173,27 @@ class PostController extends Controller
             abort(403);
         }
 
+        $post->load('vacancy.skills');
+
+        $vacancyData = null;
+        if ($post->vacancy) {
+            $vacancyData = [
+                'position' => $post->vacancy->position,
+                'budget_min' => $post->vacancy->budget_min,
+                'budget_max' => $post->vacancy->budget_max,
+                'deadline' => $post->vacancy->deadline,
+                'requirements' => $post->vacancy->requirements,
+                'status' => $post->vacancy->status,
+                'skills' => $post->vacancy->skills->map(function ($skill) {
+                    return [
+                        'id' => $skill->id,
+                        'name' => $skill->name,
+                        'level' => $skill->pivot->level ?? 3,
+                    ];
+                })->toArray(),
+            ];
+        }
+
         return Inertia::render('Posts/Edit', [
             'post' => [
                 'id' => $post->id,
@@ -179,7 +202,9 @@ class PostController extends Controller
                 'image_url' => $post->image ? asset('storage/'.$post->image) : null,
                 'update_url' => route('posts.update', $post->id),
                 'show_url' => route('posts.show', $post->id),
+                'vacancy' => $vacancyData,
             ],
+            'skills' => \App\Models\Skill::all(),
         ]);
     }
 
@@ -193,6 +218,13 @@ class PostController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'position' => 'nullable|string|max:255',
+            'budget_min' => 'nullable|numeric|min:0',
+            'budget_max' => 'nullable|numeric|min:0',
+            'deadline' => 'nullable|date',
+            'requirements' => 'nullable|string',
+            'skills' => 'nullable|array',
+            'skills.*' => 'exists:skills,id',
         ]);
 
         if ($request->hasFile('image')) {
@@ -204,7 +236,25 @@ class PostController extends Controller
             $validated['image'] = $imagePath;
         }
 
-        $post->update($validated);
+        $post->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'image' => $validated['image'] ?? $post->image,
+        ]);
+
+        if ($post->vacancy) {
+            $post->vacancy->update([
+                'position' => $validated['position'] ?? null,
+                'budget_min' => $validated['budget_min'] ?? null,
+                'budget_max' => $validated['budget_max'] ?? null,
+                'deadline' => $validated['deadline'] ?? null,
+                'requirements' => $validated['requirements'] ?? null,
+            ]);
+
+            if (isset($validated['skills'])) {
+                $post->vacancy->skills()->sync($validated['skills']);
+            }
+        }
 
         return redirect()->route('posts.show', $post->id)
             ->with('success', 'Пост успешно обновлен!');

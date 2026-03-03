@@ -13,8 +13,8 @@ class ApplicationController extends Controller
     public function respond(Request $request, Vacancy $vacancy)
     {
         $validated = $request->validate([
-            'cover_letter' => 'required|string',
-            'proposed_price' => 'nullable|numeric|min:0',
+            'cover_letter' => 'required|string|min:10|max:5000',
+            'proposed_price' => 'nullable|numeric|min:0|max:9999999999',
         ]);
 
         $user = Auth::user();

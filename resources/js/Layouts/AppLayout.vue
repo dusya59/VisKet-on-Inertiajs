@@ -1,5 +1,4 @@
 <template>
-  <Head><link rel="stylesheet" href="../../css/app.css"></Head>
 <div>
 <header>
 <Link class="logo" href="/">
@@ -77,7 +76,7 @@
 </template>
 
 <script setup>
-import { Head, Link, usePage, router } from '@inertiajs/vue3'
+import { Link, usePage, router } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
 const page = usePage()
@@ -113,28 +112,3 @@ const footerClass = computed(() => {
   return ''
 })
 </script>
-
-<style>
-.main-home {
-  padding: 0;
-}
-.main-padded {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 100px;
-  min-height: 95vh;
-  height: fit-content;
-  flex-direction: column;
-}
-.footer-hidden {
-  display: none;
-}
-
-@media (max-width: 1000px) {
-  body.mobile-chat-open header {
-    display: none;
-  }
-}
-</style>

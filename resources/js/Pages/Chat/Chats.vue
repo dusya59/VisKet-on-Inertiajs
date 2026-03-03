@@ -1,7 +1,6 @@
 <template>
   <AppLayout>
     <Head title="Чаты" />
-
     <div class="chat-container">
       <div class="chat-list">
         <div class="chat-list-header">
@@ -39,10 +38,16 @@
             <Link class="back" @click="handleBackClick"> 
               <img src="../../../../public/build/assets/left-arrow-svgrepo-com.svg" alt="">
             </Link>
-            <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
-                <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
-                <h2>{{ otherUsers[0].name }}</h2>
-            </Link>
+            <div class="chat-header-mid">
+              <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
+                  <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
+                  <h2>{{ otherUsers[0].name }}</h2>
+              </Link>
+              <span v-if="vacancyPostId" class="vacancy-link">
+                  откликнулся на 
+              </span>
+              <Link :href="`/posts/${vacancyPostId}`"><h2>{{ vacancyPosition }}</h2></Link>
+            </div>
             <img class="chat-options" src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="" @click.stop="toggleOptionsMenu">
           </div>
 
@@ -60,8 +65,23 @@
           <div 
             v-if="showApplicationBlock" 
             class="application-block"
+            :class="{ closed: isApplicationBlockClosed }"
           >
-            <div class="application-card">
+            <div class="application-toggle">
+              <button 
+                type="button" 
+                class="application-toggle-btn" 
+                @click="toggleApplicationBlock"
+              >
+            
+                <img 
+                  src="../../../../public/build/assets/up-arrow-svgrepo-com.svg" 
+                  alt="Toggle" 
+                  :class="{ flipped: isApplicationBlockClosed }"
+                />
+              </button>
+            </div>
+            <div class="application-card" v-show="!isApplicationBlockClosed">
               <img 
                 :src="activeChat.application.user.avatar_url" 
                 class="application-avatar"
@@ -293,6 +313,7 @@ const textareaRef = ref(null)
 const messagesRef = ref(null)
 const chatArea = ref(null)
 const photoPreviewUrl = ref(null)
+const isApplicationBlockClosed = ref(false)
 const videoPreviewUrl = ref(null)
 const documentPreviewName = ref(null)
 const modalOpen = ref(false)
@@ -328,7 +349,6 @@ const otherUsers = computed(() => {
 const showApplicationBlock = computed(() => {
   if (!props.activeChat) return false
   if (!props.activeChat.application) return false
-  if (props.activeChat.messages.length > 0) return false
   if (props.activeChat.application.status !== 'pending') return false
   return true
 })
@@ -338,6 +358,21 @@ const isVacancyAuthor = computed(() => {
   const currentUserId = page.props.auth?.user?.id
   const applicantId = props.activeChat.application.user.id
   return currentUserId !== applicantId
+})
+
+const vacancyPosition = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
+  return props.activeChat.application.vacancy.position
+})
+
+const vacancyPostId = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
+  return props.activeChat.application.vacancy.post_id
+})
+
+const applicationUserName = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.user) return ''
+  return props.activeChat.application.user.name
 })
 
 const formatAccountAge = (createdAt) => {
@@ -743,6 +778,15 @@ const handleBackClick = () => {
   }
 }
 
+const toggleApplicationBlock = () => {
+  isApplicationBlockClosed.value = !isApplicationBlockClosed.value
+  try {
+    localStorage.setItem('visket_application_block_closed', isApplicationBlockClosed.value ? '1' : '0')
+  } catch (e) {
+    console.error('Не удалось сохранить состояние', e)
+  }
+}
+
 const onTouchStart = (e) => {
   if (!isMobile()) return
   touchStartX.value = e.touches[0].clientX
@@ -799,6 +843,15 @@ onMounted(() => {
     }
   } catch (e) {
     console.error('Не удалось прочитать состояние скачанных файлов', e)
+  }
+
+  try {
+    const closed = localStorage.getItem('visket_application_block_closed')
+    if (closed === '1') {
+      isApplicationBlockClosed.value = true
+    }
+  } catch (e) {
+    console.error('Не удалось прочитать состояние блока', e)
   }
 
   document.addEventListener('click', hideContextMenu)
@@ -954,6 +1007,7 @@ watch(
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease;
+    position: relative;
 }
 
 .chat-area.sliding {
@@ -985,17 +1039,41 @@ watch(
   height: 30px;
   cursor: pointer;
 }
-
+.chat-header-mid{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+}
 .chat-header-user{
   display: flex;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 15px;
 }
-
+.vacancy-link{
+  height: 25px;
+  display: flex;
+  align-items: end;
+}
 .chat-header a{
   text-decoration: none;
   color: black;
+}
+
+.vacancy-link {
+  font-size: 14px;
+  color: #666;
+}
+
+.vacancy-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.vacancy-link a:hover {
+  text-decoration: underline;
 }
 
 .chat-area.active {
@@ -1375,19 +1453,45 @@ watch(
 
 .application-block {
   display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 20px 0;
+}
+.application-toggle{
+  position: absolute;
+}
+.application-toggle-btn {
+  position: absolute;
+  bottom: -35px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: #f8fafc;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.application-toggle-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+.application-toggle-btn img.flipped {
+  transform: rotate(180deg);
 }
 
 .application-card {
   background: white;
   border-radius: 16px;
-  padding: 24px;
   max-width: 400px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .application-avatar {

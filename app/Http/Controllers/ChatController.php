@@ -73,7 +73,7 @@ class ChatController extends Controller
             abort(403, 'У вас нет доступа к этому чату.');
         }
 
-        $activeChat = $chat->load(['messages.user', 'users', 'application.user']);
+        $activeChat = $chat->load(['messages.user', 'users', 'application.user', 'application.vacancy']);
 
         $chats = $user->chats()
             ->with(['users' => fn ($q) => $q->where('id', '!=', $user->id)])
@@ -120,6 +120,11 @@ class ChatController extends Controller
                     'created_at' => $app->user->created_at->toISOString(),
                     'rating' => $app->user->rating,
                 ],
+                'vacancy' => $app->vacancy ? [
+                    'id' => $app->vacancy->id,
+                    'position' => $app->vacancy->position,
+                    'post_id' => $app->vacancy->post_id,
+                ] : null,
             ];
         }
 

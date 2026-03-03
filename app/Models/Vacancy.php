@@ -23,7 +23,7 @@ class Vacancy extends Model
 
     public function skills()
     {
-        return $this->belongsToMany(Skill::class, 'vacancy_skills');
+        return $this->belongsToMany(Skill::class, 'vacancy_skills')->withPivot('level');
     }
 
     public function reviews()
