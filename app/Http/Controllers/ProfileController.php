@@ -43,6 +43,13 @@ class ProfileController extends Controller
             'followers_count' => $user->followers()->count(),
             'is_subscribed' => $authUser ? $authUser->isSubscribedTo($user) : false,
             'created_at' => $user->created_at->format('d.m.Y'),
+            'skills' => $user->skills->map(function ($skill) {
+                return [
+                    'id' => $skill->id,
+                    'name' => $skill->name,
+                    'level' => $skill->pivot->level,
+                ];
+            }),
         ];
 
         return Inertia::render('Profile/Show', [
@@ -126,10 +133,18 @@ class ProfileController extends Controller
             'name' => $user->name,
             'aboutme' => $user->aboutme,
             'avatar_url' => $user->avatar ? Storage::url($user->avatar) : null,
+            'skills' => $user->skills->map(function ($skill) {
+                return [
+                    'id' => $skill->id,
+                    'name' => $skill->name,
+                    'level' => $skill->pivot->level,
+                ];
+            }),
         ];
 
         return Inertia::render('Profile/Edit', [
             'user' => $userData,
+            'skills' => \App\Models\Skill::all(),
         ]);
     }
 
@@ -153,6 +168,14 @@ class ProfileController extends Controller
         }
 
         $user->update($validated);
+
+        if ($request->has('skills')) {
+            $skillsData = [];
+            foreach ($request->input('skills') as $skill) {
+                $skillsData[$skill['id']] = ['level' => $skill['level'] ?? 3];
+            }
+            $user->skills()->sync($skillsData);
+        }
 
         return Inertia::location(route('profile', $user->id));
     }

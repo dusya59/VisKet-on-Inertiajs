@@ -36,7 +36,7 @@
         <template v-if="activeChat">
           <div class="chat-header">
             <Link class="back" @click="handleBackClick"> 
-              <img src="../../../../public/build/assets/left-arrow-svgrepo-com.svg" alt="">
+              <img src="/images/arrow-left.svg" alt="назад">
             </Link>
             <div class="chat-header-mid">
               <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
@@ -48,7 +48,7 @@
               </span>
               <Link :href="`/posts/${vacancyPostId}`"><h2>{{ vacancyPosition }}</h2></Link>
             </div>
-            <img class="chat-options" src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="" @click.stop="toggleOptionsMenu">
+            <img class="chat-options" src="/images/dots.svg" alt="опции" @click.stop="toggleOptionsMenu">
           </div>
 
           <div
@@ -75,8 +75,9 @@
               >
             
                 <img 
-                  src="../../../../public/build/assets/up-arrow-svgrepo-com.svg" 
+                  src="/images/arrow-up.svg" 
                   alt="Toggle" 
+                  class="toggle-arrow"
                   :class="{ flipped: isApplicationBlockClosed }"
                 />
               </button>

@@ -137,8 +137,7 @@ import axios from 'axios';
       sendingMessage.value = userId;
       
       const response = await axios.post(`/api/conversations/start/${userId}`);
-      
-      // Перенаправляем на страницу чата/сообщений
+    
       if (response.data.conversation_id) {
         router.visit(`/messages/${response.data.conversation_id}`);
       } else {
@@ -157,7 +156,6 @@ import axios from 'axios';
   };
 
   onMounted(() => {
-    // Загрузка стилей
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = '/css/admin.css';

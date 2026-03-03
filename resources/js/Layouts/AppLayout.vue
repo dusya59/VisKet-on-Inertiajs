@@ -22,8 +22,8 @@
 </nav>
 <img 
   class="burger-menu" 
-  src="../../../public/build/assets/burger-menu-svgrepo-com.svg" 
-  alt="burger-menu"
+  src="/images/burger.svg" 
+  alt="menu"
   @click="toggleMenu"
 >
 </header>

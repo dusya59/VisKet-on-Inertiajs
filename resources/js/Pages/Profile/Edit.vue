@@ -71,6 +71,14 @@
                 </div>
               </div>
 
+              <div class="form-group">
+                <label>Ваши навыки:</label>
+                <SkillsSelector
+                  :skills="skills"
+                  v-model="form.skills"
+                />
+              </div>
+
               <div class="form-actions">
                 <button type="submit" class="btn-save" :disabled="form.processing">
                   {{ form.processing ? 'Сохранение...' : 'Сохранить изменения' }}
@@ -89,11 +97,16 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
+import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 
 const props = defineProps({
-  user: Object
+  user: Object,
+  skills: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const avatarPreview = ref(null)
@@ -104,6 +117,7 @@ const form = useForm({
   name: props.user.name,
   aboutme: props.user.aboutme || '',
   avatar: null,
+  skills: props.user.skills || [],
   _method: 'PUT'
 })
 
@@ -130,14 +144,23 @@ const handleAvatarChange = (e) => {
 }
 
 function submit() {
+  if (!form.avatar) {
+    form.transform((data) => {
+      delete data.avatar;
+      return data;
+    });
+  }
+
   form.post(`/profile/${props.user.id}`, {
     forceFormData: true,
     preserveScroll: true,
     onSuccess: () => {
-      form.reset('avatar')
-      avatarPreview.value = null
+      if (form.avatar) {
+        form.reset('avatar');
+        avatarPreview.value = null;
+      }
     }
-  })
+  });
 }
 </script>
 
