@@ -9,7 +9,7 @@
             <div v-for="subscription in following.data" :key="subscription.id" class="user">
                 <Link :href="'/profile/' + subscription.id">
                     <img 
-                        :src="subscription.avatar ? `/storage/${subscription.avatar}` : '/images/User-avatar.svg.png'" 
+                        :src="subscription.avatar ? `/storage/${subscription.avatar}` : '/images/User-avatar.png'" 
                         class="author-avatar"
                         :alt="`Аватар ${subscription.name}`"
                     >

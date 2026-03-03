@@ -1,24 +1,25 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BalanceController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\ChatController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
+use App\Models\Skill;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::post('/posts/vacancy', [PostController::class, 'storeVacancy'])->name('posts.store-vacancy');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
-
 
     Route::middleware('admin')->group(function () {
 
@@ -47,6 +48,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/update-avatar', [ProfileController::class, 'updateAvatar'])->name('profile.update-avatar');
     Route::post('/profile/{user}/subscribe', [ProfileController::class, 'subscribe'])->name('subscribe');
     Route::delete('/profile/{user}/unsubscribe', [ProfileController::class, 'unsubscribe'])->name('unsubscribe');
+
+    Route::get('/balance', [BalanceController::class, 'index'])->name('balance');
+    Route::post('/balance/add', [BalanceController::class, 'add'])->name('balance.add');
+    Route::post('/balance/withdraw', [BalanceController::class, 'withdraw'])->name('balance.withdraw');
+
+    Route::post('/vacancies/{vacancy}/respond', [ApplicationController::class, 'respond'])->name('vacancies.respond');
+    Route::post('/applications/{application}/accept', [ApplicationController::class, 'accept'])->name('applications.accept');
+    Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
+
+    Route::get('/api/skills', function () {
+        return response()->json(Skill::all());
+    });
 });
 
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
@@ -62,9 +75,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile');
 
 Route::get('/profile/{user}/following', [ProfileController::class, 'following'])->name('following');
 Route::get('/profile/{user}/followers', [ProfileController::class, 'followers'])->name('followers');
 Route::get('/profile/{user}/liked-posts', [ProfileController::class, 'likedPosts'])->name('liked-posts');
+Route::get('/ratings/{user}', [ProfileController::class, 'ratings'])->name('ratings');

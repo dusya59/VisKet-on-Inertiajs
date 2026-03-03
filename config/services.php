@@ -34,5 +34,8 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+        'huggingface' => [
+    'api_token' => env('HUGGINGFACE_TOKEN'),
+    ]
 
 ];
