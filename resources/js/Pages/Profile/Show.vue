@@ -18,6 +18,34 @@
           <div class="desc">
             <h1>{{ user.name }}</h1>
           </div>
+          <div v-if="user.rating" class="rating-display">
+            <Link :href="'/ratings/' + user.id" class="rating-link">
+              <div class="stars">
+                <template v-for="i in 5" :key="i">
+                  <img 
+                    v-if="i <= Math.floor(user.rating)" 
+                    src="/build/assets/star-svgrepo-com.svg" 
+                    alt="star"
+                    class="star-icon"
+                  >
+                  <img 
+                    v-else-if="i - 1 < user.rating && user.rating % 1 >= 0.5" 
+                    src="/build/assets/half-star-svgrepo-com.svg" 
+                    alt="half-star"
+                    class="star-icon"
+                  >
+                  <img 
+                    v-else 
+                    src="/build/assets/star-svgrepo-com.svg" 
+                    alt="star-empty"
+                    class="star-icon empty"
+                  >
+                </template>
+              </div>
+              <span class="rating-value">{{ user.rating }}</span>
+            </Link>
+          </div>
+          <p v-if="user.created_at" class="created-at">Аккаунт создан {{ user.created_at }}</p>
         </div>
       </div>
       <div class="aboutme">
@@ -43,12 +71,12 @@
               <button type="submit" :disabled="aboutMeForm.processing">Сохранить</button>
             </form>
           </div>
-          <div v-else class="aboutme-content" :class="{ expanded: isExpanded }" ref="aboutmeContent">
+          <div v-else class="aboutme-content" :class="{ expanded: isExpanded }" :style="{ maxHeight: expandedHeight }" ref="aboutmeContent">
             <p ref="aboutmeText">{{ user.aboutme }}</p>
           </div>
         </div>
         <div v-else class="aboutme-body">
-          <div class="aboutme-content" :class="{ expanded: isExpanded }" ref="aboutmeContent">
+          <div class="aboutme-content" :class="{ expanded: isExpanded }" :style="{ maxHeight: expandedHeight }" ref="aboutmeContent">
             <p class="truncated-text" ref="aboutmeText">{{ user.aboutme || 'Пользователь пока не добавил информацию о себе.' }}</p>
           </div>
         </div>
@@ -112,6 +140,7 @@ const aboutmeText = ref(null);
 const aboutmeContent = ref(null);
 const showExpandButton = ref(false);
 const isExpanded = ref(false);
+const expandedHeight = ref('15em');
 
 const checkTextHeight = () => {
   if (aboutmeText.value) {
@@ -124,6 +153,11 @@ const checkTextHeight = () => {
 };
 
 const toggleExpand = () => {
+  if (!isExpanded.value) {
+    expandedHeight.value = aboutmeText.value.scrollHeight + 'px';
+  } else {
+    expandedHeight.value = '15em';
+  }
   isExpanded.value = !isExpanded.value;
 };
 
@@ -187,30 +221,59 @@ const toggleSubscription = () => {
 };
 </script>
 <style scoped>
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Neucha&family=Rubik+Spray+Paint&display=swap');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Montserrat", serif;
-}
-
 .Profileblock {
-    padding: 70px;
-    width: 100%;
-    display: flex;
-    gap: 100px;
-    justify-content: center;
+  padding: 70px;
+  width: 100%;
+  display: flex;
+  gap: 100px;
+  justify-content: center;
 }
 
 .container {
-    width: 350px;
-    height: min-content;
+  width: 350px;
+  height: min-content;
 }
 
 .avatar h1 {
-    padding: 5px;
+  padding: 5px;
+}
+
+.created-at {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.rating-display {
+  margin-bottom: 10px;
+}
+
+.rating-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.stars {
+    display: flex;
+    gap: 2px;
+}
+
+.star-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.star-icon.empty {
+    opacity: 0.3;
+}
+
+.rating-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
 }
 
 .profile-header {
@@ -306,10 +369,7 @@ const toggleSubscription = () => {
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
-.aboutme-content.expanded {
-    max-height: none; 
-    transition: all .5s ease;
-}
+
 .aboutme h1 {
     font-size: 24px;
     margin-bottom: 20px;

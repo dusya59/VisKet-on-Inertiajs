@@ -9,7 +9,7 @@
             <div v-for="follower in followers.data" :key="follower.id" class="user">
                 <Link :href="'/profile/' + follower.id">
                     <img 
-                        :src="follower.avatar ? `/storage/${follower.avatar}` : '/images/User-avatar.svg.png'" 
+                        :src="follower.avatar ? `/storage/${follower.avatar}` : '/images/User-avatar.png'" 
                         class="author-avatar"
                         :alt="`Аватар ${follower.name}`"
                     >

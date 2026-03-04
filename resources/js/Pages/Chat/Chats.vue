@@ -1,7 +1,6 @@
 <template>
   <AppLayout>
     <Head title="Чаты" />
-
     <div class="chat-container">
       <div class="chat-list">
         <div class="chat-list-header">
@@ -39,11 +38,17 @@
             <Link class="back" @click="handleBackClick"> 
               <img src="../../../../public/build/assets/left-arrow-svgrepo-com.svg" alt="">
             </Link>
-            <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
-                <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
-                <h2>{{ otherUsers[0].name }}</h2>
-            </Link>
-            <img class="chat-options" src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="" @click="toggleOptionsMenu">
+            <div class="chat-header-mid">
+              <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
+                  <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
+                  <h2>{{ otherUsers[0].name }}</h2>
+              </Link>
+              <span v-if="vacancyPostId" class="vacancy-link">
+                  откликнулся на 
+              </span>
+              <Link :href="`/posts/${vacancyPostId}`"><h2>{{ vacancyPosition }}</h2></Link>
+            </div>
+            <img class="chat-options" src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="" @click.stop="toggleOptionsMenu">
           </div>
 
           <div
@@ -55,6 +60,58 @@
             <div class="options-menu-item" @click="handleAddParticipant">Добавить участника в чат</div>
             <div class="options-menu-item" @click="handleSearchChat">Поиск по чату</div>
             <div class="options-menu-item delete" @click="handleDeleteChat">Удалить чат</div>
+          </div>
+
+          <div 
+            v-if="showApplicationBlock" 
+            class="application-block"
+            :class="{ closed: isApplicationBlockClosed }"
+          >
+            <div class="application-toggle">
+              <button 
+                type="button" 
+                class="application-toggle-btn" 
+                @click="toggleApplicationBlock"
+              >
+            
+                <img 
+                  src="../../../../public/build/assets/up-arrow-svgrepo-com.svg" 
+                  alt="Toggle" 
+                  :class="{ flipped: isApplicationBlockClosed }"
+                />
+              </button>
+            </div>
+            <div class="application-card" v-show="!isApplicationBlockClosed">
+              <img 
+                :src="activeChat.application.user.avatar_url" 
+                class="application-avatar"
+              />
+              <h3>{{ activeChat.application.user.name }}</h3>
+              <p class="account-age">Аккаунт создан {{ formatAccountAge(activeChat.application.user.created_at) }}</p>
+              
+              <div v-if="activeChat.application.user.rating" class="application-rating">
+                <span>Рейтинг: {{ activeChat.application.user.rating }}</span>
+              </div>
+              
+              <div class="application-cover-letter">
+                <h4>Сопроводительное письмо:</h4>
+                <p>{{ activeChat.application.cover_letter }}</p>
+              </div>
+              
+              <div v-if="activeChat.application.proposed_price" class="application-price">
+                <span class="label">Предложенная цена:</span>
+                <span class="value">{{ activeChat.application.proposed_price }} ₽</span>
+              </div>
+              
+              <div v-if="isVacancyAuthor" class="application-actions">
+                <form @submit.prevent="acceptApplication">
+                  <button type="submit" class="accept-btn">Принять отклик</button>
+                </form>
+                <form @submit.prevent="rejectApplication">
+                  <button type="submit" class="reject-btn">Отклонить</button>
+                </form>
+              </div>
+            </div>
           </div>
 
           <div class="chat-messages" ref="messagesRef">
@@ -256,6 +313,7 @@ const textareaRef = ref(null)
 const messagesRef = ref(null)
 const chatArea = ref(null)
 const photoPreviewUrl = ref(null)
+const isApplicationBlockClosed = ref(false)
 const videoPreviewUrl = ref(null)
 const documentPreviewName = ref(null)
 const modalOpen = ref(false)
@@ -287,6 +345,58 @@ const otherUsers = computed(() => {
   const currentId = page.props.auth?.user?.id
   return props.activeChat.users.filter((u) => u.id !== currentId)
 })
+
+const showApplicationBlock = computed(() => {
+  if (!props.activeChat) return false
+  if (!props.activeChat.application) return false
+  if (props.activeChat.application.status !== 'pending') return false
+  return true
+})
+
+const isVacancyAuthor = computed(() => {
+  if (!props.activeChat || !props.activeChat.application) return false
+  const currentUserId = page.props.auth?.user?.id
+  const applicantId = props.activeChat.application.user.id
+  return currentUserId !== applicantId
+})
+
+const vacancyPosition = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
+  return props.activeChat.application.vacancy.position
+})
+
+const vacancyPostId = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
+  return props.activeChat.application.vacancy.post_id
+})
+
+const applicationUserName = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.user) return ''
+  return props.activeChat.application.user.name
+})
+
+const formatAccountAge = (createdAt) => {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMs = now - created
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 30) return `${diffDays} дней назад`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} мес. назад`
+  return `${Math.floor(diffDays / 365)} лет назад`
+}
+
+const acceptApplication = () => {
+  router.post(`/applications/${props.activeChat.application.id}/accept`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const rejectApplication = () => {
+  router.post(`/applications/${props.activeChat.application.id}/reject`, {}, {
+    preserveScroll: true,
+  })
+}
 
 const truncate = (text, length) => {
   if (!text) return ''
@@ -668,6 +778,15 @@ const handleBackClick = () => {
   }
 }
 
+const toggleApplicationBlock = () => {
+  isApplicationBlockClosed.value = !isApplicationBlockClosed.value
+  try {
+    localStorage.setItem('visket_application_block_closed', isApplicationBlockClosed.value ? '1' : '0')
+  } catch (e) {
+    console.error('Не удалось сохранить состояние', e)
+  }
+}
+
 const onTouchStart = (e) => {
   if (!isMobile()) return
   touchStartX.value = e.touches[0].clientX
@@ -707,6 +826,14 @@ const onTouchEnd = () => {
   isSwiping.value = false
 }
 
+const syncBodyClass = (hasActiveChat) => {
+  if (hasActiveChat) {
+    document.body.classList.add('mobile-chat-open')
+  } else {
+    document.body.classList.remove('mobile-chat-open')
+  }
+}
+
 onMounted(() => {
   try {
     const raw = window.localStorage.getItem('visket_downloaded_files')
@@ -718,9 +845,19 @@ onMounted(() => {
     console.error('Не удалось прочитать состояние скачанных файлов', e)
   }
 
+  try {
+    const closed = localStorage.getItem('visket_application_block_closed')
+    if (closed === '1') {
+      isApplicationBlockClosed.value = true
+    }
+  } catch (e) {
+    console.error('Не удалось прочитать состояние блока', e)
+  }
+
   document.addEventListener('click', hideContextMenu)
   document.addEventListener('click', hideOptionsMenu)
 
+  syncBodyClass(!!props.activeChat)
   scrollToBottom()
 
   window.Pusher = Pusher;
@@ -736,30 +873,35 @@ onMounted(() => {
   });
 
   if (props.activeChat) {
-  window.Echo.private(`chat.${props.activeChat.id}`)
-    .listen('.message.sent', (e) => {
-      console.log('New message received:', e);
-      router.reload({ only: ['activeChat'] })
-    })
-    .listen('.message.updated', (e) => {
-      console.log('Message updated:', e);
-      router.reload({ only: ['activeChat'] })
-    })
-    .listen('.message.deleted', (e) => {
-      console.log('Message deleted:', e);
-      router.reload({ only: ['activeChat'] })
-    });
-}
+    window.Echo.private(`chat.${props.activeChat.id}`)
+      .listen('.message.sent', (e) => {
+        router.reload({ only: ['activeChat'] })
+      })
+      .listen('.message.updated', (e) => {
+        router.reload({ only: ['activeChat'] })
+      })
+      .listen('.message.deleted', (e) => {
+        router.reload({ only: ['activeChat'] })
+      });
+  }
 })
 
 onUnmounted(() => {
-
   document.removeEventListener('click', hideContextMenu)
   document.removeEventListener('click', hideOptionsMenu)
+  document.body.classList.remove('mobile-chat-open')
+
   if (props.activeChat && window.Echo) {
     window.Echo.leave(`chat.${props.activeChat.id}`)
   }
 })
+
+watch(
+  () => props.activeChat,
+  (newVal) => {
+    syncBodyClass(!!newVal)
+  }
+)
 
 watch(
   () => props.activeChat?.id,
@@ -773,15 +915,12 @@ watch(
     if (newChatId) {
       window.Echo.private(`chat.${newChatId}`)
         .listen('.message.sent', (e) => {
-          console.log('New message received:', e);
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.updated', (e) => {
-          console.log('Message updated:', e);
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.deleted', (e) => {
-          console.log('Message deleted:', e);
           router.reload({ only: ['activeChat'] })
         });
     }
@@ -796,14 +935,13 @@ watch(
     }
   }
 )
-
 </script>
 
 <style scoped>
 
 .chat-container {
     display: flex;
-    height: 100vh;
+    height: 93vh;
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
@@ -850,8 +988,6 @@ watch(
     height: 45px;
     border-radius: 50%;
     object-fit: cover;
-    position: sticky;
-    bottom: 0;
 }
 
 .chat-preview {
@@ -871,6 +1007,7 @@ watch(
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease;
+    position: relative;
 }
 
 .chat-area.sliding {
@@ -884,37 +1021,63 @@ watch(
   border-bottom: 1px solid #eee;
   display: flex;
   align-items: center;
-
 }
+
 .chat-options{
   width: 20px;
   height: 20px;
   cursor: pointer;
 }
+
 .back{
   background: none;
   border: none;
 }
+
 .back img{
   width: 30px;
   height: 30px;
   cursor: pointer;
 }
+.chat-header-mid{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+}
 .chat-header-user{
   display: flex;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 15px;
 }
-
+.vacancy-link{
+  height: 25px;
+  display: flex;
+  align-items: end;
+}
 .chat-header a{
   text-decoration: none;
   color: black;
+}
 
+.vacancy-link {
+  font-size: 14px;
+  color: #666;
+}
+
+.vacancy-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.vacancy-link a:hover {
+  text-decoration: underline;
 }
 
 .chat-area.active {
-    height: 90vh;
+    height: 93vh;
 }
 
 .chat-messages {
@@ -935,7 +1098,10 @@ watch(
 .message-container.right-clicked {
     background-color: rgba(0, 0, 0, 0.05);
 }
-
+.message-container .chat-avatar{
+    position: sticky;
+    bottom: 0;
+}
 .message {
     max-width: 60%;
     width: max-content;
@@ -1283,6 +1449,150 @@ watch(
     border-bottom: 1px solid #ffeaa7;
     font-size: 14px;
     color: #856404;
+  }
+
+.application-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 20px 0;
+}
+.application-toggle{
+  position: absolute;
+}
+.application-toggle-btn {
+  position: absolute;
+  bottom: -35px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.application-toggle-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+.application-toggle-btn img.flipped {
+  transform: rotate(180deg);
+}
+
+.application-card {
+  background: white;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.application-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+.application-card h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.account-age {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.application-rating {
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.application-cover-letter {
+  text-align: left;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.application-cover-letter h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.application-cover-letter p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.application-price {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.application-price .label {
+  color: #475569;
+}
+
+.application-price .value {
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.application-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.accept-btn {
+  padding: 10px 20px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.accept-btn:hover {
+  background: #15803d;
+}
+
+.reject-btn {
+  padding: 10px 20px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.reject-btn:hover {
+  background: #b91c1c;
 }
 
 .cancel-edit-btn {
@@ -1321,27 +1631,31 @@ watch(
         position: absolute;
         left: 0;
         top: 60px;
-        height: calc(100vh);
+        height: calc(100vh - 60px);
         z-index: 10;
-        transition: transform 0.3s ease;
     }
 
     .chat-area {
-
+        display: none;
         max-width: 100%;
         width: 100%;
         position: absolute;
         left: 0;
+        top: 0;
         height: 100vh;
         background: white;
         z-index: 20;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
     }
 
     .chat-area.active {
-        transform: translateX(0);
+        display: flex;
+        flex-direction: column;
         height: 100vh;
+        transform: none;
+    }
+
+    .chat-area.sliding {
+        transform: translateX(100%);
     }
 
     .chat-item {
@@ -1502,9 +1816,6 @@ watch(
     .add-select label {
         padding: 12px;
         font-size: 14px;
-    }
-    header{
-      display: none;
     }
 }
 </style>

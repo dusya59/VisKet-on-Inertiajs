@@ -50,7 +50,7 @@ class MessageSent implements ShouldBroadcastNow
             'name' => $this->user->name,
             'avatar_url' => $this->user->avatar
                 ? asset('storage/' . $this->user->avatar)
-                : asset('images/User-avatar.svg.png'),
+                : asset('images/User-avatar.png'),
         ],
         'message' => [
             'id' => $this->message->id,

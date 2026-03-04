@@ -39,20 +39,131 @@
 
           <div class="content-wrapper">
             <div class="desc">
-              <input 
-                type="text" 
-                v-model="form.title"
-                placeholder="Заголовок поста" 
-                required
-                class="title-input"
-              >
+              <template v-if="!isVacancy">
+                <input 
+                  type="text" 
+                  v-model="form.title"
+                  placeholder="Заголовок поста" 
+                  required
+                  class="title-input"
+                >
 
-              <textarea 
-                v-model="form.description"
-                placeholder="Описание поста" 
-                required
-                class="description-textarea"
-              ></textarea>
+                <textarea 
+                  v-model="form.description"
+                  placeholder="Описание поста" 
+                  required
+                  class="description-textarea"
+                ></textarea>
+              </template>
+
+              <template v-else>
+                <div class="vacancy-fields">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="position">Должность</label>
+                      <input 
+                        type="text" 
+                        v-model="form.position"
+                        id="position"
+                        placeholder="Например: PHP разработчик"
+                      >
+                    </div>
+                  </div>
+
+                  <div class="form-row two-cols">
+                    <div class="form-group">
+                      <label for="budget_min">Бюджет от</label>
+                      <input 
+                        type="number" 
+                        v-model="form.budget_min"
+                        id="budget_min"
+                        placeholder="1000"
+                      >
+                    </div>
+                    <div class="form-group">
+                      <label for="budget_max">Бюджет до</label>
+                      <input 
+                        type="number" 
+                        v-model="form.budget_max"
+                        id="budget_max"
+                        placeholder="5000"
+                      >
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="deadline">Срок выполнения</label>
+                      <input 
+                        type="date" 
+                        v-model="form.deadline"
+                        id="deadline"
+                      >
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="requirements">Требования</label>
+                      <textarea 
+                        v-model="form.requirements"
+                        id="requirements"
+                        placeholder="Опишите требования к исполнителю..."
+                        rows="4"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Требуемые навыки</label>
+                      <div class="multiselect-container">
+                        <div 
+                          class="multiselect-trigger" 
+                          @click="skillsDropdownOpen = !skillsDropdownOpen"
+                        >
+                          <span v-if="selectedSkills.length === 0">Выберите навыки</span>
+                          <span v-else>Выбрано: {{ selectedSkills.length }}</span>
+                          <span class="arrow">▼</span>
+                        </div>
+                        <div v-if="skillsDropdownOpen" class="multiselect-dropdown">
+                          <div 
+                            v-for="skill in skills" 
+                            :key="skill.id"
+                            class="multiselect-option"
+                            :class="{ selected: isSkillSelected(skill.id) }"
+                            @click="toggleSkill(skill)"
+                          >
+                            <span class="skill-name">{{ skill.name }}</span>
+                            <span v-if="isSkillSelected(skill.id)" class="check">✓</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="selectedSkills.length > 0" class="selected-skills">
+                    <div 
+                      v-for="skill in selectedSkills" 
+                      :key="skill.id" 
+                      class="skill-tag"
+                      :class="getSkillClass(skill.name)"
+                    >
+                      <span class="skill-name">{{ skill.name }}</span>
+                      <div class="skill-level">
+                        <select v-model="skill.level" @change="updateSkillLevel(skill.id, skill.level)">
+                          <option :value="1">1</option>
+                          <option :value="2">2</option>
+                          <option :value="3">3</option>
+                          <option :value="4">4</option>
+                          <option :value="5">5</option>
+                        </select>
+                      </div>
+                      <button type="button" @click="toggleSkill(skill)" class="remove-skill">×</button>
+                    </div>
+                  </div>
+                </div>
+              </template>
 
               <div class="error" v-if="form.errors.title">{{ form.errors.title }}</div>
               <div class="error" v-if="form.errors.description">{{ form.errors.description }}</div>
@@ -75,22 +186,100 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, useForm, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
-  post: Object
+  post: Object,
+  skills: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const fileInputRef = ref(null)
 const imagePreview = ref(props.post.image_url)
 const isDragging = ref(false)
+const skillsDropdownOpen = ref(false)
+const selectedSkills = ref([])
+
+const isVacancy = computed(() => props.post.vacancy !== null)
 
 const form = useForm({
   title: props.post.title,
   description: props.post.description,
   image: null,
+  position: props.post.vacancy?.position || '',
+  budget_min: props.post.vacancy?.budget_min || '',
+  budget_max: props.post.vacancy?.budget_max || '',
+  deadline: props.post.vacancy?.deadline || '',
+  requirements: props.post.vacancy?.requirements || '',
+  skills: [],
   _method: 'PUT'
 })
+
+onMounted(() => {
+  if (props.post.vacancy && props.post.vacancy.skills) {
+    selectedSkills.value = props.post.vacancy.skills.map(s => ({
+      id: s.id,
+      name: s.name,
+      level: s.level || 3
+    }))
+    form.skills = props.post.vacancy.skills.map(s => ({
+      id: s.id,
+      level: s.level || 3
+    }))
+  }
+})
+
+const getSkillClass = (skillName) => {
+  const name = skillName.toLowerCase()
+  if (name.includes('php')) return 'skill-php'
+  if (name.includes('laravel')) return 'skill-laravel'
+  if (name.includes('js') || name.includes('javascript')) return 'skill-js'
+  if (name.includes('vue')) return 'skill-vue'
+  if (name.includes('react')) return 'skill-react'
+  if (name.includes('node')) return 'skill-node'
+  if (name.includes('python')) return 'skill-python'
+  if (name.includes('django')) return 'skill-django'
+  if (name.includes('design') || name.includes('ui')) return 'skill-design'
+  if (name.includes('figma')) return 'skill-figma'
+  if (name.includes('photoshop') || name.includes('illustrator')) return 'skill-photoshop'
+  if (name.includes('copy') || name.includes('content')) return 'skill-copywriting'
+  if (name.includes('marketing') || name.includes('seo') || name.includes('smm')) return 'skill-marketing'
+  if (name.includes('video')) return 'skill-video'
+  if (name.includes('3d')) return 'skill-3d'
+  if (name.includes('animation') || name.includes('motion')) return 'skill-animation'
+  if (name.includes('translation')) return 'skill-translation'
+  if (name.includes('data') || name.includes('excel')) return 'skill-data'
+  return 'skill-default'
+}
+
+const isSkillSelected = (skillId) => {
+  return selectedSkills.value.some(s => s.id === skillId)
+}
+
+const updateSkillLevel = (skillId, level) => {
+  const skill = selectedSkills.value.find(s => s.id === skillId)
+  if (skill) {
+    skill.level = level
+    const idx = form.skills.findIndex(s => s.id === skillId)
+    if (idx !== -1) {
+      form.skills[idx].level = level
+    }
+  }
+}
+
+const toggleSkill = (skill) => {
+  const index = selectedSkills.value.findIndex(s => s.id === skill.id)
+  if (index === -1) {
+    const newSkill = { id: skill.id, name: skill.name, level: 3 }
+    selectedSkills.value.push(newSkill)
+    form.skills.push({ id: skill.id, level: 3 })
+  } else {
+    selectedSkills.value.splice(index, 1)
+    form.skills = form.skills.filter(s => s.id !== skill.id)
+  }
+}
 
 const handleAreaClick = () => {
   if (!imagePreview.value) {
@@ -147,6 +336,20 @@ const submit = () => {
     data.image = form.image
   }
   
+  if (isVacancy.value) {
+    data.position = form.position
+    data.budget_min = form.budget_min || null
+    data.budget_max = form.budget_max || null
+    data.deadline = form.deadline || null
+    data.requirements = form.requirements || null
+    
+    const skillsWithLevels = {}
+    form.skills.forEach(s => {
+      skillsWithLevels[s.id] = { level: s.level }
+    })
+    data.skills = skillsWithLevels
+  }
+  
   form.transform(() => data).post(props.post.update_url, {
     forceFormData: true,
     preserveScroll: true
@@ -159,7 +362,7 @@ const submit = () => {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 0px 20px 80px 20px;
 }
 
 form {
@@ -176,19 +379,22 @@ form {
   background: white;
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
   transition: all 0.3s ease;
+  align-items: flex-start;
 }
 
 .image-container {
   flex: 0 0 50%;
   max-width: 50%;
-  position: relative;
-  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  height: fit-content;
   min-height: 400px;
   display: flex;
   align-items: flex-start;
   cursor: pointer;
+  position: sticky;
+  top: 80px;
+  align-self: flex-start;
+  z-index: 10;
 }
 
 .post-image {
@@ -197,6 +403,7 @@ form {
   display: block;
   object-fit: contain;
   cursor: pointer;
+  border-radius: 24px 0 0 24px;
 }
 
 .no-image {
@@ -224,6 +431,7 @@ form {
   justify-content: center;
   opacity: 0;
   transition: all 0.3s ease;
+  border-radius: 24px 0 0 24px;
 }
 
 .image-container:hover .image-overlay {
@@ -430,5 +638,282 @@ form {
   .description-textarea {
     font-size: 15px;
   }
+}
+
+.vacancy-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row.two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: rgb(255, 52, 52);
+  box-shadow: 0 0 0 3px rgba(255, 52, 52, 0.1);
+}
+
+.multiselect-container {
+  position: relative;
+}
+
+.multiselect-trigger {
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.multiselect-trigger:hover {
+  border-color: rgb(255, 52, 52);
+}
+
+.multiselect-trigger .arrow {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.multiselect-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  margin-top: 4px;
+}
+
+.multiselect-option {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+
+.multiselect-option:hover {
+  background: #f8fafc;
+}
+
+.multiselect-option.selected {
+  background: #f0f9ff;
+}
+
+.multiselect-option .check {
+  color: rgb(255, 52, 52);
+  font-weight: bold;
+}
+
+.selected-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.remove-skill {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+}
+
+.remove-skill:hover {
+  color: #ef4444;
+}
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.skill-tag .skill-name {
+  margin-right: 4px;
+}
+
+.skill-tag.skill-php {
+  background: #6b21a8;
+  color: white;
+}
+
+.skill-tag.skill-laravel {
+  background: #ff5722;
+  color: white;
+}
+
+.skill-tag.skill-js {
+  background: #fbbf24;
+  color: #1f2937;
+}
+
+.skill-tag.skill-vue {
+  background: #16a34a;
+  color: white;
+}
+
+.skill-tag.skill-react {
+  background: #0ea5e9;
+  color: white;
+}
+
+.skill-tag.skill-node {
+  background: #15803d;
+  color: white;
+}
+
+.skill-tag.skill-python {
+  background: #2563eb;
+  color: white;
+}
+
+.skill-tag.skill-django {
+  background: #0f766e;
+  color: white;
+}
+
+.skill-tag.skill-design,
+.skill-tag.skill-uiux {
+  background: #ec4899;
+  color: white;
+}
+
+.skill-tag.skill-figma {
+  background: #f59e0b;
+  color: #1f2937;
+}
+
+.skill-tag.skill-photoshop,
+.skill-tag.skill-illustrator {
+  background: #3b82f6;
+  color: white;
+}
+
+.skill-tag.skill-copywriting,
+.skill-tag.skill-content {
+  background: #8b5cf6;
+  color: white;
+}
+
+.skill-tag.skill-marketing,
+.skill-tag.skill-seo,
+.skill-tag.skill-smm {
+  background: #14b8a6;
+  color: white;
+}
+
+.skill-tag.skill-video {
+  background: #ef4444;
+  color: white;
+}
+
+.skill-tag.skill-3d {
+  background: #f97316;
+  color: white;
+}
+
+.skill-tag.skill-animation,
+.skill-tag.skill-motion {
+  background: #d946ef;
+  color: white;
+}
+
+.skill-tag.skill-translation {
+  background: #06b6d4;
+  color: white;
+}
+
+.skill-tag.skill-data,
+.skill-tag.skill-excel {
+  background: #22c55e;
+  color: white;
+}
+
+.skill-tag.skill-default {
+  background: #64748b;
+  color: white;
+}
+
+.skill-level {
+  display: flex;
+  align-items: center;
+}
+
+.skill-level select {
+  padding: 2px 4px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  cursor: pointer;
+}
+
+.skill-level select option {
+  background: #333;
+  color: white;
 }
 </style>

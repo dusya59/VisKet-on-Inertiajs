@@ -41,25 +41,6 @@ const submit = () => {
 </script>
 
 <style scoped>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Neucha&family=Rubik+Spray+Paint&display=swap');
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Montserrat", serif;;
-}
-@font-face {
-    font-family: 'Krasnodar';
-    src: url('Krasnodar.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'cakra';
-    src: url('../Cakra-Normal.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-}
 .container{
     display: flex;
     justify-content: center;
@@ -116,36 +97,11 @@ form button:active{
     background-color: rgb(205, 45, 45);
 }
 
-a{
-    text-decoration: none;
-    color: black;
-}
-a:hover{
-    text-decoration: underline;
-}
-
 .Authblock{
     display: flex;
     border:1px solid rgb(182, 182, 182);
     border-radius: 10px;
     overflow: hidden;
-}
-footer{
-    justify-content: space-evenly;
-    width: 100%;
-    height: 200px;
-    background-color: rgb(211, 211, 211);
-    display: flex;
-
-}
-footer div{
-    height: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-}
-footer div a{
-    cursor: pointer;
 }
 .alert{
     position: absolute;
@@ -157,46 +113,6 @@ footer div a{
 }
 
 @media(max-width:1000px){
-    header{
-        height: 100px;
-        font-size: 32px;
-        z-index: 10;
-    }
-    header button{
-        width: 150px;
-        height: 60px;
-        font-size: 26px;
-    }
-    header div{
-        gap: 40px;
-        font-size:38px ;
-    }
-    header div a{
-        width: min-content;
-    }
-    a.logo{
-        font-size: 68px;
-    }
-    footer{
-        font-size: 28px;
-        height:300px;
-    }
-    footer div{
-        width: 33vw;
-        height:300px;
-        display: flex;
-        align-items: center;
-        text-align: center;
-    }
-    footer div a{
-        height: 70px;
-    }
-    .block{
-        width: 800px;
-        height: 1250px;
-        flex-direction: column;
-    }
-
     .container{
         height: 250px;
         width: 800px;

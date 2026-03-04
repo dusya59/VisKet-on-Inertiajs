@@ -1,4 +1,25 @@
 <template>
+<div>
+<header>
+<Link class="logo" href="/">
+<p class="l1">vis</p>
+<p class="l2">ket</p>
+</Link>
+<nav>
+<template v-if="authUser">
+<template v-if="authUser.is_admin">
+<Link href="/admin">Админ панель</Link>
+</template>
+<Link href="/chats">Список чатов</Link>
+<Link :href="'/profile/' + authUser.id">Мой профиль</Link>
+<Link href="/balance">Баланс: {{ authUser.balance }} ₽</Link>
+<button type="button" @click="handleLogout">Выйти</button>
+</template>
+<template v-else>
+<Link href="/login">Войти</Link>
+<Link href="/register">Регистрация</Link>
+</template>
+</nav>
   <Head><link rel="stylesheet" href="../../css/app.css"></Head>
   <div>
   <header>
@@ -37,6 +58,7 @@
     </template>
     <Link href="/chats" @click="closeMenu">Чаты</Link>
     <Link :href="'/profile/' + authUser.id" @click="closeMenu">Профиль</Link>
+    <Link href="/balance" @click="closeMenu">Баланс: {{ authUser.balance }} ₽</Link>
     <div class="mobile-menu-footer">
       <button type="button" @click="handleLogout">Выйти</button>
     </div>
@@ -71,7 +93,7 @@
 </template>
 
 <script setup>
-import { Head, Link, usePage, router } from '@inertiajs/vue3'
+import { Link, usePage, router } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
 const page = usePage()
@@ -106,23 +128,3 @@ const footerClass = computed(() => {
   return ''
 })
 </script>
-
-<style>
-.main-home {
-  padding: 0;
-}
-.main-padded {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 100px;
-  min-height: 95vh;
-  height: fit-content;
-  flex-direction: column;
-}
-.footer-hidden {
-  display: none;
-}
-
-</style>
