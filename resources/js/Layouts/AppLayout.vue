@@ -1,95 +1,75 @@
 <template>
-<div>
-<header>
-<Link class="logo" href="/">
-<p class="l1">vis</p>
-<p class="l2">ket</p>
-</Link>
-<nav>
-<template v-if="authUser">
-<template v-if="authUser.is_admin">
-<Link href="/admin">Админ панель</Link>
-</template>
-<Link href="/chats">Список чатов</Link>
-<Link :href="'/profile/' + authUser.id">Мой профиль</Link>
-<Link href="/balance">Баланс: {{ authUser.balance }} ₽</Link>
-<button type="button" @click="handleLogout">Выйти</button>
-</template>
-<template v-else>
-<Link href="/login">Войти</Link>
-<Link href="/register">Регистрация</Link>
-</template>
-</nav>
-  <Head><link rel="stylesheet" href="../../css/app.css"></Head>
   <div>
-  <header>
-  <Link class="logo" href="/">
-  <p class="l1">vis</p>
-  <p class="l2">ket</p>
-  </Link>
-  <nav>
-    <template v-if="authUser">
-    <template v-if="authUser.is_admin">
-    <Link href="/admin">Админ панель</Link>
-    </template>
-    <Link href="/chats">Список чатов</Link>
-    <Link :href="'/profile/' + authUser.id">Мой профиль</Link>
-    <button type="button" @click="handleLogout">Выйти</button>
-    </template>
-    <template v-else>
-    <Link href="/login">Войти</Link>
-    <Link href="/register">Регистрация</Link>
-    </template>
-  </nav>
-<img 
-  class="burger-menu" 
-  src="../../../public/build/assets/burger-menu-svgrepo-com.svg" 
-  alt="burger-menu"
-  @click="toggleMenu"
->
-</header>
-<div class="overlay" :class="{ 'overlay-active': menuOpen }" @click="closeMenu"></div>
-<div class="mobile-menu" :class="{ 'mobile-menu-open': menuOpen }">
-  <button class="mobile-menu-close" @click="closeMenu">✕</button>
+    <header>
+      <Link class="logo" href="/">
+        <p class="l1">vis</p>
+        <p class="l2">ket</p>
+      </Link>
+      <nav>
+        <template v-if="authUser">
+          <template v-if="authUser.is_admin">
+            <Link href="/admin">Админ панель</Link>
+          </template>
+          <Link href="/chats">Список чатов</Link>
+          <Link :href="'/profile/' + authUser.id">Мой профиль</Link>
+          <Link href="/balance">Баланс: {{ authUser.balance }} ₽</Link>
+          <button type="button" @click="handleLogout">Выйти</button>
+        </template>
+        <template v-else>
+          <Link href="/login">Войти</Link>
+          <Link href="/register">Регистрация</Link>
+        </template>
+      </nav>
+      <img
+        class="burger-menu"
+        src="../../../public/build/assets/burger-menu-svgrepo-com.svg"
+        alt="burger-menu"
+        @click="toggleMenu"
+      >
+    </header>
 
-  <template v-if="authUser">
-    <template v-if="authUser.is_admin">
-      <Link href="/admin" @click="closeMenu">Админ панель</Link>
-    </template>
-    <Link href="/chats" @click="closeMenu">Чаты</Link>
-    <Link :href="'/profile/' + authUser.id" @click="closeMenu">Профиль</Link>
-    <Link href="/balance" @click="closeMenu">Баланс: {{ authUser.balance }} ₽</Link>
-    <div class="mobile-menu-footer">
-      <button type="button" @click="handleLogout">Выйти</button>
+    <div class="overlay" :class="{ 'overlay-active': menuOpen }" @click="closeMenu"></div>
+    <div class="mobile-menu" :class="{ 'mobile-menu-open': menuOpen }">
+      <button class="mobile-menu-close" @click="closeMenu">✕</button>
+      <template v-if="authUser">
+        <template v-if="authUser.is_admin">
+          <Link href="/admin" @click="closeMenu">Админ панель</Link>
+        </template>
+        <Link href="/chats" @click="closeMenu">Чаты</Link>
+        <Link :href="'/profile/' + authUser.id" @click="closeMenu">Профиль</Link>
+        <Link href="/balance" @click="closeMenu">Баланс: {{ authUser.balance }} ₽</Link>
+        <div class="mobile-menu-footer">
+          <button type="button" @click="handleLogout">Выйти</button>
+        </div>
+      </template>
+      <template v-else>
+        <Link href="/login" @click="closeMenu">Войти</Link>
+        <Link href="/register" @click="closeMenu">Регистрация</Link>
+      </template>
     </div>
-  </template>
-  <template v-else>
-    <Link href="/login" @click="closeMenu">Войти</Link>
-    <Link href="/register" @click="closeMenu">Регистрация</Link>
-  </template>
-</div>
 
-<main :class="mainClass">
-<slot></slot>
-</main>
-<footer :class="footerClass">
-<div>
-<a>Адрес компании</a>
-<a>Телефонный номер</a>
-<a>Электронная почта</a>
-</div>
-<div>
-<a>О нас</a>
-<a>Услуги или продукты</a>
-<a>Часто задаваемые вопросы (FAQ)</a>
-</div>
-<div>
-<a>Политика конфиденциальности</a>
-<a>Условия использования</a>
-<a>© 2025 Все права защищены.</a>
-</div>
-</footer>
-</div>
+    <main :class="mainClass">
+      <slot></slot>
+    </main>
+
+    <footer :class="footerClass">
+      <div>
+        <a>Адрес компании</a>
+        <a>Телефонный номер</a>
+        <a>Электронная почта</a>
+      </div>
+      <div>
+        <a>О нас</a>
+        <a>Услуги или продукты</a>
+        <a>Часто задаваемые вопросы (FAQ)</a>
+      </div>
+      <div>
+        <a>Политика конфиденциальности</a>
+        <a>Условия использования</a>
+        <a>© 2025 Все права защищены.</a>
+      </div>
+    </footer>
+  </div>
 </template>
 
 <script setup>
