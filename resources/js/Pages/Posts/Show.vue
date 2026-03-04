@@ -25,7 +25,7 @@
               </button>
               <div v-if="menuOpen" class="dropdown-menu">
                 <button @click="sharePost" class="menu-item">
-                  <img src="../../../../public/build/assets/share-1-svgrepo-com.svg" alt="">Поделиться
+                  <img src="../../../../public/build/assets/share-svgrepo-com.svg" alt="">Поделиться
                 </button>
                 <Link :href="post.edit_url" class="menu-item">
                   <img src="../../../../public/build/assets/pencil-box-svgrepo-com.svg" alt="">Редактировать

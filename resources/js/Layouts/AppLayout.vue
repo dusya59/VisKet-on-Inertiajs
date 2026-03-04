@@ -1,25 +1,25 @@
 <template>
   <Head><link rel="stylesheet" href="../../css/app.css"></Head>
-<div>
-<header>
-<Link class="logo" href="/">
-<p class="l1">vis</p>
-<p class="l2">ket</p>
-</Link>
-<nav>
-<template v-if="authUser">
-<template v-if="authUser.is_admin">
-<Link href="/admin">Админ панель</Link>
-</template>
-<Link href="/chats">Список чатов</Link>
-<Link :href="'/profile/' + authUser.id">Мой профиль</Link>
-<button type="button" @click="handleLogout">Выйти</button>
-</template>
-<template v-else>
-<Link href="/login">Войти</Link>
-<Link href="/register">Регистрация</Link>
-</template>
-</nav>
+  <div>
+  <header>
+  <Link class="logo" href="/">
+  <p class="l1">vis</p>
+  <p class="l2">ket</p>
+  </Link>
+  <nav>
+    <template v-if="authUser">
+    <template v-if="authUser.is_admin">
+    <Link href="/admin">Админ панель</Link>
+    </template>
+    <Link href="/chats">Список чатов</Link>
+    <Link :href="'/profile/' + authUser.id">Мой профиль</Link>
+    <button type="button" @click="handleLogout">Выйти</button>
+    </template>
+    <template v-else>
+    <Link href="/login">Войти</Link>
+    <Link href="/register">Регистрация</Link>
+    </template>
+  </nav>
 <img 
   class="burger-menu" 
   src="../../../public/build/assets/burger-menu-svgrepo-com.svg" 
@@ -27,11 +27,7 @@
   @click="toggleMenu"
 >
 </header>
-
-<!-- Затемнение фона -->
 <div class="overlay" :class="{ 'overlay-active': menuOpen }" @click="closeMenu"></div>
-
-<!-- Мобильное меню -->
 <div class="mobile-menu" :class="{ 'mobile-menu-open': menuOpen }">
   <button class="mobile-menu-close" @click="closeMenu">✕</button>
 
@@ -81,7 +77,6 @@ import { computed, ref } from 'vue'
 const page = usePage()
 const authUser = computed(() => page.props.auth?.user || page.props.user || null)
 
-// Состояние меню
 const menuOpen = ref(false)
 const toggleMenu = () => menuOpen.value = !menuOpen.value
 const closeMenu = () => menuOpen.value = false
