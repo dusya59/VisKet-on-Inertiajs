@@ -94,6 +94,9 @@ header nav{
 }
 .burger-menu{
     display: none;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
 }
 .overlay {
   display: none;

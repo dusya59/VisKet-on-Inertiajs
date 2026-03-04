@@ -1,0 +1,22 @@
+export function getSkillClass(skillName) {
+  const name = skillName.toLowerCase()
+  if (name.includes('php')) return 'skill-php'
+  if (name.includes('laravel')) return 'skill-laravel'
+  if (name.includes('js') || name.includes('javascript')) return 'skill-js'
+  if (name.includes('vue')) return 'skill-vue'
+  if (name.includes('react')) return 'skill-react'
+  if (name.includes('node')) return 'skill-node'
+  if (name.includes('python')) return 'skill-python'
+  if (name.includes('django')) return 'skill-django'
+  if (name.includes('design') || name.includes('ui')) return 'skill-design'
+  if (name.includes('figma')) return 'skill-figma'
+  if (name.includes('photoshop') || name.includes('illustrator')) return 'skill-photoshop'
+  if (name.includes('copy') || name.includes('content')) return 'skill-copywriting'
+  if (name.includes('marketing') || name.includes('seo') || name.includes('smm')) return 'skill-marketing'
+  if (name.includes('video')) return 'skill-video'
+  if (name.includes('3d')) return 'skill-3d'
+  if (name.includes('animation') || name.includes('motion')) return 'skill-animation'
+  if (name.includes('translation')) return 'skill-translation'
+  if (name.includes('data') || name.includes('excel')) return 'skill-data'
+  return 'skill-default'
+}

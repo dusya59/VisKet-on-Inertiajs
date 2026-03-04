@@ -141,21 +141,10 @@ import axios from 'axios';
   const handleSearch = () => {
 
   };
-  
-  // Lifecycle hooks
   onMounted(() => {
-
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/css/admin.css';
-    document.head.appendChild(link);
-  
-    // Загрузка JS
     const script = document.createElement('script');
     script.src = '/js/admin.js';
     document.body.appendChild(script);
-  
-    // Загрузка постов
     fetchPosts();
   });
   </script>

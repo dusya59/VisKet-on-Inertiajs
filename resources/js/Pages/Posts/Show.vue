@@ -26,17 +26,17 @@
             </template>
             <div class="menu-container" v-if="canEdit">
               <button @click="toggleMenu" class="menu-btn" type="button">
-                <img src="../../../../public/build/assets/dots-vertical-svgrepo-com.svg" alt="">
+                <img src="/images/dots.svg" alt="меню">
               </button>
               <div v-if="menuOpen" class="dropdown-menu">
                 <button @click="sharePost" class="menu-item">
                   <img src="../../../../public/build/assets/share-svgrepo-com.svg" alt="">Поделиться
                 </button>
                 <Link :href="post.edit_url" class="menu-item">
-                  <img src="../../../../public/build/assets/pencil-box-svgrepo-com.svg" alt="">Редактировать
+                  <img src="/images/edit.svg" alt="">Редактировать
                 </Link>
                 <button @click="deletePost" class="menu-item delete">
-                  <img src="../../../../public/build/assets/trash-blank-svgrepo-com.svg" alt=""> Удалить
+                  <img src="/images/trash.svg" alt=""> Удалить
                 </button>
               </div>
             </div>
@@ -51,7 +51,7 @@
             >
             <img
               v-else
-              src="../../../../public/images/User-avatar.png"
+              src="/images/User-avatar.png"
               class="author-avatar"
               :alt="post.user.name"
             >
@@ -89,7 +89,8 @@
                     class="skill-tag"
                     :class="getSkillClass(skill.name)"
                   >
-                    {{ skill.name }} <span class="skill-level">({{ skill.level }})</span>
+                    {{ skill.name }}
+                    <span class="skill-level">★ {{ skill.level }}</span>
                   </span>
                 </div>
 
@@ -220,6 +221,7 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { getSkillClass } from '@/composables/useSkills'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
@@ -318,38 +320,6 @@ const formatDeadline = (dateString) => {
     month: 'long',
     year: 'numeric'
   })
-}
-
-const getSkillClass = (skillName) => {
-  const name = skillName.toLowerCase()
-  const skillClasses = {
-    'php': 'skill-php',
-    'laravel': 'skill-laravel',
-    'javascript': 'skill-js',
-    'vue.js': 'skill-vue',
-    'react': 'skill-react',
-    'node.js': 'skill-node',
-    'python': 'skill-python',
-    'django': 'skill-django',
-    'design': 'skill-design',
-    'ui/ux': 'skill-uiux',
-    'figma': 'skill-figma',
-    'photoshop': 'skill-photoshop',
-    'illustrator': 'skill-illustrator',
-    'copywriting': 'skill-copywriting',
-    'marketing': 'skill-marketing',
-    'seo': 'skill-seo',
-    'smm': 'skill-smm',
-    'content writing': 'skill-content',
-    'video editing': 'skill-video',
-    '3d modeling': 'skill-3d',
-    'animation': 'skill-animation',
-    'motion design': 'skill-motion',
-    'translation': 'skill-translation',
-    'data analysis': 'skill-data',
-    'excel': 'skill-excel'
-  }
-  return skillClasses[name] || 'skill-default'
 }
 
 const toggleMenu = () => {
@@ -697,6 +667,8 @@ header {
   border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
+  gap: 3px;
+  align-items: center;
 }
 
 .skill-tag.skill-php {

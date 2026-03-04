@@ -24,19 +24,19 @@
                 <template v-for="i in 5" :key="i">
                   <img 
                     v-if="i <= Math.floor(user.rating)" 
-                    src="/build/assets/star-svgrepo-com.svg" 
+                    src="/images/star.svg" 
                     alt="star"
                     class="star-icon"
                   >
                   <img 
                     v-else-if="i - 1 < user.rating && user.rating % 1 >= 0.5" 
-                    src="/build/assets/half-star-svgrepo-com.svg" 
+                    src="/images/star.svg" 
                     alt="half-star"
-                    class="star-icon"
+                    class="star-icon half"
                   >
                   <img 
                     v-else 
-                    src="/build/assets/star-svgrepo-com.svg" 
+                    src="/images/star-empty.svg" 
                     alt="star-empty"
                     class="star-icon empty"
                   >
@@ -59,7 +59,7 @@
           </Link>
           <Link :href="'/profile/' + user.id + '/liked-posts'">Лайки</Link>
           <Link v-if="isOwnProfile" :href="'/profile/' + user.id + '/edit'" class="btn-edit">
-            <img src="../../../../public/images/54512.png" alt="Редактировать профиль">
+            <img src="/images/edit.svg" alt="Редактировать профиль">
           </Link>
         </div>
 
@@ -84,6 +84,21 @@
         <a v-if="showExpandButton" @click="toggleExpand" class="expand">
           {{ isExpanded ? 'Свернуть' : 'Развернуть' }}
         </a>
+
+        <div v-if="user.skills && user.skills.length > 0" class="user-skills">
+          <h3>Навыки</h3>
+          <div class="skills-list">
+            <div 
+              v-for="skill in user.skills" 
+              :key="skill.id" 
+              class="skill-tag"
+              :class="getSkillClass(skill.name)"
+            >
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-level">★ {{ skill.level }}</span>
+            </div>
+          </div>
+        </div>
 
         <div v-if="!isOwnProfile && auth.user" class="profile-actions">
           <form @submit.prevent="toggleSubscription">
@@ -122,6 +137,7 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { getSkillClass } from '@/composables/useSkills'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted, nextTick } from 'vue';
 import Post from '@/Components/Post.vue'
@@ -267,7 +283,11 @@ const toggleSubscription = () => {
 }
 
 .star-icon.empty {
-    opacity: 0.3;
+    color: #fbbf24;
+}
+
+.star-icon.half {
+    color: #fbbf24;
 }
 
 .rating-value {
@@ -595,4 +615,60 @@ h2 {
     margin-top: 20px; 
     cursor: pointer;
 }
+
+.user-skills {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.user-skills h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.skills-list .skill-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.skills-list .skill-name {
+    font-weight: 500;
+}
+
+.skills-list .skill-level {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.skills-list .skill-php { background: #6b21a8; color: white; }
+.skills-list .skill-laravel { background: #ff5722; color: white; }
+.skills-list .skill-js { background: #fbbf24; color: #1f2937; }
+.skills-list .skill-vue { background: #16a34a; color: white; }
+.skills-list .skill-react { background: #0ea5e9; color: white; }
+.skills-list .skill-node { background: #15803d; color: white; }
+.skills-list .skill-python { background: #2563eb; color: white; }
+.skills-list .skill-django { background: #0f766e; color: white; }
+.skills-list .skill-design { background: #ec4899; color: white; }
+.skills-list .skill-figma { background: #f59e0b; color: #1f2937; }
+.skills-list .skill-photoshop, .skills-list .skill-illustrator { background: #3b82f6; color: white; }
+.skills-list .skill-copywriting, .skills-list .skill-content { background: #8b5cf6; color: white; }
+.skills-list .skill-marketing, .skills-list .skill-seo, .skills-list .skill-smm { background: #14b8a6; color: white; }
+.skills-list .skill-video { background: #ef4444; color: white; }
+.skills-list .skill-3d { background: #f97316; color: white; }
+.skills-list .skill-animation, .skills-list .skill-motion { background: #d946ef; color: white; }
+.skills-list .skill-translation { background: #06b6d4; color: white; }
+.skills-list .skill-data, .skills-list .skill-excel { background: #22c55e; color: white; }
+.skills-list .skill-default { background: #64748b; color: white; }
 </style>

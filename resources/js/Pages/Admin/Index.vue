@@ -29,6 +29,3 @@ import { Link } from '@inertiajs/vue3';
     document.head.appendChild(link);
   });
   </script>
-  
-  <style scoped>
-  </style>
