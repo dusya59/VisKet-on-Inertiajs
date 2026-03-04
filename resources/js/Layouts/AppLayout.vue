@@ -22,7 +22,7 @@
       </nav>
       <img
         class="burger-menu"
-        src="../../../public/build/assets/burger-menu-svgrepo-com.svg"
+        src="/images/burger.svg"
         alt="burger-menu"
         @click="toggleMenu"
       >
@@ -94,7 +94,12 @@ const mainClass = computed(() => {
     page.component === 'Profile/Show' ||
     page.component === 'Profile/Edit' ||
     page.component === 'Chat/Chats' ||
-    page.component === 'Posts/Show'
+    page.component === 'Posts/Show' ||
+    page.component === 'Admin/Index' ||
+    page.component === 'Admin/Comments' ||
+    page.component === 'Admin/Posts' ||
+    page.component === 'Admin/Users' ||
+    page.component === 'Profile/LikedPosts'
   ) {
     return 'main-home'
   }

@@ -262,9 +262,10 @@ header nav{
     align-items: center;
     justify-content: center;
     gap: 100px;
-    height: 100px;
+    min-height: 100px;
+    padding: 20px 0;
     width: 100%;
-    border-bottom: 1px solid rgb(182, 182, 182);
+    flex-wrap: wrap;
 }
 
 input[type="text"]{
@@ -285,7 +286,7 @@ input[type="text"]{
 .block2 div button{
     background-color: rgb(255, 52, 52);
     border: none;
-    width: 200px;
+    width: 120px;
     height: 60px;
     border-radius:10px ;
     font-size:16px;
@@ -462,4 +463,119 @@ footer div a{
   body.mobile-chat-open header {
     display: none;
   }
+}
+
+.filters {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.filter-group .multiselect-container {
+  max-width: 280px;
+}
+
+.multiselect-trigger {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+}
+
+.skill-tag .skill-level label {
+  display: none;
+}
+
+.skill-tag .skill-level select {
+  padding: 1px 4px;
+  font-size: 11px;
+}
+
+.type-selector {
+  display: flex;
+  gap: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.type-selector button {
+  padding: 8px 16px;
+  border: none;
+  background: white;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.type-selector button:not(:last-child) {
+  border-right: 1px solid #e2e8f0;
+}
+
+.type-selector button:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.type-selector button.active {
+  background: rgb(255, 52, 52);
+  color: white;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e2e8f0;
+  margin: 20px 0;
+  padding: 0 20px;
+}
+
+.tabs button {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tabs button:hover {
+  color: #334155;
+}
+
+.tabs button.active {
+  color: rgb(255, 52, 52);
+  border-bottom-color: rgb(255, 52, 52);
 }

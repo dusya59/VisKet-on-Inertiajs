@@ -2,13 +2,14 @@
     <AppLayout>
         <Head :title="`Понравившиеся посты ${user.name}`"/>
         <div class="likeshead">
-            <h2>Лайки {{ user.name }}</h2>
-            <Link :href="'/profile/' + user.id">← Вернуться в профиль</Link>
+                <h1>Лайки {{ user.name }}</h1>
+                <Link :href="'/profile/' + user.id">← Вернуться в профиль</Link>
         </div>
         <h1 v-if="likedPosts.length === 0" class="noposts">
             У {{ user.name }} пока что нет понравившихся постов...
         </h1>
         <div v-else class="posts">
+            
             <Post
                 v-for="like in likedPosts"
                 :key="like.id"
@@ -33,10 +34,13 @@ defineProps({
 <style scoped>
 .likeshead{
     width: 80%;
+    margin: 0 auto;
+    padding: 30px;
+    height: 100px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
-
 
 .likeshead a {
     color: #666;

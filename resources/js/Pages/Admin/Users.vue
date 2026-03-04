@@ -78,9 +78,12 @@
   
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
+
+let adminLink = null;
+let adminScript = null;
   
   // Состояние
   const users = ref([]);
@@ -156,16 +159,27 @@ import axios from 'axios';
   };
 
   onMounted(() => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/css/admin.css';
-    document.head.appendChild(link);
+    adminLink = document.createElement('link');
+    adminLink.rel = 'stylesheet';
+    adminLink.href = '/css/admin.css';
+    document.head.appendChild(adminLink);
 
-    const script = document.createElement('script');
-    script.src = '/js/admin.js';
-    document.body.appendChild(script);
+    adminScript = document.createElement('script');
+    adminScript.src = '/js/admin.js';
+    document.body.appendChild(adminScript);
 
     fetchUsers();
+  });
+
+  onUnmounted(() => {
+    if (adminLink) {
+      document.head.removeChild(adminLink);
+      adminLink = null;
+    }
+    if (adminScript) {
+      document.body.removeChild(adminScript);
+      adminScript = null;
+    }
   });
 </script>
   

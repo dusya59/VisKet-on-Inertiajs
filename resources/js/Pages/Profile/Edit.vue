@@ -23,7 +23,7 @@
               >
               <img 
                 v-else 
-                src="../../../../public/images/User-avatar.png" 
+                src="/images/User-avatar.png" 
                 alt="Аватарка по умолчанию"
               >
             </div>

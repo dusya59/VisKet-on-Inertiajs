@@ -19,13 +19,22 @@
   
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
   
+  let adminLink = null;
+  
   onMounted(() => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/css/admin.css';
-    document.head.appendChild(link);
+    adminLink = document.createElement('link');
+    adminLink.rel = 'stylesheet';
+    adminLink.href = '/css/admin.css';
+    document.head.appendChild(adminLink);
+  });
+  
+  onUnmounted(() => {
+    if (adminLink) {
+      document.head.removeChild(adminLink);
+      adminLink = null;
+    }
   });
   </script>

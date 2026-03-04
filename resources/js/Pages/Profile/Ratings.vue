@@ -8,7 +8,7 @@
             
             <div class="rating-header">
                 <img 
-                    :src="user.avatar ? '/storage/' + user.avatar : '../../../../images/User-avatar.png'" 
+                    :src="user.avatar ? '/storage/' + user.avatar : '/images/User-avatar.png'" 
                     class="author-avatar"
                     :alt="`Аватар ${user.name}`"
                 >

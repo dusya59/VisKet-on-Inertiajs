@@ -59,7 +59,7 @@
           </Link>
           <Link :href="'/profile/' + user.id + '/liked-posts'">Лайки</Link>
           <Link v-if="isOwnProfile" :href="'/profile/' + user.id + '/edit'" class="btn-edit">
-            <img src="/images/edit.svg" alt="Редактировать профиль">
+            <img src="/images/settings.png" alt="Редактировать профиль">
           </Link>
         </div>
 
@@ -81,9 +81,9 @@
           </div>
         </div>
 
-        <a v-if="showExpandButton" @click="toggleExpand" class="expand">
+        <Link v-if="showExpandButton" @click="toggleExpand" class="expand">
           {{ isExpanded ? 'Свернуть' : 'Развернуть' }}
-        </a>
+        </Link>
 
         <div v-if="user.skills && user.skills.length > 0" class="user-skills">
           <h3>Навыки</h3>

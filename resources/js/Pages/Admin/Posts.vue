@@ -78,9 +78,25 @@
   
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
+
+let adminLink = null;
+
+onMounted(() => {
+  adminLink = document.createElement('link');
+  adminLink.rel = 'stylesheet';
+  adminLink.href = '/css/admin.css';
+  document.head.appendChild(adminLink);
+});
+
+onUnmounted(() => {
+  if (adminLink) {
+    document.head.removeChild(adminLink);
+    adminLink = null;
+  }
+});
 
   const posts = ref([]);
   const searchQuery = ref('');

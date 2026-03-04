@@ -84,9 +84,12 @@
   </template>
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import { ref, computed, onMounted } from 'vue';
+    import { ref, computed, onMounted, onUnmounted } from 'vue';
     import { Link } from '@inertiajs/vue3';
     import axios from 'axios';
+
+    let adminLink = null;
+    let adminScript = null;
 
   const comments = ref([]);
   const searchQuery = ref('');
@@ -94,7 +97,7 @@
   const error = ref(null);
   const deleting = ref(null);
   
-  const DEFAULT_AVATAR = '../../../../public/images/User-avatar.png';
+  const DEFAULT_AVATAR = '/images/User-avatar.png';
 
   const filteredComments = computed(() => {
     if (!searchQuery.value) {
@@ -214,16 +217,26 @@
   };
 
   onMounted(() => {
+    adminLink = document.createElement('link');
+    adminLink.rel = 'stylesheet';
+    adminLink.href = '/css/admin.css';
+    document.head.appendChild(adminLink);
 
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/css/admin.css';
-    document.head.appendChild(link);
-
-    const script = document.createElement('script');
-    script.src = '/js/admin.js';
-    document.body.appendChild(script);
+    adminScript = document.createElement('script');
+    adminScript.src = '/js/admin.js';
+    document.body.appendChild(adminScript);
 
     fetchComments();
+  });
+
+  onUnmounted(() => {
+    if (adminLink) {
+      document.head.removeChild(adminLink);
+      adminLink = null;
+    }
+    if (adminScript) {
+      document.body.removeChild(adminScript);
+      adminScript = null;
+    }
   });
   </script>

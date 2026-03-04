@@ -150,8 +150,8 @@
                       :title="isFileDownloaded(message) ? 'Скачано' : 'Скачать'"
                       @click="downloadFile(message)"
                     >
-                      <span v-if="!isFileDownloaded(message)"><img src="../../../../public/images/download.svg" alt="Скачать" /></span>
-                      <span v-else><img src="../../../../public/images/document.svg" alt="Файл" /></span>
+                      <span v-if="!isFileDownloaded(message)"><img src="/images/download.svg" alt="Скачать" /></span>
+                      <span v-else><img src="/images/document.svg" alt="Файл" /></span>
                     </button>
                     <div class="file-meta">
                       <div class="file-name">
@@ -175,7 +175,7 @@
             </div>
             <div class="message-input-container">
               <div class="add" v-if="!editingMessage">
-                <img src="../../../../public/images/1911563.svg" alt="Добавить вложение" />
+                <img src="/images/1911563.svg" alt="Добавить вложение" />
                 <div class="add-select">
                   <label>
                     Фото

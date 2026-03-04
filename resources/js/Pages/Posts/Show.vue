@@ -30,7 +30,7 @@
               </button>
               <div v-if="menuOpen" class="dropdown-menu">
                 <button @click="sharePost" class="menu-item">
-                  <img src="../../../../public/build/assets/share-svgrepo-com.svg" alt="">Поделиться
+                  <img src="/images/share.svg" alt="">Поделиться
                 </button>
                 <Link :href="post.edit_url" class="menu-item">
                   <img src="/images/edit.svg" alt="">Редактировать
@@ -164,7 +164,7 @@
                 >
                 <img
                   v-else
-                  src="../../../../public/images/User-avatar.png"
+                  src="/images/User-avatar.png"
                   class="comment-avatar"
                   :alt="comment.user.name"
                 >
