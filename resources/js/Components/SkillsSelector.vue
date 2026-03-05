@@ -26,28 +26,6 @@
         </div>
       </div>
     </div>
-
-    <div v-if="selectedSkills.length > 0" class="selected-skills">
-      <div 
-        v-for="skill in selectedSkills" 
-        :key="skill.id" 
-        class="skill-tag"
-        :class="getSkillClass(skill.name)"
-      >
-        <span class="skill-name">{{ skill.name }}</span>
-        <div class="skill-level">
-          <label>Уровень:</label>
-          <select v-model="skill.level" @change="emitUpdate">
-            <option :value="1">1</option>
-            <option :value="2">2</option>
-            <option :value="3">3</option>
-            <option :value="4">4</option>
-            <option :value="5">5</option>
-          </select>
-        </div>
-        <button type="button" class="remove-skill" @click="removeSkill(skill.id)">×</button>
-      </div>
-    </div>
   </div>
 </template>
 
