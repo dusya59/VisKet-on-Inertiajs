@@ -194,6 +194,7 @@ header nav{
 }
 
 .posts {
+  min-height: 80vh;
     width: 80%;
     margin: 0 auto;
     padding: 30px;
@@ -273,33 +274,13 @@ input[type="text"]{
     padding: 5px 10px;
     border-radius:10px;
     border: solid 1px rgb(182, 182, 182);
-    width: 350px;
+    outline: none;
+    width: 900px;
     height: 60px;
 }
-
-.block2 div{
-    display: flex;
-    gap: 20px;
-    align-items:center;  
+input[type="text"]:focus{
+  border: solid 1px rgb(255,52,52);
 }
-
-.block2 div button{
-    background-color: rgb(255, 52, 52);
-    border: none;
-    width: 120px;
-    height: 60px;
-    border-radius:10px ;
-    font-size:16px;
-}
-
-.block2 div button:hover{
-    background-color: rgb(230, 45, 45);
-}
-
-.block2 div button:active{
-    background-color: rgb(205, 45, 45);
-}
-
 .hidden{
     display: none;
 }
@@ -489,6 +470,7 @@ footer div a{
 }
 
 .multiselect-trigger {
+  gap: 10px;
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;

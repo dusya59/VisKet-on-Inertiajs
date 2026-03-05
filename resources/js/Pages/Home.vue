@@ -8,9 +8,16 @@
     </div>
 
     <div class="block2">
-      <input v-model="query" type="text" placeholder="Поиск по постам" />
+      
       
       <div class="filters">
+        <div class="filter-group">
+          <label>Навыки:</label>
+          <SkillsSelector
+            v-model="selectedSkills"
+            :skills="skills"
+          />
+        </div>
         <div class="filter-group">
           <label>Тип:</label>
           <div class="type-selector">
@@ -34,15 +41,8 @@
             </button>
           </div>
         </div>
-        
-        <div class="filter-group">
-          <label>Навыки:</label>
-          <SkillsSelector
-            v-model="selectedSkills"
-            :skills="skills"
-          />
-        </div>
       </div>
+      <input v-model="query" type="text" placeholder="Поиск по постам" />
     </div>
     <div class="tabs">
       <button 
@@ -60,18 +60,26 @@
     </div>
   </div> 
   <div class="posts">
+    <template v-if="displayedPosts.length > 0">
       <Post
         v-for="post in displayedPosts"
         :key="post.id"
         :post="post"
       />
-    </div>
+    </template>
+    <template v-else>
+      <p v-if="activeTab === 'foryou' && !authUser" class="empty-message">
+        Чтобы подобрать для вас лучшую работу — <Link href="/login/">авторизуйтесь</Link>
+      </p>
+      <p v-else class="empty-message">Пока ничего нет</p>
+    </template>
+  </div>
 </template>
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { computed, ref, watch } from 'vue'
-import { Head, } from '@inertiajs/inertia-vue3'
+import { Head, Link } from '@inertiajs/inertia-vue3'
 import Post from '@/Components/Post.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 
@@ -93,7 +101,6 @@ const props = defineProps({
     default: () => ({})
   }
 })
-
 
 const posts = computed(() => props.posts || [])
 const authUser = computed(() => props.auth?.user || null)
@@ -236,7 +243,6 @@ export default {
   gap: 0;
   border-bottom: 2px solid #e2e8f0;
   margin: 0 auto;
-  max-width: 1200px;
   width: 100%;
   justify-content: center;
 }
@@ -244,6 +250,7 @@ export default {
 .tabs button {
   padding: 20px 100px;
   border: none;
+
   background: none;
   color: #64748b;
   font-size: 16px;
@@ -261,4 +268,19 @@ export default {
   color: rgb(255, 52, 52);
   border-bottom-color: rgb(255, 52, 52);
 }
+
+.empty-message {
+  width: 80%;
+  position: absolute;
+  text-align: center;
+  color: #64748b;
+  padding-top: 30px;
+  font-size: 16px;
+}
+
+.empty-message a {
+  color: rgb(255, 52, 52);
+  text-decoration: underline;
+}
+
 </style>
