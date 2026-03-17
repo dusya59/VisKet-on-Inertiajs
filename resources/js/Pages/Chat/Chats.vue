@@ -175,7 +175,7 @@
             </div>
             <div class="message-input-container">
               <div class="add" v-if="!editingMessage">
-                <img src="/images/1911563.svg" alt="Добавить вложение" />
+                <img src="/images/clip.svg" alt="Добавить вложение" />
                 <div class="add-select">
                   <label>
                     Фото

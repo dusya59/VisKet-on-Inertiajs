@@ -1,5 +1,6 @@
 <template>
   <div class="post">
+    <div v-if="post.is_vacancy" class="vacancy-badge">Вакансия</div>
     <Link :href="post.show_url">
       <img v-if="post.image_url" :src="post.image_url" :alt="post.title" />
     </Link>
@@ -50,7 +51,7 @@ function toggleLike() {
     console.error('URL для лайка не указан')
     return
   }
-  
+
   const previousLiked = isLiked.value
   const previousLikes = localLikes.value
   isLiked.value = !previousLiked
@@ -66,3 +67,22 @@ function toggleLike() {
   })
 }
 </script>
+
+<style scoped>
+.post {
+  position: relative;
+}
+
+.vacancy-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10;
+}
+</style>

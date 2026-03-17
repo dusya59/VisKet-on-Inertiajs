@@ -75,7 +75,7 @@ class PostController extends Controller
 
         $vacancyData = null;
         if ($post->vacancy) {
-            $post->vacancy->load('applications');
+            $post->vacancy->load('applications.user');
             $vacancyData = [
                 'position' => $post->vacancy->position,
                 'budget_min' => $post->vacancy->budget_min,
@@ -84,6 +84,27 @@ class PostController extends Controller
                 'requirements' => $post->vacancy->requirements,
                 'status' => $post->vacancy->status,
                 'applications_count' => $post->vacancy->applications->count(),
+                'applications' => $post->vacancy->applications->map(function ($application) use ($post) {
+                    $chat = \App\Models\Chat::whereHas('users', function ($query) use ($post) {
+                        $query->where('users.id', $post->user_id);
+                    })->whereHas('users', function ($query) use ($application) {
+                        $query->where('users.id', $application->user_id);
+                    })->first();
+
+                    return [
+                        'id' => $application->id,
+                        'cover_letter' => $application->cover_letter,
+                        'proposed_price' => $application->proposed_price,
+                        'created_at' => $application->created_at->toISOString(),
+                        'chat_url' => $chat ? route('chat', $chat->id) : null,
+                        'user' => [
+                            'id' => $application->user->id,
+                            'name' => $application->user->name,
+                            'avatar_url' => $application->user->avatar ? asset('storage/'.$application->user->avatar) : null,
+                            'profile_url' => route('profile', $application->user->id),
+                        ],
+                    ];
+                })->toArray(),
                 'skills' => $post->vacancy->skills->map(function ($skill) {
                     return [
                         'id' => $skill->id,
