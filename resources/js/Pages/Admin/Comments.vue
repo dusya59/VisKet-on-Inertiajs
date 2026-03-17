@@ -1,5 +1,4 @@
 <template>
-      <AppLayout>
     <div class="admin-container">
       <h1>Управление комментариями</h1>
       <div class="admin-nav">
