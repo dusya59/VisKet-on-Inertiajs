@@ -158,7 +158,7 @@ const query = ref('')
 const typeFilter = ref('')
 const selectedSkills = ref([])
 const activeTab = ref('all')
-const viewMode = ref('grid')
+const viewMode = ref(localStorage.getItem('viewMode') || 'grid')
 const filtersVisible = ref(false)
 const filtersContainer = ref(null)
 const mainWrapper = ref(null)
@@ -249,7 +249,8 @@ watch(displayedPosts, () => {
   nextTick(syncFiltersHeight)
 })
 
-watch(filtersVisible, () => {
+watch(viewMode, (newVal) => {
+  localStorage.setItem('viewMode', newVal)
   nextTick(syncFiltersHeight)
 })
 </script>
@@ -627,6 +628,30 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.posts.list-mode :deep(.post) {
+  flex-direction: row;
+  width: 100%;
+}
+
+.posts.list-mode :deep(.post-content) {
+  position: static;
+  background: none;
+  color: black;
+  opacity: 1;
+  width: 100%;
+}
+.posts.list-mode :deep(.post a) {
+  color: black;
+}
+
+.posts.list-mode :deep(.post .title) {
+  color: black;
+}
+
+.posts.list-mode :deep(#like) {
+  color: black;
 }
 
 .filters {

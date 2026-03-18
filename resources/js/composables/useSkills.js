@@ -2,8 +2,8 @@ export function getSkillClass(skillName) {
   const name = skillName.toLowerCase()
   if (name.includes('php')) return 'skill-php'
   if (name.includes('laravel')) return 'skill-laravel'
-  if (name.includes('js') || name.includes('javascript')) return 'skill-js'
   if (name.includes('vue')) return 'skill-vue'
+  if (name.includes('js') || name.includes('javascript')) return 'skill-js'
   if (name.includes('react')) return 'skill-react'
   if (name.includes('node')) return 'skill-node'
   if (name.includes('python')) return 'skill-python'
