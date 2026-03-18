@@ -2,22 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\User;
-use App\Models\Post;
-use App\Models\Comment;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Admin/Index');
+        $pendingCount = User::where('is_verified', 'pending')->count();
+
+        return Inertia::render('Admin/Index', [
+            'pendingVerificationCount' => $pendingCount,
+        ]);
     }
 
     public function usersPage()
     {
         return Inertia::render('Admin/Users');
+    }
+
+    public function verificationRequestsPage()
+    {
+        return Inertia::render('Admin/Users', [
+            'mode' => 'verification',
+        ]);
     }
 
     public function postsPage()
@@ -30,12 +41,19 @@ class AdminController extends Controller
         return Inertia::render('Admin/Comments');
     }
 
-    public function users()
+    public function users(Request $request)
     {
-        $users = User::all();
+        $mode = $request->query('mode');
+
+        if ($mode === 'verification') {
+            $users = User::where('is_verified', 'pending')->get();
+        } else {
+            $users = User::all();
+        }
 
         return response()->json([
             'users' => $users,
+            'mode' => $mode,
         ]);
     }
 
@@ -57,16 +75,38 @@ class AdminController extends Controller
         ]);
     }
 
+    public function approveVerification(User $user)
+    {
+        $user->is_verified = 'verified';
+        $user->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function rejectVerification(Request $request, User $user)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $user->is_verified = 'rejected';
+        $user->rejection_reason = $request->reason;
+        $user->save();
+
+        return response()->json(['success' => true]);
+    }
+
     public function deletePost(Post $post)
     {
         $post->delete();
+
         return redirect()->back();
     }
 
     public function deleteComment(Comment $comment)
     {
         $comment->delete();
+
         return redirect()->back();
     }
-} 
-
+}

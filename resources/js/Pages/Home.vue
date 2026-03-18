@@ -7,29 +7,33 @@
 
     <div class="block2">
       <button class="filter-toggle" @click="filtersVisible = !filtersVisible">
-        Фильтры {{ filtersVisible ? '▼' : '▶' }}
+        Фильтры <span>{{ filtersVisible ? '▼' : '▶' }}</span>
       </button>
-      <div class="main-content">
-        
-        <input v-model="query" type="text" placeholder="Поиск по постам" />
+      <div class="search-container">
+        <input class="searchbar" v-model="query" type="text" placeholder="Поиск по постам" />
+        <div class="view-mode-toggle">
+          <button
+            class="view-mode-btn"
+            :class="{ active: viewMode === 'grid' }"
+            @click="viewMode = 'grid'"
+            type="button"
+          >
+            <img src="/images/grid-view.svg" alt="Сетка" />
+          </button>
+          <button
+            class="view-mode-btn"
+            :class="{ active: viewMode === 'list' }"
+            @click="viewMode = 'list'"
+            type="button"
+          >
+            <img src="/images/list-view.svg" alt="Список" />
+          </button>
+        </div>
       </div>
     </div>
-    <div class="tabs":class="{ filtersOpen: filtersVisible }">
-      <button 
-        :class="{ active: activeTab === 'all' }" 
-        @click="activeTab = 'all'"
-      >
-        Все посты
-      </button>
-      <button 
-        :class="{ active: activeTab === 'foryou' }" 
-        @click="activeTab = 'foryou'"
-      >
-        Для вас
-      </button>
-    </div>
-    <div class="block3">
-      <div class="filterscontainer" :class="{ hidden: !filtersVisible }">
+    
+    <div class="content-wrapper" :class="{ filtersOpen: filtersVisible }">
+      <div class="filterscontainer" ref="filtersContainer">
         <div class="filters">
           <div class="filter-group">
             <label>Тип:</label>
@@ -82,29 +86,46 @@
               <button type="button" class="remove-skill" @click="removeSkill(skill.id)">×</button>
             </div>
           </div>
+        </div>
+      </div>
+      
+      <div class="main-wrapper" ref="mainWrapper">
+        <div class="tabs">
+          <button 
+            :class="{ active: activeTab === 'all' }" 
+            @click="activeTab = 'all'"
+          >
+            Все посты
+          </button>
+          <button 
+            :class="{ active: activeTab === 'foryou' }" 
+            @click="activeTab = 'foryou'"
+          >
+            Для вас
+          </button>
+        </div>
+        <div class="posts" :class="{ 'list-mode': viewMode === 'list' }">
+          <template v-if="displayedPosts.length > 0">
+            <Post
+              v-for="post in displayedPosts"
+              :key="post.id"
+              :post="post"
+            />
+          </template>
+          <template v-else>
+            <p v-if="activeTab === 'foryou' && !authUser" class="empty-message">
+              Чтобы подобрать для вас лучшую работу — <Link href="/login/">авторизуйтесь</Link>
+            </p>
+            <p v-else class="empty-message">Пока ничего нет</p>
+          </template>
+      </div>
     </div>
-  </div>
-  <div class="posts">
-    <template v-if="displayedPosts.length > 0">
-      <Post
-        v-for="post in displayedPosts"
-        :key="post.id"
-        :post="post"
-      />
-    </template>
-    <template v-else>
-      <p v-if="activeTab === 'foryou' && !authUser" class="empty-message">
-        Чтобы подобрать для вас лучшую работу — <Link href="/login/">авторизуйтесь</Link>
-      </p>
-      <p v-else class="empty-message">Пока ничего нет</p>
-    </template>
-  </div>
   </div>
 </template>
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import { Head, Link } from '@inertiajs/inertia-vue3'
 import Post from '@/Components/Post.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
@@ -132,12 +153,28 @@ const props = defineProps({
 const posts = computed(() => props.posts || [])
 const authUser = computed(() => props.auth?.user || null)
 
-const heroImage = '/images/Photoroom.png' 
+const heroImage = '/images/Photoroom.png'
 const query = ref('')
 const typeFilter = ref('')
 const selectedSkills = ref([])
 const activeTab = ref('all')
+const viewMode = ref(localStorage.getItem('viewMode') || 'grid')
 const filtersVisible = ref(false)
+const filtersContainer = ref(null)
+const mainWrapper = ref(null)
+
+const syncFiltersHeight = () => {
+  if (filtersContainer.value && mainWrapper.value) {
+    filtersContainer.value.style.height = mainWrapper.value.offsetHeight + 'px'
+  }
+}
+
+onMounted(() => {
+  nextTick(() => {
+    syncFiltersHeight()
+    window.addEventListener('resize', syncFiltersHeight)
+  })
+})
 
 const removeSkill = (skillId) => {
   selectedSkills.value = selectedSkills.value.filter(s => s.id !== skillId)
@@ -207,6 +244,15 @@ const displayedPosts = computed(() => {
   }
   return filteredPosts.value
 })
+
+watch(displayedPosts, () => {
+  nextTick(syncFiltersHeight)
+})
+
+watch(viewMode, (newVal) => {
+  localStorage.setItem('viewMode', newVal)
+  nextTick(syncFiltersHeight)
+})
 </script>
 
 <script>
@@ -218,15 +264,16 @@ export default {
 <style scoped>
 
 .filter-toggle {
-  padding: 10px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 90px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: white;
   color: #64748b;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 20px;
 }
 
 .filter-toggle:hover {
@@ -234,9 +281,64 @@ export default {
   color: rgb(255, 52, 52);
 }
 
-.main-content {
+.filter-toggle span{
+  font-size: 12px;
+}
+
+.search-container {
   display: flex;
   gap: 20px;
+  align-items: center;
+}
+
+.searchbar {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.searchbar:focus {
+  outline: none;
+  border-color: rgb(255, 52, 52);
+}
+
+.view-mode-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.view-mode-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 8px;
+}
+
+.view-mode-btn:hover {
+  background: #e2e8f0;
+}
+
+.view-mode-btn.active {
+  background: rgb(255, 52, 52);
+}
+
+.view-mode-btn.active img {
+  filter: brightness(0) invert(1);
+}
+
+.view-mode-btn img {
+  width: 24px;
+  height: 24px;
 }
 
 .filter-group {
@@ -478,9 +580,6 @@ export default {
   color: rgb(255, 52, 52);
   border-bottom-color: rgb(255, 52, 52);
 }
-.tabs.filtersOpen {
-  padding: 0 0 0 350px;
-}
 .empty-message {
   width: 80%;
   position: absolute;
@@ -494,23 +593,68 @@ export default {
   color: rgb(255, 52, 52);
   text-decoration: underline;
 }
-.block3{
+
+.content-wrapper {
   display: flex;
+  transition: transform 0.3s ease;
+}
+
+.content-wrapper.filtersOpen {
+  transform: translateX(170px);
 }
 
 .filterscontainer {
-  overflow: hidden;
-  max-width: 340px;
+  position: absolute;
+  left: 0;
+  top: auto;
+  width: 300px;
+  background: white;
   border-right: 2px solid #e2e8f0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
 }
 
-.filterscontainer.hidden {
-  max-width: 0;
-  border-right-color: transparent;
+.content-wrapper.filtersOpen .filterscontainer {
+  transform: translateX(-50%);
+}
+
+.main-wrapper {
+  flex: 1;
+  min-width: 0;
+  transition: margin-left 0.3s ease;
+}
+
+.posts.list-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.posts.list-mode :deep(.post) {
+  flex-direction: row;
+  width: 100%;
+}
+
+.posts.list-mode :deep(.post-content) {
+  position: static;
+  background: none;
+  color: black;
+  opacity: 1;
+  width: 100%;
+}
+.posts.list-mode :deep(.post a) {
+  color: black;
+}
+
+.posts.list-mode :deep(.post .title) {
+  color: black;
+}
+
+.posts.list-mode :deep(#like) {
+  color: black;
 }
 
 .filters {
-  padding: 20px;
   display: flex;
   flex-wrap: wrap;
   gap: 20px;

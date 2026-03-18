@@ -20,7 +20,9 @@
     font-weight: normal;
     font-style: normal;
 }
-
+body{
+  overflow-x: hidden;
+}
 a.logo{
     display: flex;
     font-size: 36px;
@@ -261,13 +263,13 @@ header nav{
 .block2{
     display: flex;
     align-items: baseline;
-    gap: 100px;
+    gap: 65px;
     padding: 20px;
     width: 100%;
     flex-wrap: wrap;
 }
 
-input[type="text"]{
+.searchbar{
     font-size: 18px;
     padding: 5px 10px;
     border-radius:10px;
@@ -276,7 +278,7 @@ input[type="text"]{
     width: 900px;
     height: 60px;
 }
-input[type="text"]:focus{
+.searchbar:focus{
   border: solid 1px rgb(255,52,52);
 }
 .hidden{

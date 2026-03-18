@@ -17,7 +17,6 @@
         </template>
         <template v-else>
           <Link href="/login">Войти</Link>
-          <Link href="/register">Регистрация</Link>
         </template>
       </nav>
       <img
@@ -99,7 +98,8 @@ const mainClass = computed(() => {
     page.component === 'Admin/Comments' ||
     page.component === 'Admin/Posts' ||
     page.component === 'Admin/Users' ||
-    page.component === 'Profile/LikedPosts'
+    page.component === 'Profile/LikedPosts'||
+    page.component === 'Auth/Auth.vue'
   ) {
     return 'main-home'
   }

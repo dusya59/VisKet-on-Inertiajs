@@ -127,56 +127,117 @@
     </div>
 
     <div class="comments-section-wrapper">
+      <div v-if="post.is_vacancy && canEdit" class="tabs">
+        <button 
+          class="tab" 
+          :class="{ active: activeTab === 'applications' }"
+          @click="activeTab = 'applications'"
+        >
+          Список откликнувшихся ({{ post.vacancy.applications?.length || 0 }})
+        </button>
+        <button 
+          class="tab" 
+          :class="{ active: activeTab === 'comments' }"
+          @click="activeTab = 'comments'"
+        >
+          Комментарии ({{ post.comments.length }})
+        </button>
+      </div>
+
       <div class="comments-section">
-        <div v-if="$page.props.auth.user" class="comment-form">
-          <form @submit.prevent="submitComment">
-            <div v-if="commentErrors.text" class="error">{{ commentErrors.text }}</div>
-            <textarea
-              v-model="commentForm.text"
-              required
-              placeholder="Напишите комментарий"
-              :disabled="commentForm.processing"
-            ></textarea>
-            <button type="submit" :disabled="commentForm.processing">
-              {{ commentForm.processing ? 'Отправка...' : 'Добавить комментарий' }}
-            </button>
-          </form>
-        </div>
-        <div v-else class="login-prompt">
-          <p>Чтобы оставить комментарий, <Link href="/login">войдите</Link> или <Link href="/register">зарегистрируйтесь</Link></p>
-        </div>
+        <template v-if="!post.is_vacancy || !canEdit || activeTab === 'comments'">
+          <div v-if="$page.props.auth.user" class="comment-form">
+            <form @submit.prevent="submitComment">
+              <div v-if="commentErrors.text" class="error">{{ commentErrors.text }}</div>
+              <textarea
+                v-model="commentForm.text"
+                required
+                placeholder="Напишите комментарий"
+                :disabled="commentForm.processing"
+              ></textarea>
+              <button type="submit" :disabled="commentForm.processing">
+                {{ commentForm.processing ? 'Отправка...' : 'Добавить комментарий' }}
+              </button>
+            </form>
+          </div>
+          <div v-else class="login-prompt">
+            <p>Чтобы оставить комментарий, <Link href="/login">войдите</Link> или <Link href="/register">зарегистрируйтесь</Link></p>
+          </div>
 
-        <h3>Комментарии ({{ post.comments.length }})</h3>
+          <h3>Комментарии ({{ post.comments.length }})</h3>
 
-        <div v-if="post.comments.length === 0" class="no-comments">
-          <p>Комментариев пока нет. Будьте первым!</p>
-        </div>
+          <div v-if="post.comments.length === 0" class="no-comments">
+            <p>Комментариев пока нет. Будьте первым!</p>
+          </div>
 
-        <div v-else class="comments">
-          <div v-for="comment in post.comments" :key="comment.id" class="comment">
-            <div class="comment-header">
-              <Link :href="comment.user.profile_url" class="comment-author">
-                <img
-                  v-if="comment.user.avatar_url"
-                  :src="comment.user.avatar_url"
-                  class="comment-avatar"
-                  :alt="comment.user.name"
-                >
-                <img
-                  v-else
-                  src="/images/User-avatar.png"
-                  class="comment-avatar"
-                  :alt="comment.user.name"
-                >
-                <span class="comment-author-name">{{ comment.user.name }}</span>
-              </Link>
-              <small class="comment-date">{{ formatDate(comment.created_at) }}</small>
-            </div>
-            <div class="comment-body">
-              <p>{{ comment.text }}</p>
+          <div v-else class="comments">
+            <div v-for="comment in post.comments" :key="comment.id" class="comment">
+              <div class="comment-header">
+                <Link :href="comment.user.profile_url" class="comment-author">
+                  <img
+                    v-if="comment.user.avatar_url"
+                    :src="comment.user.avatar_url"
+                    class="comment-avatar"
+                    :alt="comment.user.name"
+                  >
+                  <img
+                    v-else
+                    src="/images/User-avatar.png"
+                    class="comment-avatar"
+                    :alt="comment.user.name"
+                  >
+                  <span class="comment-author-name">{{ comment.user.name }}</span>
+                </Link>
+                <small class="comment-date">{{ formatDate(comment.created_at) }}</small>
+              </div>
+              <div class="comment-body">
+                <p>{{ comment.text }}</p>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
+
+        <template v-else-if="activeTab === 'applications'">
+          <h3>Список откликнувшихся ({{ post.vacancy.applications?.length || 0 }})</h3>
+          
+          <div v-if="!post.vacancy.applications || post.vacancy.applications.length === 0" class="no-comments">
+            <p>На эту вакансию пока никто не откликнулся.</p>
+          </div>
+
+          <div v-else class="comments">
+            <div v-for="application in post.vacancy.applications" :key="application.id" class="comment">
+              <div class="comment-header">
+                <Link :href="application.user.profile_url" class="comment-author">
+                  <img
+                    v-if="application.user.avatar_url"
+                    :src="application.user.avatar_url"
+                    class="comment-avatar"
+                    :alt="application.user.name"
+                  >
+                  <img
+                    v-else
+                    src="/images/User-avatar.png"
+                    class="comment-avatar"
+                    :alt="application.user.name"
+                  >
+                  <span class="comment-author-name">{{ application.user.name }}</span>
+                </Link>
+                <div class="comment-header-right">
+                  <small class="comment-date">{{ formatDate(application.created_at) }}</small>
+                </div>
+              </div>
+              <div class="comment-body">
+                <div>
+                  <p v-if="application.cover_letter">{{ application.cover_letter }}</p>
+                  <p v-if="application.proposed_price" class="proposed-price">Предложенная цена: {{ application.proposed_price }} ₽</p>
+                </div>
+                <Link v-if="application.chat_url" :href="application.chat_url" class="chat-btn">
+                  Открыть чат
+                </Link>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -226,6 +287,7 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const menuOpen = ref(false)
+const activeTab = ref('comments')
 const commentErrors = ref({})
 const showRespondModal = ref(false)
 const respondForm = useForm({
@@ -930,6 +992,33 @@ h3 {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.comment-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 150px;
+  height: 50px;
+  background: rgb(255, 52, 52);
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.chat-btn:hover {
+  background: rgb(222, 42, 42);
 }
 
 .comment-author {
@@ -963,7 +1052,11 @@ h3 {
   color: #64748b;
   font-size: 13px;
 }
-
+.comment-body{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .comment-body p {
   font-size: 15px;
   line-height: 1.6;
@@ -1214,6 +1307,44 @@ h3 {
 .submit-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: white;
+  padding: 8px;
+  border-radius: 16px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.tab.active {
+  background: rgb(255, 52, 52);
+  color: white;
+}
+
+.proposed-price {
+  font-weight: 600;
+  color: #0f172a;
+  margin-top: 8px;
 }
 </style>
 

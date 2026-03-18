@@ -25,6 +25,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
         Route::get('/admin/users', [AdminController::class, 'usersPage'])->name('admin.users.page');
+        Route::get('/admin/verification-requests', [AdminController::class, 'verificationRequestsPage'])->name('admin.verification.page');
         Route::get('/admin/posts', [AdminController::class, 'postsPage'])->name('admin.posts.page');
         Route::get('/admin/comments', [AdminController::class, 'commentsPage'])->name('admin.comments.page');
 
@@ -33,6 +34,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/admin/comments', [AdminController::class, 'comments'])->name('admin.comments');
         Route::delete('/api/admin/posts/{post}', [AdminController::class, 'deletePost'])->name('admin.posts.delete');
         Route::delete('/api/admin/comments/{comment}', [AdminController::class, 'deleteComment'])->name('admin.comments.delete');
+        Route::post('/api/admin/users/{user}/approve', [AdminController::class, 'approveVerification'])->name('admin.users.approve');
+        Route::post('/api/admin/users/{user}/reject', [AdminController::class, 'rejectVerification'])->name('admin.users.reject');
     });
 
     Route::get('/chats', [ChatController::class, 'index'])->name('chats.index');
@@ -72,8 +75,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->where('provider', 'google|github');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->where('provider', 'google|github');
 
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile');
 

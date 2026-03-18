@@ -549,12 +549,11 @@ h2 {
 }
 
 .post {
-    overflow: hidden;
-    margin: 10px;
-    display: flex;
-    flex-direction: column;
-    width: 300px; 
-    text-overflow: ellipsis;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 300px; 
+  text-overflow: ellipsis;
 }
 
 .post a {
