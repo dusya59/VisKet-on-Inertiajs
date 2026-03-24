@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -37,10 +38,17 @@ class ChatController extends Controller
             ->with(['users' => fn ($q) => $q->where('id', '!=', $user->id)])
             ->with(['messages' => fn ($q) => $q->latest()->limit(1)])
             ->withCount('messages')
+            ->withPivot('last_read_at')
             ->orderByDesc('updated_at')
             ->get()
-            ->map(function (Chat $chat) {
+            ->map(function (Chat $chat) use ($user) {
                 $otherUser = $chat->users->first();
+
+                $lastReadAt = $chat->pivot?->last_read_at ?? $user->created_at;
+                $unreadCount = $chat->messages()
+                    ->where('user_id', '!=', $user->id)
+                    ->where('created_at', '>', $lastReadAt)
+                    ->count();
 
                 return [
                     'id' => $chat->id,
@@ -57,6 +65,7 @@ class ChatController extends Controller
                             ? asset('storage/'.$otherUser->avatar)
                             : asset('images/User-avatar.png'),
                     ] : null,
+                    'unread_count' => $unreadCount,
                 ];
             });
 
@@ -73,23 +82,32 @@ class ChatController extends Controller
             abort(403, 'У вас нет доступа к этому чату.');
         }
 
+        $user->chats()->updateExistingPivot($chat->id, ['last_read_at' => now()]);
+
         $activeChat = $chat->load(['messages.user', 'users', 'application.user', 'application.vacancy']);
 
         $chats = $user->chats()
             ->with(['users' => fn ($q) => $q->where('id', '!=', $user->id)])
             ->with(['messages' => fn ($q) => $q->latest()->limit(1)])
             ->withCount('messages')
+            ->withPivot('last_read_at')
             ->orderByDesc('updated_at')
             ->get()
-            ->map(function (Chat $chat) {
-                $otherUser = $chat->users->first();
+            ->map(function (Chat $c) use ($user) {
+                $otherUser = $c->users->first();
+
+                $lastReadAt = $c->pivot?->last_read_at ?? $user->created_at;
+                $unreadCount = $c->messages()
+                    ->where('user_id', '!=', $user->id)
+                    ->where('created_at', '>', $lastReadAt)
+                    ->count();
 
                 return [
-                    'id' => $chat->id,
-                    'latest_message' => $chat->messages->first()
+                    'id' => $c->id,
+                    'latest_message' => $c->messages->first()
                         ? [
-                            'content' => $chat->messages->first()->content,
-                            'created_at_human' => $chat->messages->first()->created_at->diffForHumans(),
+                            'content' => $c->messages->first()->content,
+                            'created_at_human' => $c->messages->first()->created_at->diffForHumans(),
                         ]
                         : null,
                     'other_user' => $otherUser ? [
@@ -99,6 +117,7 @@ class ChatController extends Controller
                             ? asset('storage/'.$otherUser->avatar)
                             : asset('images/User-avatar.png'),
                     ] : null,
+                    'unread_count' => $unreadCount,
                 ];
             });
 
@@ -214,6 +233,24 @@ class ChatController extends Controller
         ]);
 
         $chat->touch();
+
+        $recipientId = $chat->users()->where('user_id', '!=', $user->id)->first()->user_id;
+        $recipient = User::find($recipientId);
+
+        if ($recipient) {
+            $preview = $validated['content'] ?? ($imagePath ? 'изображение' : ($videoPath ? 'видео' : 'файл'));
+            if (strlen($preview) > 50) {
+                $preview = mb_substr($preview, 0, 50).'...';
+            }
+
+            Notification::create([
+                'user_id' => $recipient->id,
+                'type' => 'message',
+                'title' => 'Новое сообщение',
+                'content' => $user->name.': '.$preview,
+                'link' => '/chats/'.$chat->id,
+            ]);
+        }
 
         event(new \App\Events\MessageSent($user, $message));
 

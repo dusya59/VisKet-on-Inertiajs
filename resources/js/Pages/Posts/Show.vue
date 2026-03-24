@@ -28,7 +28,7 @@
               <button @click="toggleMenu" class="menu-btn" type="button">
                 <img src="/images/dots.svg" alt="меню">
               </button>
-              <div v-if="menuOpen" class="dropdown-menu">
+              <div v-if="menuOpen" class="post-dropdown-menu">
                 <button @click="sharePost" class="menu-item">
                   <img src="/images/share.svg" alt="">Поделиться
                 </button>
@@ -556,7 +556,7 @@ header {
   height: 75%;
 }
 
-.dropdown-menu {
+.post-dropdown-menu {
   position: absolute;
   top: 48px;
   right: 0;
@@ -567,6 +567,8 @@ header {
   overflow: hidden;
   z-index: 100;
   animation: fadeIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes fadeIn {

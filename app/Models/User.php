@@ -22,7 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name', 'email', 'password', 'avatar', 'aboutme', 'rating', 'balance', 'phone', 'is_verified', 'rejection_reason',
-        'provider', 'provider_id',
+        'provider', 'provider_id', 'verification_attempts',
     ];
 
     /**
@@ -108,5 +108,20 @@ class User extends Authenticatable
     public function vacancies()
     {
         return $this->hasMany(Vacancy::class);
+    }
+
+    public function verificationRejections()
+    {
+        return $this->hasMany(VerificationRejection::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->hasMany(Notification::class)->where('is_read', false);
     }
 }

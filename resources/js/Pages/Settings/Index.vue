@@ -1,0 +1,532 @@
+<template>
+  <AppLayout>
+    <div class="settings-container">
+      <div class="settings-header">
+        <h1>Настройки</h1>
+      </div>
+
+      <div class="settings-content">
+        <nav class="settings-nav">
+          <Link 
+            href="/settings/profile" 
+            class="settings-nav-item"
+            :class="{ active: section === 'profile' }"
+          >
+            Профиль
+          </Link>
+          <Link 
+            href="/settings/privacy" 
+            class="settings-nav-item"
+            :class="{ active: section === 'privacy' }"
+          >
+            Приватность
+          </Link>
+        </nav>
+
+        <div class="settings-panel">
+          <div v-if="section === 'profile'" class="panel-profile">
+            <div class="edit-content">
+              <div class="avatar">
+                <div 
+                  class="profile-header avatar-upload"
+                  @click="handleAreaClick"
+                  @dragover.prevent="handleDragOver"
+                  @dragleave="handleDragLeave"
+                  @drop.prevent="handleDrop"
+                >
+                  <input 
+                    type="file" 
+                    ref="fileInputRef"
+                    accept="image/*" 
+                    style="display: none"
+                    @change="handleFileSelect"
+                  >
+
+                  <img 
+                    v-if="avatarPreview || user.avatar" 
+                    :src="avatarPreview || '/storage/' + user.avatar" 
+                    class="avatar-preview"
+                  >
+                  <div v-else class="no-avatar">
+                    <span>Нажмите для загрузки</span>
+                  </div>
+
+                  <div v-if="avatarPreview || user.avatar" class="avatar-overlay">
+                    <button type="button" @click.stop="handleAreaClick" class="change-avatar-btn">
+                      Изменить фото
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="desc">
+                <form @submit.prevent="submit" enctype="multipart/form-data">
+                  <div class="form-group">
+                    <label for="name">Имя:</label>
+                    <input 
+                      type="text" 
+                      name="name" 
+                      id="name" 
+                      v-model="form.name"
+                      required
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="aboutme">О себе:</label>
+                    <textarea 
+                      name="aboutme" 
+                      id="aboutme"
+                      v-model="form.aboutme"
+                      :maxlength="maxLength"
+                    ></textarea>
+                    <div class="char-counter" :class="{ warning: remainingChars <= warningThreshold }">
+                      <span v-if="remainingChars <= warningThreshold">
+                        Осталось {{ remainingChars }} {{ pluralizeChars(remainingChars) }}
+                      </span>
+                      <span v-else>
+                        {{ currentLength }} / {{ maxLength }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Ваши навыки:</label>
+                    <SkillsSelector
+                      :skills="skills"
+                      v-model="form.skills"
+                    />
+                  </div>
+
+                  <div class="form-actions">
+                    <button type="submit" class="btn-save" :disabled="form.processing">
+                      {{ form.processing ? 'Сохранение...' : 'Сохранить изменения' }}
+                    </button>
+                    <Link :href="'/profile/' + user.id" class="btn-cancel">
+                      Отмена
+                    </Link>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="section === 'privacy'" class="panel-privacy">
+            <h2>Настройки приватности</h2>
+            <p class="coming-soon">Раздел в разработке</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </AppLayout>
+</template>
+
+<script setup>
+import AppLayout from '@/Layouts/AppLayout.vue'
+import SkillsSelector from '@/Components/SkillsSelector.vue'
+import { Head, Link, useForm } from '@inertiajs/vue3'
+import { ref, computed } from 'vue'
+
+const props = defineProps({
+  section: String,
+  user: Object,
+  skills: {
+    type: Array,
+    default: () => []
+  },
+  userSkills: {
+    type: Array,
+    default: () => []
+  }
+})
+
+const avatarPreview = ref(null)
+const fileInputRef = ref(null)
+const isDragging = ref(false)
+const maxLength = 1000
+const warningThreshold = 50
+
+const form = useForm({
+  name: props.user.name,
+  aboutme: props.user.aboutme || '',
+  avatar: null,
+  skills: props.userSkills || [],
+  _method: 'PUT'
+})
+
+const currentLength = computed(() => (form.aboutme || '').length)
+const remainingChars = computed(() => maxLength - currentLength.value)
+
+const pluralizeChars = (count) => {
+  if (count === 1) return 'символ'
+  if (count >= 2 && count <= 4) return 'символа'
+  return 'символов'
+}
+
+const handleAreaClick = () => {
+  fileInputRef.value.click()
+}
+
+const handleFileSelect = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    processFile(file)
+  }
+}
+
+const handleDragOver = () => {
+  isDragging.value = true
+}
+
+const handleDragLeave = () => {
+  isDragging.value = false
+}
+
+const handleDrop = (e) => {
+  isDragging.value = false
+  const file = e.dataTransfer.files[0]
+  if (file && file.type.startsWith('image/')) {
+    processFile(file)
+  }
+}
+
+const processFile = (file) => {
+  form.avatar = file
+  const reader = new FileReader()
+  
+  reader.onload = (e) => {
+    avatarPreview.value = e.target.result
+  }
+  
+  reader.readAsDataURL(file)
+}
+
+function submit() {
+  if (!form.avatar) {
+    form.transform((data) => {
+      delete data.avatar;
+      return data;
+    });
+  }
+
+  form.post(`/profile/${props.user.id}`, {
+    forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      if (form.avatar) {
+        form.reset('avatar');
+        avatarPreview.value = null;
+      }
+    }
+  });
+}
+</script>
+
+<style scoped>
+.settings-container {
+  min-height: 100vh;
+  padding: 50px;
+}
+
+.settings-header {
+  margin: 0 auto 30px;
+}
+
+.settings-header h1 {
+  font-size: 32px;
+  color: #333;
+}
+
+.settings-content {
+  margin: 0 auto;
+  display: flex;
+  gap: 30px;
+  background: white;
+  border-radius: 24px;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.settings-nav {
+  width: 250px;
+  background: #f8fafc;
+  padding: 30px 0;
+  border-right: 1px solid #e2e8f0;
+}
+
+.settings-nav-item {
+  display: block;
+  padding: 15px 30px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 15px;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.settings-nav-item:hover {
+  background: #f1f5f9;
+  color: #333;
+}
+
+.settings-nav-item.active {
+  background: white;
+  color: rgb(255, 52, 52);
+  border-left-color: rgb(255, 52, 52);
+}
+
+.settings-panel {
+  flex: 1;
+  padding: 30px;
+}
+
+.panel-profile .back-link {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.panel-profile .back-link a {
+  color: #666;
+  text-decoration: none;
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.panel-profile .back-link a:hover {
+  color: rgb(255, 52, 52);
+}
+
+.edit-content {
+  display: flex;
+  gap: 50px;
+  align-items: flex-start;
+}
+
+.avatar {
+  flex: 0 0 350px;
+}
+
+.profile-header {
+  width: 350px;
+  height: 350px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgb(182, 182, 182);
+  cursor: pointer;
+  position: relative;
+}
+
+.avatar-preview,
+.avatar-upload img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-weight: 500;
+  padding: 40px;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.avatar-upload:hover .avatar-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+}
+
+.change-avatar-btn {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: white;
+  color: #334155;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.change-avatar-btn:hover {
+  background: #f8fafc;
+  transform: scale(1.05);
+}
+
+.profile-header img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.desc {
+  flex: 1;
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group input[type="text"] {
+  padding: 12px;
+  border: 1px solid rgb(182, 182, 182);
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.form-group textarea {
+  width: 100%;
+  height: 200px;
+  padding: 12px;
+  border: 1px solid rgb(182, 182, 182);
+  border-radius: 5px;
+  font-size: 16px;
+  resize: none;
+  overflow-y: auto;
+}
+
+.char-counter {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #666;
+  text-align: right;
+  transition: color 0.3s;
+}
+
+.char-counter.warning {
+  color: rgb(255, 52, 52);
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn-save {
+  background-color: rgb(255, 52, 52);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 16px;
+}
+
+.btn-save:hover {
+  background-color: rgb(230, 45, 45);
+}
+
+.btn-save:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid rgb(182, 182, 182);
+  border-radius: 5px;
+  padding: 12px 24px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  font-size: 16px;
+}
+
+.btn-cancel:hover {
+  background-color: #e0e0e0;
+}
+
+.panel-privacy {
+  text-align: center;
+  padding: 50px;
+}
+
+.panel-privacy h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.coming-soon {
+  color: #94a3b8;
+  font-size: 16px;
+}
+
+@media(max-width: 1000px) {
+  .settings-container {
+    padding: 150px 20px 50px;
+  }
+
+  .settings-content {
+    flex-direction: column;
+  }
+
+  .settings-nav {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0;
+  }
+
+  .settings-nav-item {
+    padding: 15px 20px;
+  }
+
+  .edit-content {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .avatar {
+    flex: 0 0 auto;
+  }
+
+  .profile-header {
+    width: 100%;
+    height: 300px;
+  }
+
+  .form-group input[type="text"],
+  .form-group textarea {
+    font-size: 18px;
+    padding: 15px;
+  }
+
+  .btn-save,
+  .btn-cancel {
+    font-size: 18px;
+    padding: 15px 30px;
+  }
+}
+</style>

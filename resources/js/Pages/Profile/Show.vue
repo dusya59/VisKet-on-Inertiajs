@@ -58,7 +58,7 @@
             Подписчики<br> {{ user.followers_count }}
           </Link>
           <Link :href="'/profile/' + user.id + '/liked-posts'">Лайки</Link>
-          <Link v-if="isOwnProfile" :href="'/profile/' + user.id + '/edit'" class="btn-edit">
+          <Link v-if="isOwnProfile" href="/settings" class="btn-edit">
             <img src="/images/settings.png" alt="Редактировать профиль">
           </Link>
         </div>
@@ -81,9 +81,9 @@
           </div>
         </div>
 
-        <Link v-if="showExpandButton" @click="toggleExpand" class="expand">
+        <div v-if="showExpandButton" @click="toggleExpand" class="expand">
           {{ isExpanded ? 'Свернуть' : 'Развернуть' }}
-        </Link>
+        </div>
 
         <div v-if="user.skills && user.skills.length > 0" class="user-skills">
           <h3>Навыки</h3>
@@ -106,7 +106,7 @@
               {{ user.is_subscribed ? 'Отписаться' : 'Подписаться' }}
             </button>
           </form>
-          <Link href="'/chats/start/' + user.id">
+          <Link :href="'/chats/start/' + user.id">
             <button>Написать сообщение</button>
           </Link>
         </div>

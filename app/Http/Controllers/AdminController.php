@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
+use App\Models\VerificationRejection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -46,7 +47,9 @@ class AdminController extends Controller
         $mode = $request->query('mode');
 
         if ($mode === 'verification') {
-            $users = User::where('is_verified', 'pending')->get();
+            $users = User::where('is_verified', 'pending')
+                ->with('verificationRejections')
+                ->get();
         } else {
             $users = User::all();
         }
@@ -89,9 +92,13 @@ class AdminController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        $user->is_verified = 'rejected';
-        $user->rejection_reason = $request->reason;
-        $user->save();
+        $user->increment('verification_attempts');
+
+        VerificationRejection::create([
+            'user_id' => $user->id,
+            'reason' => $request->reason,
+            'rejected_at' => now(),
+        ]);
 
         return response()->json(['success' => true]);
     }

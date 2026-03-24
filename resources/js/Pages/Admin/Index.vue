@@ -16,12 +16,19 @@
           Комментарии
         </Link>
       </div>
-
-      <div class="verification-banner">
-        <Link href="/admin/verification-requests" class="verification-link">
-          Заявки на подтверждение аккаунта
-          <span class="badge">{{ pendingCount }}</span>
-        </Link>
+      <div class="banners">
+        <div class="banner">
+          <Link href="/admin/verification-requests" class="link">
+            Заявки на подтверждение аккаунта
+            <span class="badge">{{ pendingCount }}</span>
+          </Link>
+        </div>
+        <div class="banner">
+          <Link href=" " class="link">
+            Репорты
+            <span class="badge">{{ pendingCount }}</span>
+          </Link>
+        </div>
       </div>
     </div>
   </AppLayout>
@@ -59,25 +66,30 @@ import { Link } from '@inertiajs/vue3';
   </script>
 
 <style scoped>
-.verification-banner {
+.banners{
+  display: flex;
+  gap: 20px;
+}
+.banner {
+  width: max-content;
   margin-top: 30px;
   padding: 20px;
-  background: #fef3c7;
-  border: 1px solid #f59e0b;
+  background: #f0f0f0;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
 }
 
-.verification-link {
+.link {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 16px;
-  color: #92400e;
+  color: black;
   text-decoration: none;
   font-weight: 500;
 }
 
-.verification-link:hover {
+.link:hover {
   text-decoration: underline;
 }
 
@@ -88,7 +100,7 @@ import { Link } from '@inertiajs/vue3';
   min-width: 24px;
   height: 24px;
   padding: 0 8px;
-  background: #f59e0b;
+  background: #64748b;
   color: white;
   font-size: 14px;
   font-weight: 600;

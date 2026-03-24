@@ -8,7 +8,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
-use App\Models\Skill;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -55,6 +55,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/balance', [BalanceController::class, 'index'])->name('balance');
     Route::post('/balance/add', [BalanceController::class, 'add'])->name('balance.add');
     Route::post('/balance/withdraw', [BalanceController::class, 'withdraw'])->name('balance.withdraw');
+
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::get('/settings/profile', [SettingsController::class, 'profile'])->name('settings.profile');
+    Route::get('/settings/privacy', [SettingsController::class, 'privacy'])->name('settings.privacy');
+    Route::get('/notifications', [SettingsController::class, 'notifications'])->name('notifications');
+    Route::post('/notifications/mark-read', [SettingsController::class, 'markAsRead'])->name('notifications.mark-read');
 
     Route::post('/vacancies/{vacancy}/respond', [ApplicationController::class, 'respond'])->name('vacancies.respond');
     Route::post('/applications/{application}/accept', [ApplicationController::class, 'accept'])->name('applications.accept');

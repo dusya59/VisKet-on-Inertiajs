@@ -12,23 +12,26 @@
           :key="chat.id"
           :href="`/chats/${chat.id}`" 
           class="chat-item"
-          :class="{ active: activeChat && chat.id === activeChat.id }"
+          :class="{ active: activeChat && chat.id === activeChat.id, 'has-unread': chat.unread_count > 0 }"
         >
           <div v-if="chat.other_user" class="chat-user-info">
             <img :src="chat.other_user.avatar_url" class="chat-avatar" />
             <div>
               <h3>{{ chat.other_user.name }}</h3>
-              <p v-if="chat.latest_message" class="chat-preview">
+              <p v-if="chat.latest_message" class="chat-preview" :class="{ unread: chat.unread_count > 0 }">
                 {{ truncate(chat.latest_message.content, 30) }}
               </p>
             </div>
           </div>
 
-          <span class="chat-time">
-            <span v-if="chat.latest_message">
-              {{ chat.latest_message.created_at_human }}
+          <div class="chat-meta">
+            <span class="chat-time">
+              <span v-if="chat.latest_message">
+                {{ chat.latest_message.created_at_human }}
+              </span>
             </span>
-          </span>
+            <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
+          </div>
         </Link>
       </div>
 
@@ -982,6 +985,8 @@ watch(
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
+    min-width: 0;
 }
 
 .chat-avatar {
@@ -989,12 +994,46 @@ watch(
     height: 45px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
+}
+
+.unread-badge {
+    background: #ff3b30;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    flex-shrink: 0;
 }
 
 .chat-preview {
     color: #666;
     font-size: 0.9em;
     margin-top: 4px;
+}
+
+.chat-preview.unread {
+    font-weight: 600;
+    color: #333;
+}
+
+.chat-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.chat-time {
+    font-size: 0.8em;
+    color: #999;
 }
 
 .chat-time {

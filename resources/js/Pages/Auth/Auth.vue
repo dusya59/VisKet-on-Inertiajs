@@ -19,29 +19,22 @@
           <button type="submit" :disabled="loginForm.processing">
             {{ loginForm.processing ? 'Вход...' : 'Войти' }}
           </button>
+          <button type="button" class="switch-mode" @click="switchMode">
+            Нет аккаунта? Зарегистрироваться
+          </button>
           <div class="oauth-divider">
             <span>Или</span>
           </div>
           <div class="oauth-buttons">
-            <a href="/auth/google/redirect" class="oauth-btn oauth-google">
-              <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
+            <a href="/auth/google/redirect" class="oauth-btn oauth-google"> 
+              <img src="/images/google.svg" alt="">
               Войти через Google
             </a>
             <a href="/auth/github/redirect" class="oauth-btn oauth-github">
-              <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
+              <img src="/images/github.svg" alt="">
               Войти через GitHub
             </a>
           </div>
-          <button type="button" class="switch-mode" @click="switchMode">
-            Нет аккаунта? Зарегистрироваться
-          </button>
         </form>
 
         <form v-else @submit.prevent="submitRegister" key="register" class="register-form">
@@ -83,6 +76,7 @@
               </div>
 
               <div v-else-if="currentStep === 2" key="step2" class="step step-2">
+                <p class="optional-notice">Опционально — вы сможете поменять данные в настройках личного кабинета</p>
                 <div class="avatar-upload">
                   <label>Аватар</label>
                   <div class="avatar-preview" @click="$refs.avatarInput.click()">
@@ -133,7 +127,7 @@
                   <label>Телефон</label>
                   <div class="phone-input-wrapper">
                     <input type="tel" v-model="registerData.phone" placeholder="+7 (___) ___-__-__">
-                    <span class="phone-hint">Пригодится для 2FA</span>
+                    <span class="phone-hint">Пригодится для двухфакторной аутентификации</span>
                   </div>
                 </div>
 
@@ -156,12 +150,13 @@
                 </div>
 
                 <div class="form-group">
-                  <label>Диплом/Сертификаты (вы сможете найти в настройках в вкладке Мои файлы)</label>
+                  <label>Диплом/Сертификаты</label>
                   <div class="file-upload" @click="$refs.certificatesInput.click()">
                     <span v-if="registerData.certificates">{{ registerData.certificates.name }}</span>
                     <span v-else>Загрузите документы об образовании</span>
                   </div>
                   <input type="file" ref="certificatesInput" @change="handleFileUpload('certificates', $event)" accept="image/*,.pdf" hidden>
+                  <span class="phone-hint">(Вы сможете найти их в настройках в вкладке Мои файлы) </span>
                 </div>
 
                 <div class="checkbox-group">
@@ -178,7 +173,7 @@
                     <div class="tooltip-trigger">
                       <span class="help-icon">?</span>
                       <div class="tooltip-content">
-                        Верификация добавит зелёную галочку ✓ рядом с вашим именем, что повысит доверие работодателей.
+                        Верификация добавит галочку <img src="/images/verified.svg" alt=""> рядом с вашим именем, что повысит доверие работодателей.
                       </div>
                     </div>
                   </label>
@@ -477,7 +472,7 @@ form input[type="tel"] {
 
 form textarea {
   margin-top: 10px;
-  width: 100%;
+  min-width:350px;
   padding: 8px 12px;
   border: solid black 1px;
   border-radius: 5px;
@@ -578,17 +573,9 @@ form button[type="submit"]:disabled {
   border-color: #cbd5e1;
 }
 
-.oauth-icon {
+.oauth-btn img {
   width: 20px;
   height: 20px;
-}
-
-.oauth-google .oauth-icon {
-  color: #4285f4;
-}
-
-.oauth-github .oauth-icon {
-  color: #24292f;
 }
 
 .login-content {
@@ -598,7 +585,7 @@ form button[type="submit"]:disabled {
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  padding: 50px 0;
+  padding: 20px 0 50px 0;
 }
 
 .input-group {
@@ -659,7 +646,6 @@ form button[type="submit"]:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: help;
 }
 
 .tooltip-content {
@@ -673,7 +659,7 @@ form button[type="submit"]:disabled {
   border-radius: 8px;
   font-size: 13px;
   line-height: 1.5;
-  width: 250px;
+  width: 300px;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -696,6 +682,11 @@ form button[type="submit"]:disabled {
   visibility: visible;
 }
 
+.tooltip-content img{
+  width: 20px;
+  height: 20px;
+  margin: 0 0 -5px 0;
+}
 .step-indicator {
   display: flex;
   gap: 12px;
@@ -773,7 +764,7 @@ form button[type="submit"]:disabled {
 }
 
 .form-group {
-  width: 100%;
+  min-width:350px;
   margin-bottom: 20px;
 }
 
@@ -909,7 +900,6 @@ form button[type="submit"]:disabled {
 }
 
 .phone-hint {
-  position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);

@@ -6,7 +6,7 @@
         <Link href="/admin" class="admin-nav-item">
           Главная
         </Link>
-        <Link href="/admin/users" class="admin-nav-item" :class="{ active: mode !== 'verification' }">
+        <Link href="/admin/users" class="admin-nav-item active">
           Пользователи
         </Link>
         <Link href="/admin/posts" class="admin-nav-item">
@@ -51,6 +51,28 @@
             <h3>{{ user.name }}</h3>
             <p>{{ user.email }}</p>
             <p v-if="user.phone" class="user-phone">{{ user.phone }}</p>
+            <div v-if="mode === 'verification'" class="verification-info">
+              <button 
+                class="attempts-toggle"
+                @click="toggleRejections(user.id)"
+              >
+                Кол-во попыток получить верификацию: {{ user.verification_attempts || 0 }}
+                <span class="arrow" :class="{ open: openRejections[user.id] }">▼</span>
+              </button>
+              <div v-if="openRejections[user.id] && user.verification_rejections?.length" class="rejections-dropdown">
+                <div 
+                  v-for="rejection in user.verification_rejections" 
+                  :key="rejection.id"
+                  class="rejection-item"
+                >
+                  <div class="rejection-date">{{ formatDate(rejection.rejected_at) }}</div>
+                  <div class="rejection-reason">{{ rejection.reason }}</div>
+                </div>
+              </div>
+              <div v-else-if="openRejections[user.id]" class="no-rejections">
+                История отказов пуста
+              </div>
+            </div>
           </div>
           <div class="user-actions">
             <Link 
@@ -119,7 +141,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 
-defineProps({
+const props = defineProps({
   mode: {
     type: String,
     default: 'users'
@@ -138,7 +160,8 @@ let adminScript = null;
   const rejectingUserId = ref(null);
   const rejectionReason = ref('');
   const pendingCount = ref(0);
-  const mode = ref('users');
+  const openRejections = ref({});
+  const mode = computed(() => props.mode || 'users');
   
   const DEFAULT_AVATAR = '/images/User-avatar.png';
   
@@ -201,6 +224,21 @@ let adminScript = null;
     } finally {
       sendingMessage.value = null;
     }
+  };
+
+  const toggleRejections = (userId) => {
+    openRejections.value[userId] = !openRejections.value[userId];
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const approveUser = async (userId) => {
@@ -280,6 +318,70 @@ let adminScript = null;
   margin-top: 4px;
 }
 
+.verification-info {
+  margin-top: 8px;
+}
+
+.attempts-toggle {
+  background: none;
+  border: none;
+  color: #f59e0b;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attempts-toggle:hover {
+  text-decoration: underline;
+}
+
+.arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+.rejections-dropdown {
+  margin-top: 8px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.rejection-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rejection-item:last-child {
+  border-bottom: none;
+}
+
+.rejection-date {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.rejection-reason {
+  font-size: 13px;
+  color: #334155;
+}
+
+.no-rejections {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
 .btn-approve {
   background-color: #22c55e !important;
 }
@@ -289,11 +391,11 @@ let adminScript = null;
 }
 
 .btn-reject {
-  background-color: #64748b !important;
+  background-color: #ff2525 !important;
 }
 
 .btn-reject:hover {
-  background-color: #475569 !important;
+  background-color: #c91c1c !important;
 }
 
 .btn-cancel {

@@ -2,48 +2,58 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that's loaded on the first page visit.
-     *
-     * @see https://inertiajs.com/server-side-setup#root-template
-     *
-     * @var string
-     */
     protected $rootView = 'app';
 
-    /**
-     * Determines the current asset version.
-     *
-     * @see https://inertiajs.com/asset-versioning
-     */
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @see https://inertiajs.com/shared-data
-     *
-     * @return array<string, mixed>
-     */
     public function share(Request $request)
     {
+        $user = $request->user();
+
+        $unreadNotificationsCount = 0;
+        $unreadChatsCount = 0;
+
+        if ($user) {
+            $unreadNotificationsCount = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->count();
+
+            $chats = $user->chats()->withPivot('last_read_at')->get();
+            $totalUnread = 0;
+
+            foreach ($chats as $chat) {
+                $lastReadAt = $chat->pivot?->last_read_at ?? $user->created_at;
+                $unread = $chat->messages()
+                    ->where('user_id', '!=', $user->id)
+                    ->where('created_at', '>', $lastReadAt)
+                    ->count();
+                $totalUnread += $unread;
+            }
+
+            $unreadChatsCount = $totalUnread;
+        }
+
         return array_merge(parent::share($request), [
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'is_admin' => $request->user()->is_admin ?? false,
-                    'balance' => $request->user()->balance ?? 0,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                    'is_admin' => $user->is_admin ?? false,
+                    'balance' => $user->balance ?? 0,
                     'profile_url' => '/profile',
+                    'unreadNotificationsCount' => $unreadNotificationsCount,
+                    'unreadChatsCount' => $unreadChatsCount,
                 ] : null,
             ],
             'flash' => [
