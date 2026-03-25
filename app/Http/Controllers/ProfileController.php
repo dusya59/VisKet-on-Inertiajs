@@ -12,8 +12,17 @@ class ProfileController extends Controller
     public function show(User $user)
     {
         $authUser = auth()->user();
+        $isOwnProfile = $authUser && $authUser->id === $user->id;
+
         $posts = $user->posts()
             ->with(['user', 'likes'])
+            ->where(function ($query) use ($isOwnProfile) {
+                if ($isOwnProfile) {
+                    $query->where('active', true)->orWhere('user_id', auth()->id());
+                } else {
+                    $query->where('active', true);
+                }
+            })
             ->latest()
             ->get()
             ->map(function ($post) {
@@ -37,6 +46,7 @@ class ProfileController extends Controller
             'name' => $user->name,
             'aboutme' => $user->aboutme,
             'avatar_url' => $user->avatar ? Storage::url($user->avatar) : null,
+            'is_verified' => $user->is_verified,
             'rating' => $user->rating,
             'balance' => $user->balance,
             'following_count' => $user->following()->count(),

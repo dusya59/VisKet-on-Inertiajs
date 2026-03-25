@@ -1,12 +1,12 @@
 <template>
   <AppLayout>
     <div class="admin-container">
-      <h1>{{ mode === 'verification' ? 'Список заявок на получение подтвержденного аккаунта' : 'Управление пользователями' }}</h1>
+      <h1>{{ getPageTitle() }}</h1>
       <div class="admin-nav">
         <Link href="/admin" class="admin-nav-item">
           Главная
         </Link>
-        <Link href="/admin/users" class="admin-nav-item active">
+        <Link :href="mode === 'reports' ? '/admin/users?mode=reports' : '/admin/users'" class="admin-nav-item" :class="{ active: mode !== 'reports' }">
           Пользователи
         </Link>
         <Link href="/admin/posts" class="admin-nav-item">
@@ -73,6 +73,27 @@
                 История отказов пуста
               </div>
             </div>
+            <div v-if="mode === 'reports' && user.reports?.length" class="reports-info">
+              <p class="reports-count">Жалоб: {{ user.reports.length }}</p>
+              <button 
+                class="attempts-toggle"
+                @click="toggleReports(user.id)"
+              >
+                Подробнее
+                <span class="arrow" :class="{ open: openReports[user.id] }">▼</span>
+              </button>
+              <div v-if="openReports[user.id]" class="rejections-dropdown">
+                <div 
+                  v-for="report in user.reports" 
+                  :key="report.id"
+                  class="rejection-item"
+                >
+                  <div class="rejection-date">{{ formatDate(report.created_at) }}</div>
+                  <div class="rejection-reason">{{ report.reason }}</div>
+                  <div class="reporter-info">От: {{ report.reporter?.name || 'Неизвестный' }}</div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="user-actions">
             <Link 
@@ -98,6 +119,22 @@
                 Отказать
               </button>
             </template>
+            <template v-else-if="mode === 'reports'">
+              <button 
+                @click="dismissUserReports(user.id)" 
+                class="btn btn-dismiss"
+                :disabled="processingUser === user.id"
+              >
+                {{ processingUser === user.id ? '...' : 'Игнорировать' }}
+              </button>
+              <button 
+                @click="deleteUser(user.id)" 
+                class="btn btn-danger"
+                :disabled="processingUser === user.id"
+              >
+                Заблокировать
+              </button>
+            </template>
             <template v-else>
               <button 
                 @click="startConversation(user.id)" 
@@ -111,7 +148,7 @@
         </div>
 
         <div v-if="filteredUsers.length === 0" class="no-results">
-          {{ mode === 'verification' ? 'Заявок на подтверждение нет' : 'Пользователи не найдены' }}
+          {{ mode === 'verification' ? 'Заявок на подтверждение нет' : mode === 'reports' ? 'Нет жалоб на пользователей' : 'Пользователи не найдены' }}
         </div>
       </div>
 
@@ -161,7 +198,18 @@ let adminScript = null;
   const rejectionReason = ref('');
   const pendingCount = ref(0);
   const openRejections = ref({});
+  const openReports = ref({});
   const mode = computed(() => props.mode || 'users');
+  
+  const getPageTitle = () => {
+    if (mode.value === 'verification') {
+      return 'Список заявок на получение подтвержденного аккаунта';
+    }
+    if (mode.value === 'reports') {
+      return 'Жалобы на пользователей';
+    }
+    return 'Управление пользователями';
+  };
   
   const DEFAULT_AVATAR = '/images/User-avatar.png';
   
@@ -182,7 +230,12 @@ let adminScript = null;
       loading.value = true;
       error.value = null;
       
-      const params = mode.value === 'verification' ? '?mode=verification' : '';
+      let params = '';
+      if (mode.value === 'verification') {
+        params = '?mode=verification';
+      } else if (mode.value === 'reports') {
+        params = '?mode=reports';
+      }
       const response = await axios.get(`/api/admin/users${params}`);
       users.value = response.data.users || response.data;
       
@@ -279,6 +332,41 @@ let adminScript = null;
     } catch (err) {
       console.error('Ошибка отказа:', err);
       alert('Не удалось отклонить заявку');
+    } finally {
+      processingUser.value = null;
+    }
+  };
+
+  const toggleReports = (userId) => {
+    openReports.value[userId] = !openReports.value[userId];
+  };
+
+  const dismissUserReports = async (userId) => {
+    try {
+      processingUser.value = userId;
+      await axios.post(`/api/admin/users/${userId}/dismiss-reports`);
+      users.value = users.value.filter(u => u.id !== userId);
+    } catch (err) {
+      console.error('Ошибка игнорирования жалоб:', err);
+      alert('Не удалось игнорировать жалобы');
+    } finally {
+      processingUser.value = null;
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!confirm('Вы уверены, что хотите заблокировать этого пользователя?')) {
+      return;
+    }
+    
+    try {
+      processingUser.value = userId;
+      await axios.delete(`/api/admin/users/${userId}`);
+      users.value = users.value.filter(u => u.id !== userId);
+      alert('Пользователь заблокирован');
+    } catch (err) {
+      console.error('Ошибка блокировки пользователя:', err);
+      alert('Не удалось заблокировать пользователя');
     } finally {
       processingUser.value = null;
     }
@@ -380,6 +468,39 @@ let adminScript = null;
   font-size: 12px;
   color: #94a3b8;
   font-style: italic;
+}
+
+.reports-info {
+  margin-top: 8px;
+}
+
+.reports-count {
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.reporter-info {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.btn-dismiss {
+  background-color: #f59e0b !important;
+}
+
+.btn-dismiss:hover {
+  background-color: #d97706 !important;
+}
+
+.btn-danger {
+  background-color: #ef4444 !important;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626 !important;
 }
 
 .btn-approve {

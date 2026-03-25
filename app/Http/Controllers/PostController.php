@@ -12,7 +12,13 @@ class PostController extends Controller
 {
     public function index()
     {
+        $userId = auth()->id();
+
         $posts = Post::with(['user', 'likes'])
+            ->where(function ($query) use ($userId) {
+                $query->where('active', true)
+                    ->orWhere('user_id', $userId);
+            })
             ->latest()
             ->get()
             ->map(function ($post) {
@@ -71,6 +77,10 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
+        if (! $post->active && $post->user_id !== auth()->id()) {
+            abort(404);
+        }
+
         $post->load(['user', 'likes', 'comments.user', 'vacancy.skills']);
 
         $vacancyData = null;
@@ -127,6 +137,7 @@ class PostController extends Controller
             'show_url' => route('posts.show', $post->id),
             'edit_url' => $post->user_id === auth()->id() ? route('posts.edit', $post->id) : null,
             'delete_url' => $post->user_id === auth()->id() ? route('posts.destroy', $post->id) : null,
+            'is_hidden' => ! $post->active,
             'is_vacancy' => $post->vacancy !== null,
             'vacancy' => $vacancyData,
             'user' => [

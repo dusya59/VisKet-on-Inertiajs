@@ -7,8 +7,9 @@
         <div class="avatar">
           <div class="profile-header">
             <img v-if="user.avatar_url" :src="user.avatar_url" :alt="'Аватарка ' + user.name">
-            <div v-else>
-              <form v-if="isOwnProfile" @submit.prevent="submitAvatar" enctype="multipart/form-data">
+            <img v-else src="/images/User-avatar.png" :alt="'Аватарка ' + user.name">
+            <div v-if="isOwnProfile && !user.avatar_url" class="avatar-upload-form">
+              <form @submit.prevent="submitAvatar" enctype="multipart/form-data">
                 <label for="avatar">Загрузить аватарку:</label>
                 <input type="file" name="avatar" id="avatar" accept="image/*" required @change="handleAvatarChange">
                 <button type="submit" :disabled="avatarForm.processing">Сохранить</button>
@@ -16,7 +17,8 @@
             </div>
           </div>
           <div class="desc">
-            <h1>{{ user.name }}</h1>
+            <h1>{{ user.name }} </h1>
+            <img v-if="user.is_verified === 'verified'" src="/images/verified.svg" alt="Аккаунт верифицирован">
           </div>
           <div v-if="user.rating" class="rating-display">
             <Link :href="'/ratings/' + user.id" class="rating-link">
@@ -302,7 +304,6 @@ const toggleSubscription = () => {
     justify-content: center;
     width: 350px;
     height: 350px;
-    border-bottom: 1px solid black;
 }
 
 .profile-header form {
@@ -311,6 +312,13 @@ const toggleSubscription = () => {
     width: 150px;
     display: flex;
     flex-direction: column;
+}
+
+.avatar-upload-form {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .profile-header form button {
@@ -333,7 +341,14 @@ const toggleSubscription = () => {
     height: 350px;
     object-fit: cover;
 }
-
+.desc{
+  display: flex;
+  align-items: center;
+}
+.desc img{
+  width: 30px;
+  height: 30px;
+}
 .sendmes {
     width: 350px;
     height: 50px;
@@ -540,10 +555,12 @@ const toggleSubscription = () => {
     width: 100%;
     height: 60vh;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     padding: 50px 0 0 150px;
 }
-
+.noposts h2{
+  margin-left: 0px;
+}
 h2 {
     margin-left: 130px;
 }

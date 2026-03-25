@@ -1,7 +1,7 @@
 <template>
       <AppLayout>
     <div class="admin-container">
-      <h1>Управление комментариями</h1>
+      <h1>{{ mode === 'reports' ? 'Жалобы на комментарии' : 'Управление комментариями' }}</h1>
       <div class="admin-nav">
         <Link href="/admin" class="admin-nav-item">
           Главная
@@ -12,7 +12,7 @@
         <Link href="/admin/posts" class="admin-nav-item">
           Посты
         </Link>
-        <Link href="/admin/comments" class="admin-nav-item active">
+        <Link :href="mode === 'reports' ? '/admin/comments?mode=reports' : '/admin/comments'" class="admin-nav-item" :class="{ active: mode !== 'reports' }">
           Комментарии
         </Link>
       </div>
@@ -56,6 +56,27 @@
             </div>
             <p>{{ comment.text }}</p>
             <small>К посту: {{ comment.post?.title || 'Пост удален' }}</small>
+            <div v-if="mode === 'reports' && comment.reports?.length" class="reports-info">
+              <p class="reports-count">Жалоб: {{ comment.reports.length }}</p>
+              <button 
+                class="attempts-toggle"
+                @click="toggleReports(comment.id)"
+              >
+                Подробнее
+                <span class="arrow" :class="{ open: openReports[comment.id] }">▼</span>
+              </button>
+              <div v-if="openReports[comment.id]" class="rejections-dropdown">
+                <div 
+                  v-for="report in comment.reports" 
+                  :key="report.id"
+                  class="rejection-item"
+                >
+                  <div class="rejection-date">{{ formatReportDate(report.created_at) }}</div>
+                  <div class="rejection-reason">{{ report.reason }}</div>
+                  <div class="reporter-info">От: {{ report.reporter?.name || 'Неизвестный' }}</div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="comment-actions">
             <Link 
@@ -65,18 +86,36 @@
             >
               К посту
             </Link>
-            <button 
-              @click="deleteComment(comment.id)" 
-              class="btn btn-danger"
-              :disabled="deleting === comment.id"
-            >
-              {{ deleting === comment.id ? 'Удаление...' : 'Удалить' }}
-            </button>
+            <template v-if="mode === 'reports'">
+              <button 
+                @click="dismissCommentReports(comment.id)" 
+                class="btn btn-dismiss"
+                :disabled="deleting === comment.id"
+              >
+                {{ deleting === comment.id ? '...' : 'Игнорировать' }}
+              </button>
+              <button 
+                @click="deleteComment(comment.id)" 
+                class="btn btn-danger"
+                :disabled="deleting === comment.id"
+              >
+                Удалить
+              </button>
+            </template>
+            <template v-else>
+              <button 
+                @click="deleteComment(comment.id)" 
+                class="btn btn-danger"
+                :disabled="deleting === comment.id"
+              >
+                {{ deleting === comment.id ? 'Удаление...' : 'Удалить' }}
+              </button>
+            </template>
           </div>
         </div>
   
         <div v-if="filteredComments.length === 0" class="no-results">
-          Комментарии не найдены
+          {{ mode === 'reports' ? 'Нет жалоб на комментарии' : 'Комментарии не найдены' }}
         </div>
       </div>
     </div>
@@ -88,6 +127,13 @@
     import { Link } from '@inertiajs/vue3';
     import axios from 'axios';
 
+    const props = defineProps({
+      mode: {
+        type: String,
+        default: 'comments'
+      }
+    });
+
     let adminLink = null;
     let adminScript = null;
 
@@ -96,8 +142,10 @@
   const loading = ref(true);
   const error = ref(null);
   const deleting = ref(null);
+  const openReports = ref({});
   
   const DEFAULT_AVATAR = '/images/User-avatar.png';
+  const mode = computed(() => props.mode || 'comments');
 
   const filteredComments = computed(() => {
     if (!searchQuery.value) {
@@ -117,7 +165,11 @@
       loading.value = true;
       error.value = null;
       
-      const response = await axios.get('/api/admin/comments');
+      let params = '';
+      if (mode.value === 'reports') {
+        params = '?mode=reports';
+      }
+      const response = await axios.get(`/api/admin/comments${params}`);
       comments.value = response.data.comments || response.data;
     } catch (err) {
       console.error('Ошибка загрузки комментариев:', err);
@@ -211,6 +263,36 @@
       deleting.value = null;
     }
   };
+
+  const toggleReports = (commentId) => {
+    openReports.value[commentId] = !openReports.value[commentId];
+  };
+
+  const dismissCommentReports = async (commentId) => {
+    try {
+      deleting.value = commentId;
+      await axios.post(`/api/admin/comments/${commentId}/dismiss-reports`);
+      comments.value = comments.value.filter(comment => comment.id !== commentId);
+    } catch (err) {
+      console.error('Ошибка игнорирования жалоб:', err);
+      alert('Не удалось игнорировать жалобы');
+    } finally {
+      deleting.value = null;
+    }
+  };
+
+  const formatReportDate = (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
   
   const handleSearch = () => {
 
@@ -240,3 +322,92 @@
     }
   });
   </script>
+
+<style scoped>
+.reports-info {
+  margin-top: 8px;
+}
+
+.reports-count {
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.attempts-toggle {
+  background: none;
+  border: none;
+  color: #f59e0b;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attempts-toggle:hover {
+  text-decoration: underline;
+}
+
+.arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+.rejections-dropdown {
+  margin-top: 8px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.rejection-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rejection-item:last-child {
+  border-bottom: none;
+}
+
+.rejection-date {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.rejection-reason {
+  font-size: 13px;
+  color: #334155;
+}
+
+.reporter-info {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.btn-dismiss {
+  background-color: #f59e0b !important;
+}
+
+.btn-dismiss:hover {
+  background-color: #d97706 !important;
+}
+
+.btn-danger {
+  background-color: #ef4444 !important;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626 !important;
+}
+</style>

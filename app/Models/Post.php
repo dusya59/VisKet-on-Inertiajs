@@ -12,7 +12,7 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'image', 'user_id'];
+    protected $fillable = ['title', 'description', 'image', 'user_id', 'active'];
 
     public function user()
     {
@@ -32,5 +32,10 @@ class Post extends Model
     public function vacancy()
     {
         return $this->hasOne(Vacancy::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'reported_post_id');
     }
 }

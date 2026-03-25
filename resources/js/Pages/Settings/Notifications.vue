@@ -26,6 +26,8 @@
         >
           <div class="notification-icon">
             <span v-if="notification.type === 'message'">💬</span>
+            <span v-else-if="notification.type === 'post_warning'">⚠️</span>
+            <span v-else-if="notification.type === 'post_hidden'">🚫</span>
             <span v-else>🔔</span>
           </div>
           <div class="notification-content">
@@ -90,8 +92,7 @@ const markAllAsRead = async () => {
 <style scoped>
 .notifications-container {
   min-height: 100vh;
-  padding: 100px 50px 50px;
-  max-width: 800px;
+  padding: 50px;
   margin: 0 auto;
 }
 
@@ -137,8 +138,9 @@ h1 {
 }
 
 .notification-item {
+  width: 50%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   padding: 20px;
   background: white;
@@ -171,13 +173,10 @@ h1 {
 
 .notification-title {
   font-weight: 600;
-  color: #1e293b;
   margin-bottom: 4px;
 }
 
 .notification-text {
-  color: #64748b;
-  font-size: 14px;
   line-height: 1.5;
   margin-bottom: 8px;
 }

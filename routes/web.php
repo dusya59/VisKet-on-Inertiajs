@@ -8,6 +8,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,7 +37,15 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/api/admin/comments/{comment}', [AdminController::class, 'deleteComment'])->name('admin.comments.delete');
         Route::post('/api/admin/users/{user}/approve', [AdminController::class, 'approveVerification'])->name('admin.users.approve');
         Route::post('/api/admin/users/{user}/reject', [AdminController::class, 'rejectVerification'])->name('admin.users.reject');
+        Route::post('/api/admin/users/{user}/dismiss-reports', [AdminController::class, 'dismissUserReports'])->name('admin.users.dismiss-reports');
+        Route::delete('/api/admin/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
+        Route::post('/api/admin/posts/{post}/dismiss-reports', [AdminController::class, 'dismissPostReports'])->name('admin.posts.dismiss-reports');
+        Route::post('/api/admin/posts/{post}/warn', [AdminController::class, 'warnPost'])->name('admin.posts.warn');
+        Route::post('/api/admin/posts/{post}/hide', [AdminController::class, 'hidePost'])->name('admin.posts.hide');
+        Route::post('/api/admin/comments/{comment}/dismiss-reports', [AdminController::class, 'dismissCommentReports'])->name('admin.comments.dismiss-reports');
     });
+
+    Route::post('/posts/{post}/report', [ReportController::class, 'reportPost'])->name('posts.report');
 
     Route::get('/chats', [ChatController::class, 'index'])->name('chats.index');
     Route::get('/chats/{chat}', [ChatController::class, 'show'])->name('chat');

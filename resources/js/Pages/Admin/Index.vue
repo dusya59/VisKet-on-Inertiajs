@@ -16,20 +16,34 @@
           Комментарии
         </Link>
       </div>
-      <div class="banners">
+      
         <div class="banner">
           <Link href="/admin/verification-requests" class="link">
             Заявки на подтверждение аккаунта
             <span class="badge">{{ pendingCount }}</span>
           </Link>
         </div>
+        <h2>Репорты</h2>
+        <div class="banners">
         <div class="banner">
-          <Link href=" " class="link">
-            Репорты
-            <span class="badge">{{ pendingCount }}</span>
+          <Link :href="`/admin/users?mode=reports`" class="link">
+          Пользователи 
+          <span class="badge">{{ usersReportCount }}</span>
           </Link>
         </div>
-      </div>
+        <div class="banner">
+          <Link :href="`/admin/posts?mode=reports`" class="link">
+          Посты 
+          <span class="badge">{{ postsReportCount }}</span>
+          </Link>
+        </div>          
+        <div class="banner">
+          <Link :href="`/admin/comments?mode=reports`" class="link">
+          Комментарии 
+          <span class="badge">{{ commentsReportCount }}</span>
+          </Link>
+        </div>
+        </div> 
     </div>
   </AppLayout>
 </template>
@@ -41,6 +55,18 @@ import { Link } from '@inertiajs/vue3';
   
   const props = defineProps({
     pendingVerificationCount: {
+      type: Number,
+      default: 0
+    },
+    usersReportCount: {
+      type: Number,
+      default: 0
+    },
+    postsReportCount: {
+      type: Number,
+      default: 0
+    },
+    commentsReportCount: {
       type: Number,
       default: 0
     }
@@ -72,7 +98,7 @@ import { Link } from '@inertiajs/vue3';
 }
 .banner {
   width: max-content;
-  margin-top: 30px;
+  margin: 30px 0;
   padding: 20px;
   background: #f0f0f0;
   border: 2px solid #e2e8f0;

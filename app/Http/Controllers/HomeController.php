@@ -10,7 +10,13 @@ class HomeController extends Controller
 {
     public function index()
     {
+        $userId = auth()->id();
+
         $posts = Post::with(['user', 'likes', 'vacancy', 'vacancy.skills'])
+            ->where(function ($query) use ($userId) {
+                $query->where('active', true)
+                    ->orWhere('user_id', $userId);
+            })
             ->latest()
             ->get()
             ->map(function ($post) {

@@ -16,6 +16,9 @@
       </div>
 
       <div class="content-wrapper">
+        <div v-if="post.is_hidden" class="hidden-warning">
+          ⚠️ Этот пост скрыт администрацией и виден только вам
+        </div>
         <div class="desc">
           <div class="header-actions">
             <template v-if="post.is_vacancy">
@@ -24,7 +27,7 @@
             <template v-else>
               <h2 class="title">{{ post.title }}</h2>
             </template>
-            <div class="menu-container" v-if="canEdit">
+            <div class="menu-container" v-if="canEdit || canReport">
               <button @click="toggleMenu" class="menu-btn" type="button">
                 <img src="/images/dots.svg" alt="меню">
               </button>
@@ -32,11 +35,14 @@
                 <button @click="sharePost" class="menu-item">
                   <img src="/images/share.svg" alt="">Поделиться
                 </button>
-                <Link :href="post.edit_url" class="menu-item">
+                <Link v-if="post.edit_url" :href="post.edit_url" class="menu-item">
                   <img src="/images/edit.svg" alt="">Редактировать
                 </Link>
-                <button @click="deletePost" class="menu-item delete">
+                <button v-if="post.delete_url" @click="deletePost" class="menu-item delete">
                   <img src="/images/trash.svg" alt=""> Удалить
+                </button>
+                <button v-if="canReport" @click="showReportModal = true" class="menu-item">
+                  <img src="/images/flag.svg" alt="">Пожаловаться
                 </button>
               </div>
             </div>
@@ -277,6 +283,30 @@
         </form>
       </div>
     </div>
+
+    <div v-if="showReportModal" class="modal-overlay" @click.self="showReportModal = false">
+      <div class="modal-content">
+        <button class="modal-close" @click="showReportModal = false">&times;</button>
+        <h2>Пожаловаться на пост</h2>
+        <form @submit.prevent="submitReport">
+          <div class="form-group">
+            <label for="report_reason">Причина жалобы *</label>
+            <textarea
+              id="report_reason"
+              v-model="reportForm.reason"
+              required
+              placeholder="Опишите причину жалобы..."
+              rows="4"
+            ></textarea>
+            <div v-if="reportErrors.reason" class="error">{{ reportErrors.reason }}</div>
+          </div>
+
+          <button type="submit" class="submit-btn" :disabled="reportForm.processing">
+            {{ reportForm.processing ? 'Отправка...' : 'Отправить жалобу' }}
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -290,9 +320,14 @@ const menuOpen = ref(false)
 const activeTab = ref('comments')
 const commentErrors = ref({})
 const showRespondModal = ref(false)
+const showReportModal = ref(false)
+const reportErrors = ref({})
 const respondForm = useForm({
   cover_letter: '',
   proposed_price: ''
+})
+const reportForm = useForm({
+  reason: ''
 })
 
 const props = defineProps({
@@ -314,6 +349,10 @@ const canEdit = computed(() => {
 
 const isAuthor = computed(() => {
   return page.props.auth.user && page.props.auth.user.id === props.post.user.id
+})
+
+const canReport = computed(() => {
+  return page.props.auth.user && page.props.auth.user.id !== props.post.user.id
 })
 
 const submitRespond = () => {
@@ -437,6 +476,27 @@ const submitComment = () => {
   })
 }
 
+const submitReport = () => {
+  reportErrors.value = {}
+  
+  if (!reportForm.reason || reportForm.reason.trim().length < 5) {
+    reportErrors.value.reason = 'Причина должна содержать минимум 5 символов'
+    return
+  }
+  
+  reportForm.post(`/posts/${props.post.id}/report`, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showReportModal.value = false
+      reportForm.reset()
+      menuOpen.value = false
+    },
+    onError: (errors) => {
+      reportErrors.value = errors
+    }
+  })
+}
+
 onMounted(() => {
   document.addEventListener('click', closeMenuOnClickOutside)
 })
@@ -502,6 +562,15 @@ header {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+.hidden-warning {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 12px 20px;
+  text-align: center;
+  font-weight: 500;
+  border-bottom: 2px solid #f59e0b;
 }
 
 .desc {
@@ -1240,6 +1309,8 @@ h3 {
   background: white;
   padding: 32px;
   border-radius: 16px;
+  min-height: 300px;
+  max-height: 800px;
   max-width: 500px;
   width: 90%;
   position: relative;
@@ -1275,7 +1346,9 @@ h3 {
 
 .form-group textarea,
 .form-group input {
+  resize: vertical;
   width: 100%;
+  max-height: 585px;
   padding: 12px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;

@@ -124,4 +124,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class)->where('is_read', false);
     }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'reported_user_id');
+    }
 }
