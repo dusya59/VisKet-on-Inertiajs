@@ -42,6 +42,77 @@ class SettingsController extends Controller
         ]);
     }
 
+    public function files()
+    {
+        $user = auth()->user();
+
+        $userFiles = [];
+
+        if ($user->resume) {
+            $userFiles[] = [
+                'type' => 'resume',
+                'name' => 'Резюме',
+                'path' => $user->resume,
+                'url' => asset('storage/'.$user->resume),
+            ];
+        }
+
+        if ($user->passport) {
+            $userFiles[] = [
+                'type' => 'passport',
+                'name' => 'Паспорт',
+                'path' => $user->passport,
+                'url' => asset('storage/'.$user->passport),
+            ];
+        }
+
+        if ($user->certificates) {
+            $userFiles[] = [
+                'type' => 'certificates',
+                'name' => 'Сертификаты',
+                'path' => $user->certificates,
+                'url' => asset('storage/'.$user->certificates),
+            ];
+        }
+
+        return Inertia::render('Settings/Index', [
+            'section' => 'files',
+            'user' => $user,
+            'userFiles' => $userFiles,
+        ]);
+    }
+
+    public function requestVerification()
+    {
+        $user = auth()->user();
+
+        if ($user->is_verified === 'verified') {
+            return response()->json(['error' => 'Account already verified'], 400);
+        }
+
+        if ($user->is_verified === 'pending') {
+            return response()->json(['error' => 'Verification already pending'], 400);
+        }
+
+        $user->is_verified = 'pending';
+        $user->save();
+
+        return response()->json(['success' => true, 'message' => 'Verification request sent']);
+    }
+
+    public function resendEmailVerification()
+    {
+        $user = auth()->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['error' => 'Email already verified'], 400);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['success' => true, 'message' => 'Verification email sent']);
+    }
+
     public function notifications()
     {
         $user = auth()->user();

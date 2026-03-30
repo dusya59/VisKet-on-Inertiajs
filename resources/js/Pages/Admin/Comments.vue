@@ -169,7 +169,7 @@
       if (mode.value === 'reports') {
         params = '?mode=reports';
       }
-      const response = await axios.get(`/api/admin/comments${params}`);
+      const response = await axios.get(`/admin/comments/data${params}`);
       comments.value = response.data.comments || response.data;
     } catch (err) {
       console.error('Ошибка загрузки комментариев:', err);
@@ -251,7 +251,7 @@
     try {
       deleting.value = commentId;
       
-      await axios.delete(`/api/admin/comments/${commentId}`);
+      await axios.delete(`/admin/comments/${commentId}`);
 
       comments.value = comments.value.filter(comment => comment.id !== commentId);
       
@@ -271,7 +271,7 @@
   const dismissCommentReports = async (commentId) => {
     try {
       deleting.value = commentId;
-      await axios.post(`/api/admin/comments/${commentId}/dismiss-reports`);
+      await axios.post(`/admin/comments/${commentId}/dismiss-reports`);
       comments.value = comments.value.filter(comment => comment.id !== commentId);
     } catch (err) {
       console.error('Ошибка игнорирования жалоб:', err);

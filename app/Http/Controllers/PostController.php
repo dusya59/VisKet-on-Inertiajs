@@ -308,23 +308,6 @@ class PostController extends Controller
             ->with('success', 'Пост успешно удален!');
     }
 
-    public function comment(Request $request, Post $post)
-    {
-        $request->validate(['text' => 'required|string|max:1000']);
-
-        $userId = auth()->id();
-        if ($userId === null) {
-            return redirect()->back()->withErrors(['message' => 'Пользователь не аутентифицирован.']);
-        }
-
-        $post->comments()->create([
-            'user_id' => $userId,
-            'text' => $request->text,
-        ]);
-
-        return back();
-    }
-
     public function storeVacancy(Request $request)
     {
         if (! auth()->check()) {

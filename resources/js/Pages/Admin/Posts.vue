@@ -185,7 +185,7 @@ onUnmounted(() => {
       if (mode.value === 'reports') {
         params = '?mode=reports';
       }
-      const response = await axios.get(`/api/admin/posts${params}`);
+      const response = await axios.get(`/admin/posts/data${params}`);
       posts.value = response.data.posts || response.data;
     } catch (err) {
       console.error('Ошибка загрузки постов:', err);
@@ -214,7 +214,7 @@ onUnmounted(() => {
   const dismissPostReports = async (postId) => {
     try {
       deleting.value = postId;
-      await axios.post(`/api/admin/posts/${postId}/dismiss-reports`);
+      await axios.post(`/admin/posts/${postId}/dismiss-reports`);
       posts.value = posts.value.filter(post => post.id !== postId);
     } catch (err) {
       console.error('Ошибка игнорирования жалоб:', err);
@@ -227,7 +227,7 @@ onUnmounted(() => {
   const warnPost = async (postId) => {
     try {
       deleting.value = postId;
-      await axios.post(`/api/admin/posts/${postId}/warn`);
+      await axios.post(`/admin/posts/${postId}/warn`);
       posts.value = posts.value.filter(post => post.id !== postId);
       alert('Предупреждение отправлено');
     } catch (err) {
@@ -245,7 +245,7 @@ onUnmounted(() => {
   
     try {
       deleting.value = postId;
-      await axios.post(`/api/admin/posts/${postId}/hide`);
+      await axios.post(`/admin/posts/${postId}/hide`);
       posts.value = posts.value.filter(post => post.id !== postId);
       alert('Пост скрыт');
     } catch (err) {
@@ -264,7 +264,7 @@ onUnmounted(() => {
     try {
       deleting.value = postId;
       
-      await axios.delete(`/api/admin/posts/${postId}`);
+      await axios.delete(`/admin/posts/${postId}`);
       
       posts.value = posts.value.filter(post => post.id !== postId);
       

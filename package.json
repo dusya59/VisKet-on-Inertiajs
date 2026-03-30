@@ -3,10 +3,11 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && vite build --ssr",
         "dev": "vite"
     },
     "devDependencies": {
+        "@inertiajs/server": "^0.1.0",
         "@laravel/echo-vue": "^2.3.0",
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",
@@ -22,6 +23,7 @@
         "@inertiajs/inertia-vue3": "^0.6.0",
         "@inertiajs/vue3": "^2.2.18",
         "@vitejs/plugin-vue": "^6.0.2",
+        "@vue/server-renderer": "^3.5.31",
         "vue": "^3.5.25"
     }
 }

@@ -5,6 +5,9 @@
       <transition name="slide" mode="out-in">
         <form v-if="mode === 'login'" @submit.prevent="submitLogin" key="login">
             <h1>Вход</h1>
+            <div v-if="$page.props.errors.error" class="error-message global-error">
+              {{ $page.props.errors.error }}
+            </div>
             <div class="login-content">
               <div class="input-group">
                 <label>Email</label>
@@ -26,11 +29,11 @@
             <span>Или</span>
           </div>
           <div class="oauth-buttons">
-            <a href="/auth/google/redirect" class="oauth-btn oauth-google"> 
+            <a href="/auth/google/redirect" class="oauth-btn oauth-google" data-inertia="false">
               <img src="/images/google.svg" alt="">
               Войти через Google
             </a>
-            <a href="/auth/github/redirect" class="oauth-btn oauth-github">
+            <a href="/auth/github/redirect" class="oauth-btn oauth-github" data-inertia="false">
               <img src="/images/github.svg" alt="">
               Войти через GitHub
             </a>
@@ -616,6 +619,11 @@ form button[type="submit"]:disabled {
   margin-top: 10px;
   text-align: center;
   max-width: 300px;
+}
+
+.global-error {
+  margin-bottom: 15px;
+  font-weight: 500;
 }
 
 .label-with-tooltip {

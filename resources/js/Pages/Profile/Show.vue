@@ -8,13 +8,7 @@
           <div class="profile-header">
             <img v-if="user.avatar_url" :src="user.avatar_url" :alt="'Аватарка ' + user.name">
             <img v-else src="/images/User-avatar.png" :alt="'Аватарка ' + user.name">
-            <div v-if="isOwnProfile && !user.avatar_url" class="avatar-upload-form">
-              <form @submit.prevent="submitAvatar" enctype="multipart/form-data">
-                <label for="avatar">Загрузить аватарку:</label>
-                <input type="file" name="avatar" id="avatar" accept="image/*" required @change="handleAvatarChange">
-                <button type="submit" :disabled="avatarForm.processing">Сохранить</button>
-              </form>
-            </div>
+            
           </div>
           <div class="desc">
             <h1>{{ user.name }} </h1>
@@ -313,14 +307,6 @@ const toggleSubscription = () => {
     display: flex;
     flex-direction: column;
 }
-
-.avatar-upload-form {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
 .profile-header form button {
     background-color: rgb(255, 52, 52);
     border: none;

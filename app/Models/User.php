@@ -22,7 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name', 'email', 'password', 'avatar', 'aboutme', 'rating', 'balance', 'phone', 'is_verified', 'rejection_reason',
-        'provider', 'provider_id', 'verification_attempts',
+        'verification_attempts',
     ];
 
     /**
@@ -128,5 +128,15 @@ class User extends Authenticatable
     public function reports()
     {
         return $this->hasMany(Report::class, 'reported_user_id');
+    }
+
+    public function socialAccounts()
+    {
+        return $this->hasMany(SocialAccount::class);
+    }
+
+    public function hasSocialAccount(string $provider): bool
+    {
+        return $this->socialAccounts()->where('provider', $provider)->exists();
     }
 }

@@ -6,16 +6,22 @@
         <p class="l2">ket</p>
       </Link>
       <div v-if="authUser" class="menu-trigger" ref="menuTrigger" @click="toggleMenu">
-        <img 
-          v-if="authUser.avatar" 
-          :src="'/storage/' + authUser.avatar" 
-          alt="avatar" 
+        <img
+          v-if="authUser.avatar && authUser.avatar.startsWith('http')"
+          :src="authUser.avatar"
+          alt="avatar"
           class="header-avatar"
         >
-        <img 
-          v-else 
-          src="/images/User-avatar.png" 
-          alt="avatar" 
+        <img
+          v-else-if="authUser.avatar"
+          :src="'/storage/' + authUser.avatar"
+          alt="avatar"
+          class="header-avatar"
+        >
+        <img
+          v-else
+          src="/images/User-avatar.png"
+          alt="avatar"
           class="header-avatar"
         >
         <img

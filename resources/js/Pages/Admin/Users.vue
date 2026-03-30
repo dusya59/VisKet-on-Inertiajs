@@ -236,7 +236,7 @@ let adminScript = null;
       } else if (mode.value === 'reports') {
         params = '?mode=reports';
       }
-      const response = await axios.get(`/api/admin/users${params}`);
+      const response = await axios.get(`/admin/users/data${params}`);
       users.value = response.data.users || response.data;
       
       if (mode.value === 'verification') {
@@ -264,7 +264,7 @@ let adminScript = null;
   const startConversation = async (userId) => {
     try {
       sendingMessage.value = userId;
-      const response = await axios.post(`/api/conversations/start/${userId}`);
+      const response = await axios.get(`/chats/start/${userId}`);
     
       if (response.data.conversation_id) {
         router.visit(`/messages/${response.data.conversation_id}`);
@@ -297,7 +297,7 @@ let adminScript = null;
   const approveUser = async (userId) => {
     try {
       processingUser.value = userId;
-      await axios.post(`/api/admin/users/${userId}/approve`);
+      await axios.post(`/admin/users/${userId}/approve`);
       users.value = users.value.filter(u => u.id !== userId);
       pendingCount.value = Math.max(0, pendingCount.value - 1);
     } catch (err) {
@@ -323,7 +323,7 @@ let adminScript = null;
     
     try {
       processingUser.value = rejectingUserId.value;
-      await axios.post(`/api/admin/users/${rejectingUserId.value}/reject`, {
+      await axios.post(`/admin/users/${rejectingUserId.value}/reject`, {
         reason: rejectionReason.value
       });
       users.value = users.value.filter(u => u.id !== rejectingUserId.value);
@@ -344,7 +344,7 @@ let adminScript = null;
   const dismissUserReports = async (userId) => {
     try {
       processingUser.value = userId;
-      await axios.post(`/api/admin/users/${userId}/dismiss-reports`);
+      await axios.post(`/admin/users/${userId}/dismiss-reports`);
       users.value = users.value.filter(u => u.id !== userId);
     } catch (err) {
       console.error('Ошибка игнорирования жалоб:', err);
@@ -361,7 +361,7 @@ let adminScript = null;
     
     try {
       processingUser.value = userId;
-      await axios.delete(`/api/admin/users/${userId}`);
+      await axios.delete(`/admin/users/${userId}`);
       users.value = users.value.filter(u => u.id !== userId);
       alert('Пользователь заблокирован');
     } catch (err) {

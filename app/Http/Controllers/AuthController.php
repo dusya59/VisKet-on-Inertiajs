@@ -73,6 +73,8 @@ class AuthController extends Controller
             'is_verified' => $request->boolean('request_verification') ? 'pending' : null,
         ]);
 
+        $user->refresh();
+
         if (! empty($request->skills)) {
             $skills = collect($request->skills)->mapWithKeys(function ($skill) {
                 return [$skill['id'] => ['level' => $skill['level'] ?? 3]];
@@ -95,7 +97,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect('/profile/'.$user->id);
+        return redirect()->route('profile', ['user' => $user->id]);
     }
 
     public function login(Request $request)

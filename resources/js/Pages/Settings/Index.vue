@@ -21,6 +21,13 @@
           >
             Приватность
           </Link>
+          <Link 
+            href="/settings/files" 
+            class="settings-nav-item"
+            :class="{ active: section === 'files' }"
+          >
+            Мои Файлы
+          </Link>
         </nav>
 
         <div class="settings-panel">
@@ -56,6 +63,28 @@
                       Изменить фото
                     </button>
                   </div>
+                </div>
+
+                <div v-if="!user.is_verified || user.is_verified !== 'verified'" class="verification-links">
+                  <Link 
+                    v-if="!user.is_verified || user.is_verified === 'rejected'" 
+                    href="#" 
+                    @click.prevent="requestVerification"
+                    class="verification-link"
+                  >
+                    Запросить верификацию
+                  </Link>
+                  <Link 
+                    v-if="!user.email_verified_at" 
+                    href="#" 
+                    @click.prevent="resendEmailVerification"
+                    class="verification-link"
+                  >
+                    Подтвердить почту
+                  </Link>
+                  <p v-if="user.is_verified === 'pending'" class="verification-status">
+                    Заявка на верификацию на рассмотрении
+                  </p>
                 </div>
               </div>
 
@@ -115,6 +144,25 @@
             <h2>Настройки приватности</h2>
             <p class="coming-soon">Раздел в разработке</p>
           </div>
+          <div v-else-if="section === 'files'" class="panel-files">
+            <h2>Ваши файлы</h2>
+            
+            <div v-if="userFiles && userFiles.length > 0" class="files-list">
+              <div v-for="file in userFiles" :key="file.type" class="file-item">
+                <div class="file-info">
+                  <span class="file-icon">📄</span>
+                  <span class="file-name">{{ file.name }}</span>
+                </div>
+                <div class="file-actions">
+                  <a :href="file.url" target="_blank" class="file-view-btn">Просмотр</a>
+                </div>
+              </div>
+            </div>
+            <div v-else class="no-files">
+              <p>У вас пока нет загруженных файлов</p>
+              <p class="no-files-hint">Файлы можно загрузить при регистрации или редактировании профиля</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -137,6 +185,10 @@ const props = defineProps({
   userSkills: {
     type: Array,
     default: () => []
+  },
+  userFiles: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -145,6 +197,26 @@ const fileInputRef = ref(null)
 const isDragging = ref(false)
 const maxLength = 1000
 const warningThreshold = 50
+
+const requestVerification = () => {
+  axios.post('/settings/request-verification')
+    .then(response => {
+      window.location.reload()
+    })
+    .catch(error => {
+      alert(error.response?.data?.error || 'Error')
+    })
+}
+
+const resendEmailVerification = () => {
+  axios.post('/settings/resend-email-verification')
+    .then(response => {
+      alert('Email отправлен! Проверьте почту (mailhog на порту 8025)')
+    })
+    .catch(error => {
+      alert(error.response?.data?.error || 'Error')
+    })
+}
 
 const form = useForm({
   name: props.user.name,
@@ -238,16 +310,17 @@ function submit() {
 }
 
 .settings-content {
+  min-height: 70vh;
   margin: 0 auto;
   display: flex;
   gap: 30px;
   background: white;
   border-radius: 24px;
   border: 2px solid #e2e8f0;
-  overflow: hidden;
 }
 
 .settings-nav {
+  border-radius: 24px 0 0 24px;
   width: 250px;
   background: #f8fafc;
   padding: 30px 0;
@@ -373,6 +446,30 @@ function submit() {
   transform: scale(1.05);
 }
 
+.verification-links {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.verification-link {
+  color: black;
+  text-decoration: underline;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.verification-link:hover {
+  color: rgb(230, 45, 45);
+}
+
+.verification-status {
+  color: #f59e0b;
+  font-size: 14px;
+  text-align: center;
+}
+
 .profile-header img {
   width: 100%;
   height: 100%;
@@ -454,6 +551,8 @@ function submit() {
 }
 
 .btn-cancel {
+  display: flex;
+  align-items: center;
   background-color: #f0f0f0;
   color: #333;
   border: 1px solid rgb(182, 182, 182);
@@ -481,6 +580,73 @@ function submit() {
 .coming-soon {
   color: #94a3b8;
   font-size: 16px;
+}
+
+.panel-files h2 {
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-icon {
+  font-size: 24px;
+}
+
+.file-name {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.file-view-btn {
+  padding: 8px 16px;
+  background: rgb(255, 52, 52);
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.file-view-btn:hover {
+  background: rgb(230, 45, 45);
+}
+
+.no-files {
+  text-align: center;
+  padding: 50px 20px;
+  color: #64748b;
+}
+
+.no-files p {
+  font-size: 16px;
+}
+
+.no-files-hint {
+  font-size: 14px !important;
+  color: #94a3b8 !important;
+  margin-top: 10px;
 }
 
 @media(max-width: 1000px) {
