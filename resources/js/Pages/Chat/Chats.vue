@@ -15,27 +15,32 @@
           :class="{ active: activeChat && chat.id === activeChat.id, 'has-unread': chat.unread_count > 0 }"
         >
           <div v-if="chat.other_user" class="chat-user-info">
-            <img :src="chat.other_user.avatar_url" class="chat-avatar" />
+            <div class="avatar-wrapper">
+              <img :src="chat.other_user.avatar_url" class="chat-avatar" />
+              <span v-if="isUserOnline(chat.other_user.id)" class="online-indicator"></span>
+            </div>
             <div>
               <h3>{{ chat.other_user.name }}</h3>
               <p v-if="chat.latest_message" class="chat-preview" :class="{ unread: chat.unread_count > 0 }">
-                {{ truncate(chat.latest_message.content, 30) }}
+                {{ getChatPreview(chat.latest_message) }}
               </p>
             </div>
           </div>
 
-          <div class="chat-meta">
-            <span class="chat-time">
-              <span v-if="chat.latest_message">
-                {{ chat.latest_message.created_at_human }}
-              </span>
-            </span>
-            <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
-          </div>
+           <div class="chat-meta">
+             <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
+           </div>
         </Link>
       </div>
-
-      <div class="chat-area" :class="{ active: !!activeChat, sliding: isSliding }" ref="chatArea" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd">
+        <div 
+          class="chat-area" 
+          :class="{ active: !!activeChat, sliding: isSliding }" 
+          :style="slideOffset > 0 ? { transform: `translateX(${slideOffset}px)` } : {}"
+          ref="chatArea" 
+          @touchstart="onTouchStart" 
+          @touchmove="onTouchMove" 
+          @touchend="onTouchEnd"
+        >
         <template v-if="activeChat">
           <div class="chat-header">
             <Link class="back" @click="handleBackClick"> 
@@ -43,8 +48,12 @@
             </Link>
             <div class="chat-header-mid">
               <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
+                <div class="avatar-wrapper">
                   <img :src="otherUsers[0].avatar_url" class="chat-avatar" />
-                  <h2>{{ otherUsers[0].name }}</h2>
+                  <span v-if="isUserOnline(otherUsers[0].id)" class="online-indicator"></span>
+                  <span v-else class="offline-indicator"></span>
+                </div>  
+                  <h2>{{ otherUsers[0].name }}</h2>        
               </Link>
               <span v-if="vacancyPostId" class="vacancy-link">
                   откликнулся на 
@@ -90,7 +99,13 @@
                 :src="activeChat.application.user.avatar_url" 
                 class="application-avatar"
               />
-              <h3>{{ activeChat.application.user.name }}</h3>
+              <div class="name">
+                <h3>{{ activeChat.application.user.name }}</h3>
+                <span class="user-status" :class="{ online: isUserOnline(otherUsers[0].id) }">
+                    {{ isUserOnline(otherUsers[0].id) ? 'онлайн' : 'оффлайн' }}
+                </span>
+              </div>
+              
               <p class="account-age">Аккаунт создан {{ formatAccountAge(activeChat.application.user.created_at) }}</p>
               
               <div v-if="activeChat.application.user.rating" class="application-rating">
@@ -123,12 +138,16 @@
               v-for="message in activeChat.messages"
               :key="message.id"
               class="message-container"
-              :class="{ 'right-clicked': rightClickedMessage && rightClickedMessage.id === message.id }"
+              :class="{ 
+                'right-clicked': rightClickedMessage && rightClickedMessage.id === message.id,
+                'selected': selectedMessages.some(m => m.id === message.id)
+              }"
+              @click="toggleMessageSelection(message)"
               @contextmenu.prevent="showContextMenu($event, message)"
             >
               <img :src="message.user.avatar_url" class="chat-avatar" />
 
-              <div class="message" :class="{ 'my-message': message.is_mine }">
+              <div class="message" :class="{ 'my-message': message.is_mine, 'shared-post': isOnlyPostUrl(message.content) }">
                 <img
                   v-if="message.image_url"
                   :src="message.image_url"
@@ -144,7 +163,31 @@
                   @click.stop="openVideo(message.video_url)"
                 ></video>
                 <div class="message-content">
-                  <div v-if="message.content">{{ message.content }}</div>
+                  <span
+                    v-if="message.content && !isOnlyPostUrl(message.content)"
+                    v-html="renderContent(message.content)"
+                  ></span>
+
+                  <div
+                    v-for="preview in getPostPreviewsFromContent(message.content)"
+                    :key="preview.id"
+                    class="post-preview-card"
+                    :class="{ 'shared-post-card': isOnlyPostUrl(message.content) }"
+                    @click.stop="router.visit(`/posts/${preview.id}`)"
+                  >
+                    <img
+                      v-if="preview.image_url"
+                      :src="preview.image_url"
+                      class="post-preview-img"
+                      alt=""
+                    />
+                    <div class="post-preview-body">
+                      <div class="post-preview-title">{{ preview.title }}</div>
+                      <div v-if="preview.description" class="post-preview-desc">
+                        {{ preview.description.slice(0, 80) }}{{ preview.description.length > 80 ? '…' : '' }}
+                      </div>
+                    </div>
+                  </div>
 
                   <div v-if="message.file_url" class="file-attachment">
                     <button
@@ -278,12 +321,25 @@
       class="context-menu"
       :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
     >
-      <div class="context-menu-item" @click="editMessage(contextMenu.message)">
+      <div v-if="!contextMenu.message?.is_mine" class="context-menu-item" @click="replyToMessage(contextMenu.message)">
+        Ответить
+      </div>
+      <div v-if="contextMenu.message?.is_mine" class="context-menu-item" @click="editMessage(contextMenu.message)">
         Редактировать
       </div>
-      <div class="context-menu-item delete" @click="deleteMessage(contextMenu.message)">
+      <div v-if="contextMenu.message?.is_mine" class="context-menu-item delete" @click="deleteMessage(contextMenu.message)">
         Удалить
       </div>
+    </div>
+
+    <div v-if="selectedMessages.length > 0" class="selection-toolbar">
+      <span>{{ selectedMessages.length }} выбрано</span>
+      <button v-if="canDeleteSelected" type="button" class="selection-delete-btn" @click="deleteSelectedMessages">
+        Удалить
+      </button>
+      <button type="button" class="selection-clear-btn" @click="clearSelection">
+        Отмена
+      </button>
     </div>
   </AppLayout>
 </template>
@@ -324,6 +380,7 @@ const modalOpen = ref(false)
 const modalImage = ref(null)
 const modalVideo = ref(null)
 const downloadedFiles = ref(new Set())
+const slideOffset = ref(0)
 const contextMenu = ref({
   show: false,
   x: 0,
@@ -332,22 +389,157 @@ const contextMenu = ref({
 })
 const rightClickedMessage = ref(null)
 const editingMessage = ref(null)
+const selectedMessages = ref([])
 const optionsMenu = ref({
   show: false,
   x: 15,
   y: 60
 })
+const onlineUsers = ref(new Set())
 const isSliding = ref(false)
 const touchStartX = ref(0)
 const touchCurrentX = ref(0)
 const isSwiping = ref(false)
 
+const postPreviews = ref({})
+
+const POST_URL_REGEX = /http?:\/\/[^\/\s]+\/posts\/(\d+)/g
+
+function extractPostIds(content) {
+  if (!content) return []
+  const ids = []
+  let match
+  const regex = new RegExp(POST_URL_REGEX.source, 'g')
+  while ((match = regex.exec(content)) !== null) {
+    ids.push(match[1])
+  }
+  return [...new Set(ids)]
+}
+
+async function fetchPostPreview(postId) {
+  if (postPreviews.value[postId]) return
+  postPreviews.value[postId] = 'loading'
+  try {
+    const res = await fetch(`/api/posts/${postId}/preview`)
+    if (!res.ok) throw new Error('not found')
+    postPreviews.value[postId] = await res.json()
+  } catch {
+    postPreviews.value[postId] = 'error'
+  }
+}
+
+async function loadPreviewsForMessages(messages) {
+  if (!messages) return
+  const promises = []
+  for (const msg of messages) {
+    const ids = extractPostIds(msg.content)
+    for (const id of ids) promises.push(fetchPostPreview(id))
+  }
+  await Promise.all(promises)
+}
+
+function getPostPreviewsFromContent(content) {
+  const ids = extractPostIds(content)
+  return ids
+    .map(id => postPreviews.value[id])
+    .filter(p => p && p !== 'loading' && p !== 'error')
+}
+
+function renderContent(content) {
+  if (!content) return ''
+  return content.replace(
+    /http?:\/\/[^\/\s]+\/posts\/(\d+)/g,
+    (url, id) => `<a href="/posts/${id}" class="post-link" target="_blank">${url}</a>`
+  )
+}
+
+function isOnlyPostUrl(content) {
+  if (!content) return false
+  const trimmed = content.trim()
+  const regex = new RegExp(`^${POST_URL_REGEX.source.replace('\\/', '/').replace('http?', 'http?s?')}$`)
+  return regex.test(trimmed)
+}
+
+function truncate(text, length) {
+  if (!text) return ''
+  return text.length > length ? text.slice(0, length) + '…' : text
+}
+
+function getChatPreview(message) {
+  if (!message || !message.content) return ''
+  const trimmed = message.content.trim()
+  if (POST_URL_REGEX.test(trimmed)) {
+    return message.is_mine ? 'Вы поделились постом' : 'поделился(лась) постом'
+  }
+  return truncate(message.content, 30)
+}
+
+const formatAccountAge = (createdAt) => {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMs = now - created
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 30) return `${diffDays} дней назад`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} мес. назад`
+  return `${Math.floor(diffDays / 365)} лет назад`
+}
+
+const scrollToBottom = (force = false) => {
+  nextTick(() => {
+    const el = messagesRef.value
+    if (!el) return
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100
+
+    if (force || isNearBottom) {
+      el.scrollTop = el.scrollHeight
+    }
+  })
+}
+
+const autoResize = () => {
+  const el = textareaRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
 const isMobile = () => window.innerWidth <= 1000
+
+const resetForm = () => {
+  form.reset('content', 'photo', 'video', 'document')
+  photoPreviewUrl.value = null
+  videoPreviewUrl.value = null
+  documentPreviewName.value = null
+  editingMessage.value = null
+}
+
+const acceptApplication = () => {
+  router.post(`/applications/${props.activeChat.application.id}/accept`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const rejectApplication = () => {
+  router.post(`/applications/${props.activeChat.application.id}/reject`, {}, {
+    preserveScroll: true,
+  })
+}
 
 const otherUsers = computed(() => {
   if (!props.activeChat) return []
   const currentId = page.props.auth?.user?.id
   return props.activeChat.users.filter((u) => u.id !== currentId)
+})
+
+const vacancyPosition = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
+  return props.activeChat.application.vacancy.position
+})
+
+const vacancyPostId = computed(() => {
+  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
+  return props.activeChat.application.vacancy.post_id
 })
 
 const showApplicationBlock = computed(() => {
@@ -364,115 +556,13 @@ const isVacancyAuthor = computed(() => {
   return currentUserId !== applicantId
 })
 
-const vacancyPosition = computed(() => {
-  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
-  return props.activeChat.application.vacancy.position
+const canDeleteSelected = computed(() => {
+  if (selectedMessages.value.length === 0) return false
+  return selectedMessages.value.every(m => m.is_mine)
 })
 
-const vacancyPostId = computed(() => {
-  if (!props.activeChat || !props.activeChat.application?.vacancy) return null
-  return props.activeChat.application.vacancy.post_id
-})
-
-const applicationUserName = computed(() => {
-  if (!props.activeChat || !props.activeChat.application?.user) return ''
-  return props.activeChat.application.user.name
-})
-
-const formatAccountAge = (createdAt) => {
-  const created = new Date(createdAt)
-  const now = new Date()
-  const diffMs = now - created
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  
-  if (diffDays < 30) return `${diffDays} дней назад`
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} мес. назад`
-  return `${Math.floor(diffDays / 365)} лет назад`
-}
-
-const acceptApplication = () => {
-  router.post(`/applications/${props.activeChat.application.id}/accept`, {}, {
-    preserveScroll: true,
-  })
-}
-
-const rejectApplication = () => {
-  router.post(`/applications/${props.activeChat.application.id}/reject`, {}, {
-    preserveScroll: true,
-  })
-}
-
-const truncate = (text, length) => {
-  if (!text) return ''
-  return text.length > length ? text.slice(0, length) + '…' : text
-}
-
-const autoResize = () => {
-  const el = textareaRef.value
-  if (!el) return
-  el.style.height = 'auto'
-  el.style.height = `${el.scrollHeight}px`
-}
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    const el = messagesRef.value
-    if (!el) return
-    el.scrollTop = el.scrollHeight
-  })
-}
-
-const resetForm = () => {
-  form.reset('content', 'photo', 'video', 'document')
-  photoPreviewUrl.value = null
-  videoPreviewUrl.value = null
-  documentPreviewName.value = null
-  editingMessage.value = null
-}
-
-const onPhotoChange = (event) => {
-  const file = event.target.files[0]
-  form.photo = file || null
-
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      photoPreviewUrl.value = e.target.result
-      videoPreviewUrl.value = null
-      documentPreviewName.value = null
-    }
-    reader.readAsDataURL(file)
-  } else {
-    photoPreviewUrl.value = null
-  }
-}
-
-const onVideoChange = (event) => {
-  const file = event.target.files[0]
-  form.video = file || null
-
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      videoPreviewUrl.value = e.target.result
-      photoPreviewUrl.value = null
-      documentPreviewName.value = null
-    }
-    reader.readAsDataURL(file)
-  } else {
-    videoPreviewUrl.value = null
-  }
-}
-
-const onDocumentChange = (event) => {
-  const file = event.target.files[0]
-  form.document = file || null
-  documentPreviewName.value = file ? file.name : null
-  
-  if (file) {
-    photoPreviewUrl.value = null
-    videoPreviewUrl.value = null
-  }
+const isUserOnline = (userId) => {
+  return onlineUsers.value.has(userId)
 }
 
 const canSend = computed(() => {
@@ -583,23 +673,6 @@ const downloadFile = (message) => {
   }
 }
 
-const getCsrfToken = () => {
-  const tokenMeta = document.querySelector('meta[name="csrf-token"]')
-  if (tokenMeta) {
-    return tokenMeta.getAttribute('content')
-  }
-  
-  const csrfCookie = document.cookie
-    .split(';')
-    .find(c => c.trim().startsWith('XSRF-TOKEN='))
-  
-  if (csrfCookie) {
-    return decodeURIComponent(csrfCookie.split('=')[1])
-  }
-  
-  return null
-}
-
 const sendMessage = () => {
   if (!props.activeChat || !canSend.value) return
 
@@ -608,61 +681,6 @@ const sendMessage = () => {
     : `/chats/${props.activeChat.id}/messages`
 
   const wasEditing = !!editingMessage.value
-
-  if (form.photo || form.video || form.document) {
-    const formData = new FormData()
-
-    formData.append('content', form.content ?? '')
-
-    if (form.photo) {
-      formData.append('photo', form.photo)
-    }
-    if (form.video) {
-      formData.append('video', form.video)
-    }
-    if (form.document) {
-      formData.append('document', form.document)
-    }
-
-    if (wasEditing) {
-      formData.append('_method', 'PUT')
-    }
-
-    const csrfToken = getCsrfToken()
-
-    fetch(url, {
-      method: 'POST',
-      body: formData,
-      credentials: 'same-origin',
-      headers: {
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-    .then(response => {
-      if (response.redirected) {
-        window.location.href = response.url
-      } else if (response.ok) {
-        resetForm()
-        if (!wasEditing) {
-          scrollToBottom()
-        }
-        router.reload({ only: ['activeChat'] })
-      } else {
-        return response.text().then(text => {
-          console.error('Request failed:', response.status, text)
-          alert('Ошибка при отправке сообщения')
-        })
-      }
-    })
-    .catch(error => {
-      console.error('Ошибка при отправке:', error)
-      alert('Ошибка при отправке сообщения')
-    })
-
-    return
-  }
-
   const method = wasEditing ? 'put' : 'post'
 
   form[method](url, {
@@ -670,7 +688,7 @@ const sendMessage = () => {
     onSuccess: () => {
       resetForm()
       if (!wasEditing) {
-        scrollToBottom()
+        scrollToBottom(true)
       }
     },
     onError: (errors) => {
@@ -690,8 +708,6 @@ const formatSize = (bytes) => {
 }
 
 const showContextMenu = (event, message) => {
-  if (!message.is_mine) return
-  
   contextMenu.value = {
     show: true,
     x: event.clientX,
@@ -741,6 +757,58 @@ const cancelEdit = () => {
   resetForm()
 }
 
+const toggleMessageSelection = (message) => {
+  const index = selectedMessages.value.findIndex(m => m.id === message.id)
+  if (index > -1) {
+    selectedMessages.value.splice(index, 1)
+  } else {
+    selectedMessages.value.push(message)
+  }
+}
+
+const replyToMessage = (message) => {
+  const prefix = message.content
+    ? `>> ${message.user.name}: ${message.content.slice(0, 50)}${message.content.length > 50 ? '…' : ''}\n`
+    : `>> ${message.user.name}\n`
+  form.content = prefix
+  hideContextMenu()
+  nextTick(() => {
+    if (textareaRef.value) {
+      textareaRef.value.focus()
+      autoResize()
+    }
+  })
+}
+
+const clearSelection = () => {
+  selectedMessages.value = []
+}
+
+const deleteSelectedMessages = async () => {
+  if (selectedMessages.value.length === 0) return
+  
+  const messagesToDelete = selectedMessages.value.filter(m => m.is_mine)
+  if (messagesToDelete.length === 0) return
+  
+  const messageIds = messagesToDelete.map(m => m.id)
+  const confirmMsg = messageIds.length === selectedMessages.value.length
+    ? `Удалить ${messageIds.length} сообщение(й)?`
+    : `Удалить ${messageIds.length} из ${selectedMessages.value.length} выбранных сообщений?`
+  
+  if (confirm(confirmMsg)) {
+    for (const id of messageIds) {
+      await new Promise(resolve => {
+        router.delete(`/chats/${props.activeChat.id}/messages/${id}`, {
+          preserveScroll: true,
+          onFinish: resolve
+        })
+      })
+    }
+    selectedMessages.value = []
+    hideContextMenu()
+  }
+}
+
 const toggleOptionsMenu = () => {
   optionsMenu.value.show = !optionsMenu.value.show
 }
@@ -775,6 +843,7 @@ const handleBackClick = () => {
   if (isMobile()) {
     isSliding.value = true
     setTimeout(() => {
+      isSliding.value = false
       router.visit('/chats')
     }, 300)
   } else {
@@ -789,6 +858,9 @@ const toggleApplicationBlock = () => {
   } catch (e) {
     console.error('Не удалось сохранить состояние', e)
   }
+  nextTick(() => {
+    scrollToBottom(true)
+  })
 }
 
 const onTouchStart = (e) => {
@@ -796,6 +868,7 @@ const onTouchStart = (e) => {
   touchStartX.value = e.touches[0].clientX
   touchCurrentX.value = e.touches[0].clientX
   isSwiping.value = touchStartX.value < 50
+  slideOffset.value = 0
 }
 
 const onTouchMove = (e) => {
@@ -803,8 +876,8 @@ const onTouchMove = (e) => {
   touchCurrentX.value = e.touches[0].clientX
   const deltaX = touchCurrentX.value - touchStartX.value
   
-  if (deltaX > 0 && chatArea.value) {
-    chatArea.value.style.transform = `translateX(${deltaX}px)`
+  if (deltaX > 0) {
+    slideOffset.value = deltaX
   }
 }
 
@@ -815,20 +888,17 @@ const onTouchEnd = () => {
   
   if (deltaX > 100) {
     isSliding.value = true
-    if (chatArea.value) {
-      chatArea.value.style.transform = 'translateX(100%)'
-    }
+    slideOffset.value = 0
     setTimeout(() => {
       router.visit('/chats')
     }, 300)
   } else {
-    if (chatArea.value) {
-      chatArea.value.style.transform = ''
-    }
+    slideOffset.value = 0
   }
   
   isSwiping.value = false
 }
+
 
 const syncBodyClass = (hasActiveChat) => {
   if (hasActiveChat) {
@@ -837,58 +907,87 @@ const syncBodyClass = (hasActiveChat) => {
     document.body.classList.remove('mobile-chat-open')
   }
 }
+const resizeObserver = new ResizeObserver(() => {
+   if (props.activeChat) {
+      scrollToBottom(true)
+      console.log("вырос")
+    }
+    })
 
 onMounted(() => {
-  try {
-    const raw = window.localStorage.getItem('visket_downloaded_files')
-    if (raw) {
-      const arr = JSON.parse(raw)
-      downloadedFiles.value = new Set(Array.isArray(arr) ? arr : [])
+   try {
+     const raw = window.localStorage.getItem('visket_downloaded_files')
+     if (raw) {
+       const arr = JSON.parse(raw)
+       downloadedFiles.value = new Set(Array.isArray(arr) ? arr : [])
+     }
+   } catch (e) {
+     console.error('Не удалось прочитать состояние скачанных файлов', e)
+   }
+
+   try {
+     const closed = localStorage.getItem('visket_application_block_closed')
+     if (closed === '1') {
+       isApplicationBlockClosed.value = true
+     }
+   } catch (e) {
+     console.error('Не удалось прочитать состояние блока', e)
+   }
+
+   document.addEventListener('click', hideContextMenu)
+   document.addEventListener('click', hideOptionsMenu)
+
+   syncBodyClass(!!props.activeChat)
+   loadPreviewsForMessages(props.activeChat?.messages).then(() => {
+     scrollToBottom(true)
+   })
+
+    if (messagesRef.value) {
+      resizeObserver.observe(messagesRef.value)
     }
-  } catch (e) {
-    console.error('Не удалось прочитать состояние скачанных файлов', e)
-  }
-
-  try {
-    const closed = localStorage.getItem('visket_application_block_closed')
-    if (closed === '1') {
-      isApplicationBlockClosed.value = true
+    if (chatArea.value) {
+      resizeObserver.observe(chatArea.value)
     }
-  } catch (e) {
-    console.error('Не удалось прочитать состояние блока', e)
-  }
 
-  document.addEventListener('click', hideContextMenu)
-  document.addEventListener('click', hideOptionsMenu)
+   window.Pusher = Pusher;
 
-  syncBodyClass(!!props.activeChat)
-  scrollToBottom()
+    window.Echo = new Echo({
+      broadcaster: 'reverb',
+      key: import.meta.env.VITE_REVERB_APP_KEY,
+      wsHost: import.meta.env.VITE_REVERB_HOST,
+      wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
+      wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
+      forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
+      enabledTransports: ['ws'], 
+    })
 
-  window.Pusher = Pusher;
+if (props.activeChat) {
+      window.Echo.private(`chat.${props.activeChat.id}`)
+        .listen('.message.sent', (e) => {
+          router.reload({ only: ['activeChat'] })
+        })
+        .listen('.message.updated', (e) => {
+          router.reload({ only: ['activeChat'] })
+        })
+        .listen('.message.deleted', (e) => {
+          router.reload({ only: ['activeChat'] })
+        });
+    }
 
-  window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'false',
-    enabledTransports: ['ws', 'wss'],
-  });
-
-  if (props.activeChat) {
-    window.Echo.private(`chat.${props.activeChat.id}`)
-      .listen('.message.sent', (e) => {
-        router.reload({ only: ['activeChat'] })
+    window.Echo.join('presence-online')
+      .here((users) => {
+        console.log('Presence here:', users)
+        onlineUsers.value = new Set(users.map(u => u.id))
       })
-      .listen('.message.updated', (e) => {
-        router.reload({ only: ['activeChat'] })
+      .joining((user) => {
+        console.log('User joined:', user)
+        onlineUsers.value.add(user.id)
       })
-      .listen('.message.deleted', (e) => {
-        router.reload({ only: ['activeChat'] })
-      });
-  }
-})
+      .leaving((user) => {
+        console.log('User left:', user)
+        onlineUsers.value.delete(user.id)
+      })
+  })
 
 onUnmounted(() => {
   document.removeEventListener('click', hideContextMenu)
@@ -898,15 +997,30 @@ onUnmounted(() => {
   if (props.activeChat && window.Echo) {
     window.Echo.leave(`chat.${props.activeChat.id}`)
   }
+  
+  if (window.Echo) {
+    window.Echo.leave('presence-online')
+  }
+  resizeObserver.disconnect()
 })
 
 watch(
-  () => props.activeChat,
-  (newVal) => {
-    syncBodyClass(!!newVal)
-  }
+   () => props.activeChat,
+   (newVal) => {
+     syncBodyClass(!!newVal)
+     nextTick(() => {
+       scrollToBottom(true)
+     })
+   }
+   
+ )
+watch(
+  postPreviews,
+  () => {
+    scrollToBottom(true)
+  },
+  { deep: true }
 )
-
 watch(
   () => props.activeChat?.id,
   (newChatId, oldChatId) => {
@@ -935,10 +1049,21 @@ watch(
   () => props.activeChat?.messages?.length,
   (newLength, oldLength) => {
     if (newLength && newLength > (oldLength || 0)) {
-      scrollToBottom()
+      scrollToBottom(true)
     }
   }
 )
+
+watch(
+  () => props.activeChat?.messages,
+  (messages) => loadPreviewsForMessages(messages),
+  { deep: false }
+)
+
+watch(postPreviews, () => {
+  scrollToBottom() 
+}, { deep: true })
+
 </script>
 
 <style scoped>
@@ -970,7 +1095,7 @@ watch(
     border-bottom: 1px solid #eee;
     color: #333;
     text-decoration: none;
-    transition: background 0.2s;
+    transition: background-color 0.2s;
 }
 
 .chat-item:hover {
@@ -995,6 +1120,33 @@ watch(
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+}
+
+.avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.online-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background-color: #22c55e;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.offline-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background-color: #9ca3af;
+    border: 2px solid white;
+    border-radius: 50%;
 }
 
 .unread-badge {
@@ -1031,16 +1183,6 @@ watch(
     flex-shrink: 0;
 }
 
-.chat-time {
-    font-size: 0.8em;
-    color: #999;
-}
-
-.chat-time {
-    font-size: 0.8em;
-    color: #999;
-}
-
 .chat-area {
     max-width: 81%;
     flex: 1;
@@ -1051,7 +1193,7 @@ watch(
 }
 
 .chat-area.sliding {
-    transform: translateX(100%);
+    transform: translateX(100%) !important;
 }
 
 .chat-header {
@@ -1114,6 +1256,16 @@ watch(
 
 .vacancy-link a:hover {
   text-decoration: underline;
+}
+
+.user-status {
+  font-size: 12px;
+  color: #999;
+  margin-left: 8px;
+}
+
+.user-status.online {
+  color: #22c55e;
 }
 
 .chat-area.active {
@@ -1543,11 +1695,15 @@ watch(
 }
 
 .application-card h3 {
-  margin: 0 0 8px;
   font-size: 20px;
   color: #0f172a;
 }
-
+.name{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0;
+}
 .account-age {
   color: #64748b;
   font-size: 14px;
@@ -1613,7 +1769,7 @@ watch(
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  transition: background-color 0.2s;
 }
 
 .accept-btn:hover {
@@ -1628,7 +1784,7 @@ watch(
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  transition: background-color 0.2s;
 }
 
 .reject-btn:hover {
@@ -1857,5 +2013,133 @@ watch(
         padding: 12px;
         font-size: 14px;
     }
+}
+
+.post-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: white;
+  max-width: 300px;
+  transition: background 0.15s;
+}
+
+.post-preview-card:hover {
+  background: #f5f5f5;
+}
+
+.post-preview-img {
+  width: 300px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.post-preview-body {
+  padding: 0 10px 10px 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.post-preview-title {
+  -webkit-line-clamp: 1;
+  font-weight: 600;
+  font-size: 13px;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-preview-desc {
+  font-size: 12px;
+  color: #666;
+  margin-top: 3px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message.shared-post {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+}
+
+.shared-post-card {
+  border-radius: 12px;
+}
+
+.shared-post-card .post-preview-title {
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shared-post-card .post-preview-desc {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-container.selected {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.selection-toolbar {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.selection-toolbar span {
+  font-size: 14px;
+}
+
+.selection-delete-btn {
+  padding: 8px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.selection-delete-btn:hover {
+  background: #c82333;
+}
+
+.selection-clear-btn {
+  padding: 8px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.selection-clear-btn:hover {
+  background: #5a6268;
 }
 </style>

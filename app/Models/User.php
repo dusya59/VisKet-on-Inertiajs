@@ -139,4 +139,9 @@ class User extends Authenticatable
     {
         return $this->socialAccounts()->where('provider', $provider)->exists();
     }
+
+    public function receiveBroadcastNotificationsOn(): string
+    {
+        return 'users.'.$this->id;
+    }
 }

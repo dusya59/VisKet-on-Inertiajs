@@ -56,6 +56,7 @@ class ChatController extends Controller
                         ? [
                             'content' => $chat->messages->first()->content,
                             'created_at_human' => $chat->messages->first()->created_at->diffForHumans(),
+                            'is_mine' => $chat->messages->first()->user_id === $user->id,
                         ]
                         : null,
                     'other_user' => $otherUser ? [
@@ -108,6 +109,7 @@ class ChatController extends Controller
                         ? [
                             'content' => $c->messages->first()->content,
                             'created_at_human' => $c->messages->first()->created_at->diffForHumans(),
+                            'is_mine' => $c->messages->first()->user_id === $user->id,
                         ]
                         : null,
                     'other_user' => $otherUser ? [

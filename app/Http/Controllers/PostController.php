@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use App\Models\Chat;
+use App\Models\Message;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -12,7 +15,7 @@ class PostController extends Controller
 {
     public function index()
     {
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         $posts = Post::with(['user', 'likes'])
             ->where(function ($query) use ($userId) {
@@ -30,7 +33,7 @@ class PostController extends Controller
                     'show_url' => route('posts.show', $post->id),
                     'like_url' => route('posts.like', $post->id),
                     'likes_count' => $post->likes->count(),
-                    'is_liked' => auth()->check() ? $post->likes->contains('user_id', auth()->id()) : false,
+                    'is_liked' => Auth::check() ? $post->likes->contains('user_id', Auth::id()) : false,
                     'user' => [
                         'id' => $post->user->id,
                         'name' => $post->user->name,
@@ -53,7 +56,7 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        if (! auth()->check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
         $validated = $request->validate([
@@ -65,7 +68,7 @@ class PostController extends Controller
         $imagePath = $request->file('image')->store('posts', 'public');
 
         $post = Post::create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'title' => $validated['title'],
             'description' => $validated['description'],
             'image' => $imagePath,
@@ -77,7 +80,7 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
-        if (! $post->active && $post->user_id !== auth()->id()) {
+        if (! $post->active && $post->user_id !== Auth::id()) {
             abort(404);
         }
 
@@ -132,11 +135,11 @@ class PostController extends Controller
             'image_url' => $post->image ? asset('storage/'.$post->image) : null,
             'created_at' => $post->created_at->toISOString(),
             'likes_count' => $post->likes->count(),
-            'is_liked' => auth()->check() ? $post->likes->contains('user_id', auth()->id()) : false,
+            'is_liked' => Auth::check() ? $post->likes->contains('user_id', Auth::id()) : false,
             'like_url' => route('posts.like', $post->id),
             'show_url' => route('posts.show', $post->id),
-            'edit_url' => $post->user_id === auth()->id() ? route('posts.edit', $post->id) : null,
-            'delete_url' => $post->user_id === auth()->id() ? route('posts.destroy', $post->id) : null,
+            'edit_url' => $post->user_id === Auth::id() ? route('posts.edit', $post->id) : null,
+            'delete_url' => $post->user_id === Auth::id() ? route('posts.destroy', $post->id) : null,
             'is_hidden' => ! $post->active,
             'is_vacancy' => $post->vacancy !== null,
             'vacancy' => $vacancyData,
@@ -161,9 +164,9 @@ class PostController extends Controller
             })->toArray(),
         ];
 
-        if ($post->vacancy && auth()->check()) {
+        if ($post->vacancy && Auth::check()) {
             $existingApplication = Application::where('vacancy_id', $post->vacancy->id)
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->first();
 
             $postData['has_application'] = (bool) $existingApplication;
@@ -175,6 +178,47 @@ class PostController extends Controller
             $postData['respond_url'] = null;
         }
 
+        if (Auth::check()) {
+            $sharedChats = Auth::user()->chats()
+                ->with(['users' => fn ($q) => $q->where('id', '!=', Auth::id())])
+                ->with(['messages' => fn ($q) => $q->latest()->limit(1)])
+                ->withCount('messages')
+                ->withPivot('last_read_at')
+                ->orderByDesc('updated_at')
+                ->get()
+                ->map(function (Chat $chat) {
+                    $otherUser = $chat->users->first();
+
+                    $lastReadAt = $chat->pivot?->last_read_at ?? Auth::user()->created_at;
+                    $unreadCount = $chat->messages()
+                        ->where('user_id', '!=', Auth::id())
+                        ->where('created_at', '>', $lastReadAt)
+                        ->count();
+
+                    return [
+                        'id' => $chat->id,
+                        'latest_message' => $chat->messages->first()
+                            ? [
+                                'content' => $chat->messages->first()->content,
+                                'created_at_human' => $chat->messages->first()->created_at->diffForHumans(),
+                            ]
+                            : null,
+                        'other_user' => $otherUser ? [
+                            'id' => $otherUser->id,
+                            'name' => $otherUser->name,
+                            'avatar_url' => $otherUser->avatar
+                                ? asset('storage/'.$otherUser->avatar)
+                                : asset('images/User-avatar.png'),
+                        ] : null,
+                        'unread_count' => $unreadCount,
+                    ];
+                });
+
+            $postData['shared_chats'] = $sharedChats;
+        } else {
+            $postData['shared_chats'] = collect();
+        }
+
         return Inertia::render('Posts/Show', [
             'post' => $postData,
         ]);
@@ -182,11 +226,11 @@ class PostController extends Controller
 
     public function like(Post $post)
     {
-        if (! auth()->check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($post->likes()->where('user_id', $user->id)->exists()) {
             $post->likes()->where('user_id', $user->id)->delete();
@@ -201,7 +245,7 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-        if ($post->user_id !== auth()->id()) {
+        if ($post->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -242,7 +286,7 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-        if ($post->user_id !== auth()->id()) {
+        if ($post->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -277,7 +321,7 @@ class PostController extends Controller
         if ($post->vacancy) {
             $post->vacancy->update([
                 'position' => $validated['position'] ?? null,
-                'budget_min' => $validated['budget_min'] ?? null,
+                'budet_min' => $validated['budget_min'] ?? null,
                 'budget_max' => $validated['budget_max'] ?? null,
                 'deadline' => $validated['deadline'] ?? null,
                 'requirements' => $validated['requirements'] ?? null,
@@ -294,7 +338,7 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        if ($post->user_id !== auth()->id()) {
+        if ($post->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -310,7 +354,7 @@ class PostController extends Controller
 
     public function storeVacancy(Request $request)
     {
-        if (! auth()->check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
@@ -331,7 +375,7 @@ class PostController extends Controller
         $imagePath = $request->file('image')->store('posts', 'public');
 
         $post = Post::create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'title' => $validated['title'] ?? '',
             'description' => $validated['description'] ?? '',
             'image' => $imagePath,
@@ -356,5 +400,43 @@ class PostController extends Controller
 
         return redirect()->route('posts.show', $post->id)
             ->with('success', 'Вакансия успешно создана!');
+    }
+
+    public function share(Request $request, Post $post){
+
+    $validated = $request->validate([
+        'users'   => 'required|array|min:1',
+        'users.*' => 'exists:chats,id',
+        'message' => 'nullable|string|max:5000',
+    ]);
+
+    $user = Auth::user();
+
+    $chats = Chat::whereIn('id', $validated['users'])
+        ->whereHas('users', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->get();
+
+    $postUrl = route('posts.show', $post->id);
+
+    foreach ($chats as $chat) {
+        Message::create([
+            'chat_id' => $chat->id,
+            'user_id' => $user->id,
+            'content' => $postUrl,
+        ]);
+        if (!empty($validated['message'])) {
+            Message::create([
+                'chat_id' => $chat->id,
+                'user_id' => $user->id,
+                'content' => $validated['message'],
+            ]);
+        }
+
+        $chat->touch();
+    }
+
+    return back()->with('success', 'Пост отправлен в выбранные чаты');
     }
 }

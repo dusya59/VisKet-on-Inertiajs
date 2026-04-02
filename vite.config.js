@@ -34,7 +34,11 @@ export default defineConfig({
     server: {
         host: '0.0.0.0', 
         hmr: {
-            host: 'localhost',  
+            host: '10.123.24.15',  
         },
+        cors: true,
+    },
+    define: {
+        'process.env.VITE_REVERB_PORT': JSON.stringify(process.env.VITE_REVERB_PORT || '8080'),
     },
 });

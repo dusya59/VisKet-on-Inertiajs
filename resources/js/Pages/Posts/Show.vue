@@ -307,6 +307,62 @@
         </form>
       </div>
     </div>
+    
+    <div v-if="showShareModal" class="modal-overlay" @click.self="showShareModal = false">
+      <div class="modal-content">
+        <button class="modal-close" @click="showShareModal = false">&times;</button>
+        <h2>Поделиться постом</h2>
+        <form @submit.prevent="submitShare">
+          <div class="form-group">
+            <label>Выберите чаты для отправки *</label>
+            <div v-if="sharedChats.length === 0" class="no-chats">
+              <p>У вас нет чатов для отправки поста.</p>
+            </div>
+            <div v-else class="chat-list">
+              <div v-for="chat in sharedChats" :key="chat.id" class="chat-item">
+                <label class="chat-label">
+                  <input
+                    type="checkbox"
+                    :value="chat.id"
+                    v-model="shareForm.users"
+                  >
+                  <span class="chat-info">
+                    <img
+                      v-if="chat.other_user && chat.other_user.avatar_url"
+                      :src="chat.other_user.avatar_url"
+                      class="chat-avatar"
+                      :alt="chat.other_user.name"
+                    >
+                    <img
+                      v-else
+                      src="/images/User-avatar.png"
+                      class="chat-avatar"
+                      :alt="chat.other_user ? chat.other_user.name : 'Неизвестный пользователь'"
+                    >
+                    <span class="chat-name">{{ chat.other_user ? chat.other_user.name : 'Неизвестный пользователь' }}</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div v-if="shareErrors.users" class="error">{{ shareErrors.users }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="share_message">Текст сообщения</label>
+            <textarea
+              id="share_message"
+              v-model="shareForm.message"
+              placeholder="Напишите сообщение к посту..."
+              rows="4"
+            ></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn" :disabled="shareForm.processing">
+            {{ shareForm.processing ? 'Отправка...' : 'Отправить' }}
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -317,18 +373,24 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const menuOpen = ref(false)
-const activeTab = ref('comments')
-const commentErrors = ref({})
-const showRespondModal = ref(false)
-const showReportModal = ref(false)
-const reportErrors = ref({})
-const respondForm = useForm({
-  cover_letter: '',
-  proposed_price: ''
-})
-const reportForm = useForm({
-  reason: ''
-})
+  const activeTab = ref('comments')
+  const commentErrors = ref({})
+  const showRespondModal = ref(false)
+  const showReportModal = ref(false)
+  const showShareModal = ref(false)
+  const reportErrors = ref({})
+  const shareErrors = ref({})
+  const respondForm = useForm({
+    cover_letter: '',
+    proposed_price: ''
+  })
+  const reportForm = useForm({
+    reason: ''
+  })
+  const shareForm = useForm({
+    users: [],
+    message: ''
+  })
 
 const props = defineProps({
   post: {
@@ -352,8 +414,14 @@ const isAuthor = computed(() => {
 })
 
 const canReport = computed(() => {
-  return page.props.auth.user && page.props.auth.user.id !== props.post.user.id
-})
+    return page.props.auth.user && page.props.auth.user.id !== props.post.user.id
+  })
+
+  const sharedChats = computed(() => {
+    // Assuming post has a shared_chats property with users/chats that have common chats
+    // If not available in props, we would need to fetch it from an API endpoint
+    return props.post.shared_chats || []
+  })
 
 const submitRespond = () => {
   respondForm.clearErrors()
@@ -435,18 +503,9 @@ const closeMenuOnClickOutside = (event) => {
 }
 
 const sharePost = () => {
-  if (navigator.share) {
-    navigator.share({
-      title: props.post.title,
-      text: props.post.description,
-      url: window.location.href
-    })
-  } else {
-    navigator.clipboard.writeText(window.location.href)
-    alert('Ссылка скопирована в буфер обмена')
+    showShareModal.value = true
+    menuOpen.value = false
   }
-  menuOpen.value = false
-}
 
 const deletePost = () => {
   if (confirm('Вы уверены, что хотите удалить этот пост?')) {
@@ -477,25 +536,49 @@ const submitComment = () => {
 }
 
 const submitReport = () => {
-  reportErrors.value = {}
-  
-  if (!reportForm.reason || reportForm.reason.trim().length < 5) {
-    reportErrors.value.reason = 'Причина должна содержать минимум 5 символов'
-    return
-  }
-  
-  reportForm.post(`/posts/${props.post.id}/report`, {
-    preserveScroll: true,
-    onSuccess: () => {
-      showReportModal.value = false
-      reportForm.reset()
-      menuOpen.value = false
-    },
-    onError: (errors) => {
-      reportErrors.value = errors
+    reportErrors.value = {}
+   
+    if (!reportForm.reason || reportForm.reason.trim().length < 5) {
+      reportErrors.value.reason = 'Причина должна содержать минимум 5 символов'
+      return
     }
-  })
-}
+   
+    reportForm.post(`/posts/${props.post.id}/report`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        showReportModal.value = false
+        reportForm.reset()
+        menuOpen.value = false
+      },
+      onError: (errors) => {
+        reportErrors.value = errors
+      }
+    })
+  }
+
+  const submitShare = () => {
+    shareErrors.value = {}
+   
+    if (!shareForm.users || shareForm.users.length === 0) {
+      shareErrors.value.users = 'Выберите хотя бы один чат'
+      return
+    }
+   
+    router.post(`/posts/${props.post.id}/share`, {
+      users: shareForm.users,
+      message: shareForm.message
+    }, {
+      preserveScroll: true,
+      onSuccess: () => {
+        showShareModal.value = false
+        shareForm.reset()
+        menuOpen.value = false
+      },
+      onError: (errors) => {
+        shareErrors.value = errors
+      }
+    })
+  }
 
 onMounted(() => {
   document.addEventListener('click', closeMenuOnClickOutside)
@@ -1310,10 +1393,13 @@ h3 {
   padding: 32px;
   border-radius: 16px;
   min-height: 300px;
-  max-height: 800px;
+  max-height: 90vh;
   max-width: 500px;
   width: 90%;
   position: relative;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-close {
@@ -1358,9 +1444,75 @@ h3 {
 
 .form-group textarea:focus,
 .form-group input:focus {
-  border-color: rgb(255, 52, 52);
-  outline: none;
-}
+    border-color: rgb(255, 52, 52);
+    outline: none;
+  }
+  
+  .chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  
+  .chat-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .chat-item:hover {
+    background: #f8fafc;
+  }
+  
+  .chat-label {
+    display: flex !important; 
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    cursor: pointer;
+  }
+  
+  .chat-label input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  
+  .chat-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  
+  .chat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+  
+  .chat-name {
+    font-weight: 500;
+    color: #0f172a;
+  }
+  
+  .no-chats {
+    text-align: center;
+    padding: 20px;
+    color: #64748b;
+    font-size: 14px;
+  }
 
 .submit-btn {
   width: 100%;

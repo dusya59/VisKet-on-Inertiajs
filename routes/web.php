@@ -23,6 +23,18 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/api/posts/{post}/preview', function (App\Models\Post $post) {
+    if ($post->is_hidden) {
+        abort(404);
+    }
+
+    return response()->json([
+        'id' => $post->id,
+        'title' => $post->is_vacancy ? $post->vacancy->position : $post->title,
+        'description' => $post->description,
+        'image_url' => $post->image ? asset('storage/'.$post->image) : null,
+    ]);
+});
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile');
 Route::get('/profile/{user}/following', [ProfileController::class, 'following'])->name('following');
 Route::get('/profile/{user}/followers', [ProfileController::class, 'followers'])->name('followers');
@@ -34,20 +46,22 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout'); 
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Email Verification
 Route::get('/email/verify/{id}/{hash}', function (Request $request) {
     $user = \App\Models\User::findOrFail($request->id);
-    if (!hash_equals(sha1($user->getEmailForVerification()), $request->hash)) {
+    if (! hash_equals(sha1($user->getEmailForVerification()), $request->hash)) {
         abort(403);
     }
     $user->markEmailAsVerified();
+
     return redirect('/settings/profile')->with('message', 'Email подтверждён!');
 })->middleware(['signed'])->name('verification.verify');
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
+
     return back()->with('message', 'Ссылка для подтверждения отправлена!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
@@ -65,14 +79,15 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
     Route::post('/posts/{post}/report', [ReportController::class, 'reportPost'])->name('posts.report');
-    
+    Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
+
     // Comments
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/report', [CommentController::class, 'report'])->name('comments.report');
 
-    // Profile 
+    // Profile
     Route::get('/profile/{user}/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/{user}', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/{user}/aboutme', [ProfileController::class, 'updateAboutme'])->name('profile.update-aboutme');
