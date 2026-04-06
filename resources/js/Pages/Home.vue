@@ -126,7 +126,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { computed, ref, watch, onMounted, nextTick } from 'vue'
-import { Head, Link } from '@inertiajs/inertia-vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import Post from '@/Components/Post.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { getSkillClass } from '@/composables/useSkills'

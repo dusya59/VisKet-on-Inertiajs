@@ -7,30 +7,32 @@
           <h2>Чаты</h2>
         </div>
 
-        <Link
-          v-for="chat in chats"
-          :key="chat.id"
-          :href="`/chats/${chat.id}`" 
-          class="chat-item"
-          :class="{ active: activeChat && chat.id === activeChat.id, 'has-unread': chat.unread_count > 0 }"
-        >
-          <div v-if="chat.other_user" class="chat-user-info">
-            <div class="avatar-wrapper">
-              <img :src="chat.other_user.avatar_url" class="chat-avatar" />
-              <span v-if="isUserOnline(chat.other_user.id)" class="online-indicator"></span>
-            </div>
-            <div>
-              <h3>{{ chat.other_user.name }}</h3>
-              <p v-if="chat.latest_message" class="chat-preview" :class="{ unread: chat.unread_count > 0 }">
-                {{ getChatPreview(chat.latest_message) }}
-              </p>
-            </div>
-          </div>
+<div
+  v-for="chat in chats"
+  :key="chat.id"
+  @click="router.visit(`/chats/${chat.id}`)"
+  class="chat-item"
+  :class="{ active: activeChat && chat.id === activeChat.id, 'has-unread': chat.unread_count > 0 }"
+  tabindex="0"
+  @keydown.enter="router.visit(`/chats/${chat.id}`)"
+>
+  <div v-if="chat.other_user" class="chat-user-info">
+    <div class="avatar-wrapper">
+      <img :src="chat.other_user.avatar_url" class="chat-avatar" />
+      <span v-if="isUserOnline(chat.other_user.id)" class="online-indicator"></span>
+    </div>
+    <div>
+      <h3>{{ chat.other_user.name }}</h3>
+      <p v-if="chat.latest_message" class="chat-preview" :class="{ unread: chat.unread_count > 0 }">
+        {{ getChatPreview(chat.latest_message) }}
+      </p>
+    </div>
+  </div>
 
-           <div class="chat-meta">
-             <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
-           </div>
-        </Link>
+  <div class="chat-meta">
+    <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
+  </div>
+</div>
       </div>
         <div 
           class="chat-area" 
@@ -133,18 +135,36 @@
             </div>
           </div>
 
-          <div class="chat-messages" ref="messagesRef">
-            <div
-              v-for="message in activeChat.messages"
-              :key="message.id"
-              class="message-container"
-              :class="{ 
-                'right-clicked': rightClickedMessage && rightClickedMessage.id === message.id,
-                'selected': selectedMessages.some(m => m.id === message.id)
-              }"
-              @click="toggleMessageSelection(message)"
-              @contextmenu.prevent="showContextMenu($event, message)"
-            >
+          <div class="chat-messages" ref="messagesRef" :class="{ 'is-hydrating': isHydratingChat }">
+            <div v-if="isHydratingChat" class="chat-skeleton">
+              <div
+                v-for="(item, index) in skeletonItems"
+                :key="index"
+                class="skeleton-message"
+                :class="item.side"
+              >
+                <div class="skeleton-avatar"></div>
+
+                <div class="skeleton-bubble">
+                  <div class="skeleton-line" :style="{ width: item.lines[0] }"></div>
+                  <div class="skeleton-line short" :style="{ width: item.lines[1] }"></div>
+                  <div v-if="item.hasThirdLine" class="skeleton-line tiny" :style="{ width: item.lines[2] }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-messages-content">
+              <div
+                v-for="message in activeChat.messages"
+                :key="message.id"
+                class="message-container"
+                :class="{ 
+                  'right-clicked': rightClickedMessage && rightClickedMessage.id === message.id,
+                  'selected': selectedMessages.some(m => m.id === message.id)
+                }"
+                @click="toggleMessageSelection(message)"
+                @contextmenu.prevent="showContextMenu($event, message)"
+              >
               <img :src="message.user.avatar_url" class="chat-avatar" />
 
               <div class="message" :class="{ 'my-message': message.is_mine, 'shared-post': isOnlyPostUrl(message.content) }">
@@ -211,6 +231,7 @@
                 </div>
                 <div class="message-time">{{ message.time }}</div>
               </div>
+            </div>
             </div>
           </div>
 
@@ -350,7 +371,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { router } from '@inertiajs/vue3'
 import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
+import { postPreviewsCache, addToCache } from '@/composables/usePostPreviewsCache'
 
 const props = defineProps({
   chats: Array,
@@ -401,7 +422,21 @@ const touchStartX = ref(0)
 const touchCurrentX = ref(0)
 const isSwiping = ref(false)
 
-const postPreviews = ref({})
+const postPreviews = ref(postPreviewsCache)
+const isHydratingChat = ref(false)
+const isMessagesStable = ref(false)
+const initialScrollDone = ref(false)
+let stableCheckTimer = null
+
+const skeletonItems = computed(() => [
+  { side: 'left', lines: ['42%', '58%', '32%'], hasThirdLine: true },
+  { side: 'right', lines: ['55%', '40%'], hasThirdLine: false },
+  { side: 'left', lines: ['68%', '34%'], hasThirdLine: false },
+  { side: 'right', lines: ['48%', '62%', '28%'], hasThirdLine: true },
+  { side: 'left', lines: ['38%', '52%'], hasThirdLine: false },
+  { side: 'right', lines: ['60%', '44%'], hasThirdLine: false },
+  { side: 'left', lines: ['72%', '36%', '24%'], hasThirdLine: true },
+])
 
 const POST_URL_REGEX = /http?:\/\/[^\/\s]+\/posts\/(\d+)/g
 
@@ -416,15 +451,21 @@ function extractPostIds(content) {
   return [...new Set(ids)]
 }
 
+function testPostUrl(text) {
+  return new RegExp(POST_URL_REGEX.source).test(text)
+}
+
 async function fetchPostPreview(postId) {
-  if (postPreviews.value[postId]) return
-  postPreviews.value[postId] = 'loading'
+  if (postPreviewsCache[postId]) return
+  postPreviewsCache[postId] = 'loading'
   try {
     const res = await fetch(`/api/posts/${postId}/preview`)
     if (!res.ok) throw new Error('not found')
-    postPreviews.value[postId] = await res.json()
+    const data = await res.json()
+    addToCache(postId, data)
+    postPreviews.value = { ...postPreviewsCache }
   } catch {
-    postPreviews.value[postId] = 'error'
+    postPreviewsCache[postId] = 'error'
   }
 }
 
@@ -438,10 +479,54 @@ async function loadPreviewsForMessages(messages) {
   await Promise.all(promises)
 }
 
+async function hydrateChat(messages) {
+  const needsFetch = messages?.some(msg => {
+    const ids = extractPostIds(msg.content)
+    return ids.some(id => !postPreviewsCache[id] || postPreviewsCache[id] === 'loading')
+  })
+
+  if (stableCheckTimer) clearTimeout(stableCheckTimer)
+  isHydratingChat.value = !needsFetch ? false : true  // скелетон только если фетчим
+  isMessagesStable.value = false
+  initialScrollDone.value = false
+
+  if (needsFetch) {
+    await loadPreviewsForMessages(messages)
+  }
+
+  // В обоих случаях ждём стабилизации DOM
+  let lastHeight = 0
+  let stableCount = 0
+  const STABLE_THRESHOLD = 3
+
+  const checkStable = () => {
+    if (!messagesRef.value) {
+      stableCheckTimer = setTimeout(checkStable, 100)
+      return
+    }
+    const currentHeight = messagesRef.value.scrollHeight
+    if (currentHeight === lastHeight && currentHeight > 0) {
+      stableCount++
+      if (stableCount >= STABLE_THRESHOLD) {
+        isMessagesStable.value = true
+        scrollToBottom(true)
+        initialScrollDone.value = true
+        isHydratingChat.value = false
+        return
+      }
+    } else {
+      stableCount = 0
+      lastHeight = currentHeight
+    }
+    stableCheckTimer = setTimeout(checkStable, 100)
+  }
+  checkStable()
+}
+
 function getPostPreviewsFromContent(content) {
   const ids = extractPostIds(content)
   return ids
-    .map(id => postPreviews.value[id])
+    .map(id => postPreviewsCache[id])
     .filter(p => p && p !== 'loading' && p !== 'error')
 }
 
@@ -468,7 +553,7 @@ function truncate(text, length) {
 function getChatPreview(message) {
   if (!message || !message.content) return ''
   const trimmed = message.content.trim()
-  if (POST_URL_REGEX.test(trimmed)) {
+  if (testPostUrl(trimmed)) {
     return message.is_mine ? 'Вы поделились постом' : 'поделился(лась) постом'
   }
   return truncate(message.content, 30)
@@ -908,13 +993,12 @@ const syncBodyClass = (hasActiveChat) => {
   }
 }
 const resizeObserver = new ResizeObserver(() => {
-   if (props.activeChat) {
+   if (props.activeChat && !isHydratingChat.value) {
       scrollToBottom(true)
-      console.log("вырос")
     }
     })
 
-onMounted(() => {
+onMounted(async () => {
    try {
      const raw = window.localStorage.getItem('visket_downloaded_files')
      if (raw) {
@@ -938,9 +1022,7 @@ onMounted(() => {
    document.addEventListener('click', hideOptionsMenu)
 
    syncBodyClass(!!props.activeChat)
-   loadPreviewsForMessages(props.activeChat?.messages).then(() => {
-     scrollToBottom(true)
-   })
+   hydrateChat(props.activeChat?.messages)
 
     if (messagesRef.value) {
       resizeObserver.observe(messagesRef.value)
@@ -949,7 +1031,8 @@ onMounted(() => {
       resizeObserver.observe(chatArea.value)
     }
 
-   window.Pusher = Pusher;
+    const { default: Pusher } = await import('pusher-js')
+    window.Pusher = Pusher
 
     window.Echo = new Echo({
       broadcaster: 'reverb',
@@ -1001,6 +1084,7 @@ onUnmounted(() => {
   if (window.Echo) {
     window.Echo.leave('presence-online')
   }
+  if (stableCheckTimer) clearTimeout(stableCheckTimer)
   resizeObserver.disconnect()
 })
 
@@ -1008,19 +1092,9 @@ watch(
    () => props.activeChat,
    (newVal) => {
      syncBodyClass(!!newVal)
-     nextTick(() => {
-       scrollToBottom(true)
-     })
    }
-   
- )
-watch(
-  postPreviews,
-  () => {
-    scrollToBottom(true)
-  },
-  { deep: true }
-)
+  )
+
 watch(
   () => props.activeChat?.id,
   (newChatId, oldChatId) => {
@@ -1048,21 +1122,15 @@ watch(
 watch(
   () => props.activeChat?.messages?.length,
   (newLength, oldLength) => {
-    if (newLength && newLength > (oldLength || 0)) {
+    if (newLength && newLength > (oldLength || 0) && !isHydratingChat.value) {
       scrollToBottom(true)
     }
   }
 )
 
-watch(
-  () => props.activeChat?.messages,
-  (messages) => loadPreviewsForMessages(messages),
-  { deep: false }
-)
 
-watch(postPreviews, () => {
-  scrollToBottom() 
-}, { deep: true })
+
+
 
 </script>
 
@@ -1276,6 +1344,78 @@ watch(postPreviews, () => {
     flex: 1;
     overflow-y: auto;
     padding: 15px;
+    position: relative;
+}
+
+.chat-messages.is-hydrating .chat-messages-content {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chat-skeleton {
+    position: absolute;
+    inset: 0;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    pointer-events: none;
+}
+
+.skeleton-message {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.skeleton-message.right {
+    flex-direction: row-reverse;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, #e6e6e6 25%, #f3f3f3 50%, #e6e6e6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s infinite;
+}
+
+.skeleton-bubble {
+    max-width: 60%;
+    min-width: 180px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skeleton-message.right .skeleton-bubble {
+    background: #ececec;
+}
+
+.skeleton-line {
+    height: 12px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #e2e2e2 25%, #f5f5f5 50%, #e2e2e2 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s infinite;
+}
+
+.skeleton-line.short {
+    height: 10px;
+}
+
+.skeleton-line.tiny {
+    height: 10px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 .message-container {
