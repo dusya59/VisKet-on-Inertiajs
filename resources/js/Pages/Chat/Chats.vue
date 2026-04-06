@@ -3,11 +3,28 @@
     <Head title="Чаты" />
     <div class="chat-container">
       <div class="chat-list">
-        <div class="chat-list-header">
+        <div class="chat-list-header" v-if="!isSearching">
           <h2>Чаты</h2>
+          <button type="button" class="search-btn" @click="startSearch">
+            <img src="/images/search.svg" alt="Поиск">
+          </button>
+        </div>
+        <div v-else class="search-header">
+          <input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            type="text"
+            :placeholder="isGlobalSearch ? 'Поиск чатов и сообщений...' : 'Поиск в чате...'"
+            class="search-input"
+            @keydown.esc="closeSearch"
+          />
+          <button type="button" class="search-close" @click="closeSearch">
+            <img src="/images/close.svg" alt="Закрыть">
+          </button>
         </div>
 
 <div
+  v-if="!isSearching"
   v-for="chat in chats"
   :key="chat.id"
   @click="router.visit(`/chats/${chat.id}`)"
@@ -33,6 +50,25 @@
     <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
   </div>
 </div>
+
+        <div v-if="isSearching" class="search-results">
+          <div v-if="searchResults.length === 0" class="search-no-results">
+            Ничего не найдено
+          </div>
+          <div
+            v-for="result in searchResults"
+            :key="result.id"
+            class="search-result-item"
+            @click="goToMessage(result)"
+          >
+            <img :src="result.user.avatar_url" class="chat-avatar" />
+            <div class="search-result-content">
+              <div class="search-result-name">{{ result.user.name }}</div>
+              <div v-if="result.type === 'chat'" class="search-result-type">Чат</div>
+              <div v-else class="search-result-text" v-html="highlight(result.content)"></div>
+            </div>
+          </div>
+        </div>
       </div>
         <div 
           class="chat-area" 
@@ -63,6 +99,16 @@
               <Link :href="`/posts/${vacancyPostId}`"><h2>{{ vacancyPosition }}</h2></Link>
             </div>
             <img class="chat-options" src="/images/dots.svg" alt="опции" @click.stop="toggleOptionsMenu">
+          </div>
+
+          <div v-if="isSearching && !isGlobalSearch && activeChat" class="search-navigation">
+            <button type="button" class="search-nav-btn" @click="prevMatch" :disabled="currentMatchIndex <= 0">
+              <img src="/images/arrow-up.svg" alt="вверх">
+            </button>
+            <span class="search-nav-counter">{{ searchResults.length > 0 ? currentMatchIndex + 1 : 0 }} / {{ searchResults.length }}</span>
+            <button type="button" class="search-nav-btn" @click="nextMatch" :disabled="currentMatchIndex >= searchResults.length - 1">
+              <img src="/images/arrow-up.svg" alt="вниз" style="transform: rotate(180deg)">
+            </button>
           </div>
 
           <div
@@ -139,12 +185,14 @@
             <div class="chat-messages-inner">
               <div class="chat-messages-content">
                 <div
-                  v-for="message in activeChat.messages"
+                  v-for="(message, index) in activeChat.messages"
                   :key="message.id"
+                  :data-message-id="message.id"
                   class="message-container"
                   :class="{ 
                     'right-clicked': rightClickedMessage && rightClickedMessage.id === message.id,
-                    'selected': selectedMessages.some(m => m.id === message.id)
+                    'selected': selectedMessages.some(m => m.id === message.id),
+                    'search-highlighted': isSearching && searchResults[currentMatchIndex]?.id === message.id
                   }"
                   @click="toggleMessageSelection(message)"
                   @contextmenu.prevent="showContextMenu($event, message)"
@@ -435,6 +483,150 @@ const isSkeletonFading = ref(false)
 const isMessagesStable = ref(false)
 const initialScrollDone = ref(false)
 let stableCheckTimer = null
+let highlightMessageId = null
+
+const isSearching = ref(false)
+const searchQuery = ref('')
+const searchQueryRaw = ref('')
+const searchInputRef = ref(null)
+const currentMatchIndex = ref(0)
+const isGlobalSearch = ref(false)
+const searchResultsFromApi = ref([])
+
+async function searchChats(query) {
+  if (query.length < 2) {
+    searchResultsFromApi.value = []
+    return
+  }
+  
+  router.get('/chats/search', { q: query }, {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: (page) => {
+      searchResultsFromApi.value = page.props.searchResults || []
+    },
+    onError: (errors) => {
+      console.error('Search error:', errors)
+      searchResultsFromApi.value = []
+    }
+  })
+}
+
+const searchResults = computed(() => {
+  const query = searchQueryRaw.value.trim()
+  
+  if (isGlobalSearch.value) {
+    return searchResultsFromApi.value
+  }
+  
+  if (!query) return []
+  
+  if (props.activeChat && props.activeChat.messages) {
+    return props.activeChat.messages.filter(m => 
+      m.content && m.content.toLowerCase().includes(query.toLowerCase())
+    ).map(m => ({ type: 'message', ...m }))
+  }
+  return []
+})
+
+function highlight(text) {
+  if (!searchQueryRaw.value) return text || ''
+  const escaped = searchQueryRaw.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`(${escaped})`, 'gi')
+  return (text || '').replace(regex, '<mark>$1</mark>')
+}
+
+function startSearch() {
+  searchResultsFromApi.value = []
+  searchQuery.value = ''
+  searchQueryRaw.value = ''
+  currentMatchIndex.value = 0
+  isGlobalSearch.value = true
+  isSearching.value = true
+  nextTick(() => {
+    if (searchInputRef.value) {
+      searchInputRef.value.focus()
+    }
+  })
+}
+
+function closeSearch() {
+  searchQuery.value = ''
+  searchQueryRaw.value = ''
+  currentMatchIndex.value = 0
+  searchResultsFromApi.value = []
+  
+  router.get('/chats', {}, {
+    preserveState: true,
+    onSuccess: () => {
+      isSearching.value = false
+      isGlobalSearch.value = false
+    }
+  })
+}
+
+function scrollToMessage(messageId) {
+  if (!messageId) return
+  nextTick(() => {
+    const el = document.querySelector(`[data-message-id="${messageId}"]`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
+}
+
+function getMessageId(result) {
+  return result.messageId || result.id
+}
+
+function goToMessage(result) {
+  if (isGlobalSearch.value) {
+    const messageId = result.messageId
+    const url = messageId ? `/chats/${result.chatId}?highlight=${messageId}` : `/chats/${result.chatId}`
+    
+    searchQuery.value = ''
+    searchQueryRaw.value = ''
+    searchResultsFromApi.value = []
+    isSearching.value = false
+    isGlobalSearch.value = false
+    currentMatchIndex.value = 0
+    
+    router.visit(url)
+    return
+  }
+  
+  const messageId = getMessageId(result)
+  const messageIndex = props.activeChat?.messages?.findIndex(m => m.id === messageId)
+  if (messageIndex !== undefined && messageIndex >= 0) {
+    currentMatchIndex.value = searchResults.value.findIndex(m => getMessageId(m) === messageId)
+    scrollToMessage(messageId)
+  }
+}
+
+function nextMatch() {
+  if (currentMatchIndex.value < searchResults.value.length - 1) {
+    currentMatchIndex.value++
+    scrollToMessage(getMessageId(searchResults.value[currentMatchIndex.value]))
+  }
+}
+
+function prevMatch() {
+  if (currentMatchIndex.value > 0) {
+    currentMatchIndex.value--
+    scrollToMessage(getMessageId(searchResults.value[currentMatchIndex.value]))
+  }
+}
+
+watch(searchQuery, (val) => {
+  searchQueryRaw.value = val
+  currentMatchIndex.value = 0
+  
+  if (isGlobalSearch.value) {
+    searchChats(val)
+  } else if (searchResults.value.length > 0) {
+    scrollToMessage(searchResults.value[0].id)
+  }
+})
 
 const skeletonItems = computed(() => [
   { side: 'left', lines: ['42%', '58%', '32%'], hasThirdLine: true },
@@ -520,6 +712,15 @@ async function hydrateChat(messages) {
         isMessagesStable.value = true
         scrollToBottom(true)
         initialScrollDone.value = true
+
+        if (highlightMessageId) {
+          const messageId = parseInt(highlightMessageId, 10)
+          const msgExists = props.activeChat?.messages?.some(m => m.id === messageId)
+          if (msgExists) {
+            nextTick(() => scrollToMessage(messageId))
+          }
+          highlightMessageId = null
+        }
 
         if (needsFetch) {
           setTimeout(() => {
@@ -934,8 +1135,14 @@ const handleAddParticipant = () => {
 }
 
 const handleSearchChat = () => {
-  console.log('Поиск по чату')
+  isGlobalSearch.value = false
+  isSearching.value = true
   hideOptionsMenu()
+  nextTick(() => {
+    if (searchInputRef.value) {
+      searchInputRef.value.focus()
+    }
+  })
 }
 
 const handleDeleteChat = () => {
@@ -1051,6 +1258,9 @@ onMounted(async () => {
 
    document.addEventListener('click', hideContextMenu)
    document.addEventListener('click', hideOptionsMenu)
+
+   const urlParams = new URLSearchParams(window.location.search)
+   highlightMessageId = urlParams.get('highlight')
 
    syncBodyClass(!!props.activeChat)
    hydrateChat(props.activeChat?.messages)
@@ -1184,6 +1394,174 @@ watch(
 
 .chat-list h2 {
     padding: 10px;
+}
+
+.chat-list-header {
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 10px;
+}
+
+.search-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.search-btn img {
+    width: 22px;
+    height: 22px;
+}
+
+.search-header {
+  height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+}
+
+.search-close {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-close:hover {
+    background-color: #f0f0f0;
+}
+
+.search-close img {
+    width: 18px;
+    height: 18px;
+}
+
+.search-results {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.search-no-results {
+    padding: 30px;
+    text-align: center;
+    color: #999;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+    background-color: #f5f5f5;
+}
+
+.search-result-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-result-name {
+    font-weight: 600;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+}
+
+.search-result-text {
+    font-size: 0.85em;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-result-type {
+    font-size: 0.8em;
+    color: #007bff;
+    font-style: italic;
+}
+
+.search-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 8px;
+    background: #f8f8f8;
+    border-bottom: 1px solid #eee;
+}
+
+.search-nav-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.search-nav-btn:hover:not(:disabled) {
+    background-color: #e0e0e0;
+}
+
+.search-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.search-nav-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.search-nav-counter {
+    font-size: 13px;
+    color: #666;
+    min-width: 50px;
+    text-align: center;
+}
+
+.search-highlighted {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+:deep(mark) {
+    background-color: #ffeb3b;
+    padding: 0 2px;
+    border-radius: 2px;
 }
 
 .chat-item {
@@ -1327,6 +1705,7 @@ watch(
   gap: 15px;
 }
 .chat-header-user{
+  
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
@@ -1368,7 +1747,7 @@ watch(
 }
 
 .chat-area.active {
-    height: 100vh;
+    height: 93vh;
 }
 
 .chat-messages {
@@ -2012,6 +2391,36 @@ watch(
 
     .chat-list h2 {
         padding: 20px;
+    }
+
+    .chat-list-header {
+        padding-right: 15px;
+    }
+
+    .search-btn {
+        padding: 10px;
+    }
+
+    .search-btn img {
+        width: 26px;
+        height: 26px;
+    }
+
+    .search-header {
+        padding: 12px 15px;
+    }
+
+    .search-input {
+        padding: 10px 14px;
+        font-size: 16px;
+    }
+
+    .search-results {
+        max-height: calc(100vh - 120px);
+    }
+
+    .search-result-item {
+        padding: 15px 20px;
     }
 
     .chat-area {
