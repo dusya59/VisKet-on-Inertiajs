@@ -45,9 +45,9 @@
         >
         <template v-if="activeChat">
           <div class="chat-header">
-            <Link class="back" @click="handleBackClick"> 
+            <button type="button" class="back" @click="handleBackClick"> 
               <img src="/images/arrow-left.svg" alt="назад">
-            </Link>
+            </button>
             <div class="chat-header-mid">
               <Link v-if="otherUsers.length > 0" :href="`/profile/${otherUsers[0].id}`" class="chat-header-user">
                 <div class="avatar-wrapper">
@@ -135,13 +135,99 @@
             </div>
           </div>
 
-          <div class="chat-messages" ref="messagesRef" :class="{ 'is-hydrating': isHydratingChat }">
-            <div v-if="isHydratingChat" class="chat-skeleton">
+          <div class="chat-messages" ref="messagesRef">
+            <div class="chat-messages-inner">
+              <div class="chat-messages-content">
+                <div
+                  v-for="message in activeChat.messages"
+                  :key="message.id"
+                  class="message-container"
+                  :class="{ 
+                    'right-clicked': rightClickedMessage && rightClickedMessage.id === message.id,
+                    'selected': selectedMessages.some(m => m.id === message.id)
+                  }"
+                  @click="toggleMessageSelection(message)"
+                  @contextmenu.prevent="showContextMenu($event, message)"
+                >
+                  <img :src="message.user.avatar_url" class="chat-avatar" />
+
+                  <div class="message" :class="{ 'my-message': message.is_mine, 'shared-post': isOnlyPostUrl(message.content) }">
+                    <img
+                      v-if="message.image_url"
+                      :src="message.image_url"
+                      alt="Изображение"
+                      class="message-image"
+                      @click="openImage(message.image_url)"
+                    />
+                    <video
+                      v-if="message.video_url"
+                      :src="message.video_url"
+                      class="message-video"
+                      controls
+                      @click.stop="openVideo(message.video_url)"
+                    ></video>
+                    <div class="message-content">
+                      <span
+                        v-if="message.content && !isOnlyPostUrl(message.content)"
+                        v-html="renderContent(message.content)"
+                      ></span>
+
+                      <div
+                        v-for="preview in getPostPreviewsFromContent(message.content)"
+                        :key="preview.id"
+                        class="post-preview-card"
+                        :class="{ 'shared-post-card': isOnlyPostUrl(message.content) }"
+                        @click.stop="router.visit(`/posts/${preview.id}`)"
+                      >
+                        <img
+                          v-if="preview.image_url"
+                          :src="preview.image_url"
+                          class="post-preview-img"
+                          alt=""
+                        />
+                        <div class="post-preview-body">
+                          <div class="post-preview-title">{{ preview.title }}</div>
+                          <div v-if="preview.description" class="post-preview-desc">
+                            {{ preview.description.slice(0, 80) }}{{ preview.description.length > 80 ? '…' : '' }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div v-if="message.file_url" class="file-attachment">
+                        <button
+                          type="button"
+                          class="file-download-circle"
+                          :title="isFileDownloaded(message) ? 'Скачано' : 'Скачать'"
+                          @click="downloadFile(message)"
+                        >
+                          <span v-if="!isFileDownloaded(message)"><img src="/images/download.svg" alt="Скачать" /></span>
+                          <span v-else><img src="/images/document.svg" alt="Файл" /></span>
+                        </button>
+                        <div class="file-meta">
+                          <div class="file-name">
+                            {{ message.file_name || 'Файл' }}
+                          </div>
+                          <div class="file-size" v-if="message.file_size">
+                            {{ formatSize(message.file_size) }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="message-time">{{ message.time }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="showSkeleton"
+              class="chat-skeleton"
+              :class="{ fading: isSkeletonFading }"
+            >
               <div
                 v-for="(item, index) in skeletonItems"
                 :key="index"
                 class="skeleton-message"
-                :class="item.side"
+                :class="{ right: item.side === 'right' }"
               >
                 <div class="skeleton-avatar"></div>
 
@@ -152,88 +238,8 @@
                 </div>
               </div>
             </div>
-
-            <div class="chat-messages-content">
-              <div
-                v-for="message in activeChat.messages"
-                :key="message.id"
-                class="message-container"
-                :class="{ 
-                  'right-clicked': rightClickedMessage && rightClickedMessage.id === message.id,
-                  'selected': selectedMessages.some(m => m.id === message.id)
-                }"
-                @click="toggleMessageSelection(message)"
-                @contextmenu.prevent="showContextMenu($event, message)"
-              >
-              <img :src="message.user.avatar_url" class="chat-avatar" />
-
-              <div class="message" :class="{ 'my-message': message.is_mine, 'shared-post': isOnlyPostUrl(message.content) }">
-                <img
-                  v-if="message.image_url"
-                  :src="message.image_url"
-                  alt="Изображение"
-                  class="message-image"
-                  @click="openImage(message.image_url)"
-                />
-                <video
-                  v-if="message.video_url"
-                  :src="message.video_url"
-                  class="message-video"
-                  controls
-                  @click.stop="openVideo(message.video_url)"
-                ></video>
-                <div class="message-content">
-                  <span
-                    v-if="message.content && !isOnlyPostUrl(message.content)"
-                    v-html="renderContent(message.content)"
-                  ></span>
-
-                  <div
-                    v-for="preview in getPostPreviewsFromContent(message.content)"
-                    :key="preview.id"
-                    class="post-preview-card"
-                    :class="{ 'shared-post-card': isOnlyPostUrl(message.content) }"
-                    @click.stop="router.visit(`/posts/${preview.id}`)"
-                  >
-                    <img
-                      v-if="preview.image_url"
-                      :src="preview.image_url"
-                      class="post-preview-img"
-                      alt=""
-                    />
-                    <div class="post-preview-body">
-                      <div class="post-preview-title">{{ preview.title }}</div>
-                      <div v-if="preview.description" class="post-preview-desc">
-                        {{ preview.description.slice(0, 80) }}{{ preview.description.length > 80 ? '…' : '' }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-if="message.file_url" class="file-attachment">
-                    <button
-                      type="button"
-                      class="file-download-circle"
-                      :title="isFileDownloaded(message) ? 'Скачано' : 'Скачать'"
-                      @click="downloadFile(message)"
-                    >
-                      <span v-if="!isFileDownloaded(message)"><img src="/images/download.svg" alt="Скачать" /></span>
-                      <span v-else><img src="/images/document.svg" alt="Файл" /></span>
-                    </button>
-                    <div class="file-meta">
-                      <div class="file-name">
-                        {{ message.file_name || 'Файл' }}
-                      </div>
-                      <div class="file-size" v-if="message.file_size">
-                        {{ formatSize(message.file_size) }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="message-time">{{ message.time }}</div>
-              </div>
-            </div>
-            </div>
           </div>
+        </div>
 
           <form class="message-form" @submit.prevent="sendMessage" enctype="multipart/form-data">
             <div v-if="editingMessage" class="editing-indicator">
@@ -424,6 +430,8 @@ const isSwiping = ref(false)
 
 const postPreviews = ref(postPreviewsCache)
 const isHydratingChat = ref(false)
+const showSkeleton = ref(false)
+const isSkeletonFading = ref(false)
 const isMessagesStable = ref(false)
 const initialScrollDone = ref(false)
 let stableCheckTimer = null
@@ -438,7 +446,7 @@ const skeletonItems = computed(() => [
   { side: 'left', lines: ['72%', '36%', '24%'], hasThirdLine: true },
 ])
 
-const POST_URL_REGEX = /http?:\/\/[^\/\s]+\/posts\/(\d+)/g
+const POST_URL_REGEX = /http?:\/\/[^\/\s]+\/posts\/(\d+)/
 
 function extractPostIds(content) {
   if (!content) return []
@@ -486,15 +494,16 @@ async function hydrateChat(messages) {
   })
 
   if (stableCheckTimer) clearTimeout(stableCheckTimer)
-  isHydratingChat.value = !needsFetch ? false : true  // скелетон только если фетчим
-  isMessagesStable.value = false
-  initialScrollDone.value = false
 
   if (needsFetch) {
+    showSkeleton.value = true
+    isHydratingChat.value = true
     await loadPreviewsForMessages(messages)
   }
 
-  // В обоих случаях ждём стабилизации DOM
+  isMessagesStable.value = false
+  initialScrollDone.value = false
+
   let lastHeight = 0
   let stableCount = 0
   const STABLE_THRESHOLD = 3
@@ -511,7 +520,19 @@ async function hydrateChat(messages) {
         isMessagesStable.value = true
         scrollToBottom(true)
         initialScrollDone.value = true
-        isHydratingChat.value = false
+
+        if (needsFetch) {
+          setTimeout(() => {
+            isSkeletonFading.value = true
+            setTimeout(() => {
+              showSkeleton.value = false
+              isSkeletonFading.value = false
+              isHydratingChat.value = false
+            }, 500)
+          }, 500)
+        } else {
+          isHydratingChat.value = false
+        }
         return
       }
     } else {
@@ -925,15 +946,25 @@ const handleDeleteChat = () => {
 }
 
 const handleBackClick = () => {
-  if (isMobile()) {
-    isSliding.value = true
-    setTimeout(() => {
-      isSliding.value = false
-      router.visit('/chats')
-    }, 300)
-  } else {
-    router.visit('/chats')
+  if (!isMobile()) {
+    router.get('/chats')
+    return
   }
+
+  isSliding.value = true
+
+  const el = chatArea.value
+  if (!el) {
+    router.get('/chats')
+    return
+  }
+
+  const onTransitionEnd = () => {
+    el.removeEventListener('transitionend', onTransitionEnd)
+    router.get('/chats', {}, { preserveScroll: true })
+  }
+
+  el.addEventListener('transitionend', onTransitionEnd)
 }
 
 const toggleApplicationBlock = () => {
@@ -1337,7 +1368,7 @@ watch(
 }
 
 .chat-area.active {
-    height: 93vh;
+    height: 100vh;
 }
 
 .chat-messages {
@@ -1347,9 +1378,9 @@ watch(
     position: relative;
 }
 
-.chat-messages.is-hydrating .chat-messages-content {
-    opacity: 0;
-    pointer-events: none;
+.chat-messages-inner {
+    position: relative;
+    min-height: 100%;
 }
 
 .chat-skeleton {
@@ -1359,6 +1390,14 @@ watch(
     display: flex;
     flex-direction: column;
     gap: 14px;
+    background: white;
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.chat-skeleton.fading {
+    opacity: 0;
     pointer-events: none;
 }
 
@@ -1971,44 +2010,69 @@ watch(
         z-index: 10;
     }
 
+    .chat-list h2 {
+        padding: 20px;
+    }
+
     .chat-area {
-        display: none;
+        display: flex;
+        flex-direction: column;
         max-width: 100%;
-        width: 100%;
         position: absolute;
         left: 0;
         top: 0;
         height: 100vh;
         background: white;
         z-index: 20;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
     }
 
     .chat-area.active {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        transform: none;
+        transform: translateX(0);
     }
 
     .chat-area.sliding {
         transform: translateX(100%);
     }
 
+    .chat-placeholder {
+        display: none;
+    }
+
     .chat-item {
-        padding: 12px;
+        padding: 20px;
+    }
+
+    .chat-header{
+      min-width: 100vw;
     }
 
     .chat-avatar {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
+    }
+
+    .chat-header a{
+      font-size: 0.8rem;
+    }
+
+    .chat-user-info {
+        gap: 16px;
     }
 
     .chat-user-info h3 {
-        font-size: 0.95em;
+        font-size: 1.1em;
     }
 
     .chat-preview {
-        font-size: 0.85em;
+        font-size: 0.95em;
+    }
+
+    .unread-badge {
+        font-size: 13px;
+        min-width: 22px;
+        height: 22px;
     }
 
     .chat-header {

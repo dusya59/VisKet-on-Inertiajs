@@ -2065,6 +2065,8 @@ var _sfc_main$13 = {
 		const isSwiping = ref(false);
 		const postPreviews = ref(postPreviewsCache);
 		const isHydratingChat = ref(false);
+		const showSkeleton = ref(false);
+		const isSkeletonFading = ref(false);
 		const isMessagesStable = ref(false);
 		const initialScrollDone = ref(false);
 		let stableCheckTimer = null;
@@ -2117,7 +2119,7 @@ var _sfc_main$13 = {
 				hasThirdLine: true
 			}
 		]);
-		const POST_URL_REGEX = /http?:\/\/[^\/\s]+\/posts\/(\d+)/g;
+		const POST_URL_REGEX = /http?:\/\/[^\/\s]+\/posts\/(\d+)/;
 		function extractPostIds(content) {
 			if (!content) return [];
 			const ids = [];
@@ -2155,10 +2157,13 @@ var _sfc_main$13 = {
 				return extractPostIds(msg.content).some((id) => !postPreviewsCache[id] || postPreviewsCache[id] === "loading");
 			});
 			if (stableCheckTimer) clearTimeout(stableCheckTimer);
-			isHydratingChat.value = !needsFetch ? false : true;
+			if (needsFetch) {
+				showSkeleton.value = true;
+				isHydratingChat.value = true;
+				await loadPreviewsForMessages(messages);
+			}
 			isMessagesStable.value = false;
 			initialScrollDone.value = false;
-			if (needsFetch) await loadPreviewsForMessages(messages);
 			let lastHeight = 0;
 			let stableCount = 0;
 			const STABLE_THRESHOLD = 3;
@@ -2174,7 +2179,15 @@ var _sfc_main$13 = {
 						isMessagesStable.value = true;
 						scrollToBottom(true);
 						initialScrollDone.value = true;
-						isHydratingChat.value = false;
+						if (needsFetch) setTimeout(() => {
+							isSkeletonFading.value = true;
+							setTimeout(() => {
+								showSkeleton.value = false;
+								isSkeletonFading.value = false;
+								isHydratingChat.value = false;
+							}, 500);
+						}, 500);
+						else isHydratingChat.value = false;
 						return;
 					}
 				} else {
@@ -2478,13 +2491,21 @@ var _sfc_main$13 = {
 			hideOptionsMenu();
 		};
 		const handleBackClick = () => {
-			if (isMobile()) {
-				isSliding.value = true;
-				setTimeout(() => {
-					isSliding.value = false;
-					router.visit("/chats");
-				}, 300);
-			} else router.visit("/chats");
+			if (!isMobile()) {
+				router.get("/chats");
+				return;
+			}
+			isSliding.value = true;
+			const el = chatArea.value;
+			if (!el) {
+				router.get("/chats");
+				return;
+			}
+			const onTransitionEnd = () => {
+				el.removeEventListener("transitionend", onTransitionEnd);
+				router.get("/chats", {}, { preserveScroll: true });
+			};
+			el.addEventListener("transitionend", onTransitionEnd);
 		};
 		const toggleApplicationBlock = () => {
 			isApplicationBlockClosed.value = !isApplicationBlockClosed.value;
@@ -2609,56 +2630,42 @@ var _sfc_main$13 = {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Чаты" }, null, _parent, _scopeId));
-						_push(`<div class="chat-container" data-v-02de6714${_scopeId}><div class="chat-list" data-v-02de6714${_scopeId}><div class="chat-list-header" data-v-02de6714${_scopeId}><h2 data-v-02de6714${_scopeId}>Чаты</h2></div><!--[-->`);
+						_push(`<div class="chat-container" data-v-16257a40${_scopeId}><div class="chat-list" data-v-16257a40${_scopeId}><div class="chat-list-header" data-v-16257a40${_scopeId}><h2 data-v-16257a40${_scopeId}>Чаты</h2></div><!--[-->`);
 						ssrRenderList(__props.chats, (chat) => {
 							_push(`<div class="${ssrRenderClass([{
 								active: __props.activeChat && chat.id === __props.activeChat.id,
 								"has-unread": chat.unread_count > 0
-							}, "chat-item"])}" tabindex="0" data-v-02de6714${_scopeId}>`);
+							}, "chat-item"])}" tabindex="0" data-v-16257a40${_scopeId}>`);
 							if (chat.other_user) {
-								_push(`<div class="chat-user-info" data-v-02de6714${_scopeId}><div class="avatar-wrapper" data-v-02de6714${_scopeId}><img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar" data-v-02de6714${_scopeId}>`);
-								if (isUserOnline(chat.other_user.id)) _push(`<span class="online-indicator" data-v-02de6714${_scopeId}></span>`);
+								_push(`<div class="chat-user-info" data-v-16257a40${_scopeId}><div class="avatar-wrapper" data-v-16257a40${_scopeId}><img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar" data-v-16257a40${_scopeId}>`);
+								if (isUserOnline(chat.other_user.id)) _push(`<span class="online-indicator" data-v-16257a40${_scopeId}></span>`);
 								else _push(`<!---->`);
-								_push(`</div><div data-v-02de6714${_scopeId}><h3 data-v-02de6714${_scopeId}>${ssrInterpolate(chat.other_user.name)}</h3>`);
-								if (chat.latest_message) _push(`<p class="${ssrRenderClass([{ unread: chat.unread_count > 0 }, "chat-preview"])}" data-v-02de6714${_scopeId}>${ssrInterpolate(getChatPreview(chat.latest_message))}</p>`);
+								_push(`</div><div data-v-16257a40${_scopeId}><h3 data-v-16257a40${_scopeId}>${ssrInterpolate(chat.other_user.name)}</h3>`);
+								if (chat.latest_message) _push(`<p class="${ssrRenderClass([{ unread: chat.unread_count > 0 }, "chat-preview"])}" data-v-16257a40${_scopeId}>${ssrInterpolate(getChatPreview(chat.latest_message))}</p>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							} else _push(`<!---->`);
-							_push(`<div class="chat-meta" data-v-02de6714${_scopeId}>`);
-							if (chat.unread_count > 0) _push(`<span class="unread-badge" data-v-02de6714${_scopeId}>${ssrInterpolate(chat.unread_count > 99 ? "99+" : chat.unread_count)}</span>`);
+							_push(`<div class="chat-meta" data-v-16257a40${_scopeId}>`);
+							if (chat.unread_count > 0) _push(`<span class="unread-badge" data-v-16257a40${_scopeId}>${ssrInterpolate(chat.unread_count > 99 ? "99+" : chat.unread_count)}</span>`);
 							else _push(`<!---->`);
 							_push(`</div></div>`);
 						});
 						_push(`<!--]--></div><div class="${ssrRenderClass([{
 							active: !!__props.activeChat,
 							sliding: isSliding.value
-						}, "chat-area"])}" style="${ssrRenderStyle(slideOffset.value > 0 ? { transform: `translateX(${slideOffset.value}px)` } : {})}" data-v-02de6714${_scopeId}>`);
+						}, "chat-area"])}" style="${ssrRenderStyle(slideOffset.value > 0 ? { transform: `translateX(${slideOffset.value}px)` } : {})}" data-v-16257a40${_scopeId}>`);
 						if (__props.activeChat) {
-							_push(`<!--[--><div class="chat-header" data-v-02de6714${_scopeId}>`);
-							_push(ssrRenderComponent(unref(Link), {
-								class: "back",
-								onClick: handleBackClick
-							}, {
-								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<img src="/images/arrow-left.svg" alt="назад" data-v-02de6714${_scopeId}>`);
-									else return [createVNode("img", {
-										src: "/images/arrow-left.svg",
-										alt: "назад"
-									})];
-								}),
-								_: 1
-							}, _parent, _scopeId));
-							_push(`<div class="chat-header-mid" data-v-02de6714${_scopeId}>`);
+							_push(`<!--[--><div class="chat-header" data-v-16257a40${_scopeId}><button type="button" class="back" data-v-16257a40${_scopeId}><img src="/images/arrow-left.svg" alt="назад" data-v-16257a40${_scopeId}></button><div class="chat-header-mid" data-v-16257a40${_scopeId}>`);
 							if (otherUsers.value.length > 0) _push(ssrRenderComponent(unref(Link), {
 								href: `/profile/${otherUsers.value[0].id}`,
 								class: "chat-header-user"
 							}, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
 									if (_push) {
-										_push(`<div class="avatar-wrapper" data-v-02de6714${_scopeId}><img${ssrRenderAttr("src", otherUsers.value[0].avatar_url)} class="chat-avatar" data-v-02de6714${_scopeId}>`);
-										if (isUserOnline(otherUsers.value[0].id)) _push(`<span class="online-indicator" data-v-02de6714${_scopeId}></span>`);
-										else _push(`<span class="offline-indicator" data-v-02de6714${_scopeId}></span>`);
-										_push(`</div><h2 data-v-02de6714${_scopeId}>${ssrInterpolate(otherUsers.value[0].name)}</h2>`);
+										_push(`<div class="avatar-wrapper" data-v-16257a40${_scopeId}><img${ssrRenderAttr("src", otherUsers.value[0].avatar_url)} class="chat-avatar" data-v-16257a40${_scopeId}>`);
+										if (isUserOnline(otherUsers.value[0].id)) _push(`<span class="online-indicator" data-v-16257a40${_scopeId}></span>`);
+										else _push(`<span class="offline-indicator" data-v-16257a40${_scopeId}></span>`);
+										_push(`</div><h2 data-v-16257a40${_scopeId}>${ssrInterpolate(otherUsers.value[0].name)}</h2>`);
 									} else return [createVNode("div", { class: "avatar-wrapper" }, [createVNode("img", {
 										src: otherUsers.value[0].avatar_url,
 										class: "chat-avatar"
@@ -2673,126 +2680,126 @@ var _sfc_main$13 = {
 								_: 1
 							}, _parent, _scopeId));
 							else _push(`<!---->`);
-							if (vacancyPostId.value) _push(`<span class="vacancy-link" data-v-02de6714${_scopeId}> откликнулся на </span>`);
+							if (vacancyPostId.value) _push(`<span class="vacancy-link" data-v-16257a40${_scopeId}> откликнулся на </span>`);
 							else _push(`<!---->`);
 							_push(ssrRenderComponent(unref(Link), { href: `/posts/${vacancyPostId.value}` }, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<h2 data-v-02de6714${_scopeId}>${ssrInterpolate(vacancyPosition.value)}</h2>`);
+									if (_push) _push(`<h2 data-v-16257a40${_scopeId}>${ssrInterpolate(vacancyPosition.value)}</h2>`);
 									else return [createVNode("h2", null, toDisplayString(vacancyPosition.value), 1)];
 								}),
 								_: 1
 							}, _parent, _scopeId));
-							_push(`</div><img class="chat-options" src="/images/dots.svg" alt="опции" data-v-02de6714${_scopeId}></div>`);
+							_push(`</div><img class="chat-options" src="/images/dots.svg" alt="опции" data-v-16257a40${_scopeId}></div>`);
 							if (optionsMenu.value.show) _push(`<div class="options-menu" style="${ssrRenderStyle({
 								right: optionsMenu.value.x + "px",
 								top: optionsMenu.value.y + "px"
-							})}" data-v-02de6714${_scopeId}><div class="options-menu-item" data-v-02de6714${_scopeId}>Файлы чата</div><div class="options-menu-item" data-v-02de6714${_scopeId}>Добавить участника в чат</div><div class="options-menu-item" data-v-02de6714${_scopeId}>Поиск по чату</div><div class="options-menu-item delete" data-v-02de6714${_scopeId}>Удалить чат</div></div>`);
+							})}" data-v-16257a40${_scopeId}><div class="options-menu-item" data-v-16257a40${_scopeId}>Файлы чата</div><div class="options-menu-item" data-v-16257a40${_scopeId}>Добавить участника в чат</div><div class="options-menu-item" data-v-16257a40${_scopeId}>Поиск по чату</div><div class="options-menu-item delete" data-v-16257a40${_scopeId}>Удалить чат</div></div>`);
 							else _push(`<!---->`);
 							if (showApplicationBlock.value) {
-								_push(`<div class="${ssrRenderClass([{ closed: isApplicationBlockClosed.value }, "application-block"])}" data-v-02de6714${_scopeId}><div class="application-toggle" data-v-02de6714${_scopeId}><button type="button" class="application-toggle-btn" data-v-02de6714${_scopeId}><img src="/images/arrow-up.svg" alt="Toggle" class="${ssrRenderClass([{ flipped: isApplicationBlockClosed.value }, "toggle-arrow"])}" data-v-02de6714${_scopeId}></button></div><div class="application-card" style="${ssrRenderStyle(!isApplicationBlockClosed.value ? null : { display: "none" })}" data-v-02de6714${_scopeId}><img${ssrRenderAttr("src", __props.activeChat.application.user.avatar_url)} class="application-avatar" data-v-02de6714${_scopeId}><div class="name" data-v-02de6714${_scopeId}><h3 data-v-02de6714${_scopeId}>${ssrInterpolate(__props.activeChat.application.user.name)}</h3><span class="${ssrRenderClass([{ online: isUserOnline(otherUsers.value[0].id) }, "user-status"])}" data-v-02de6714${_scopeId}>${ssrInterpolate(isUserOnline(otherUsers.value[0].id) ? "онлайн" : "оффлайн")}</span></div><p class="account-age" data-v-02de6714${_scopeId}>Аккаунт создан ${ssrInterpolate(formatAccountAge(__props.activeChat.application.user.created_at))}</p>`);
-								if (__props.activeChat.application.user.rating) _push(`<div class="application-rating" data-v-02de6714${_scopeId}><span data-v-02de6714${_scopeId}>Рейтинг: ${ssrInterpolate(__props.activeChat.application.user.rating)}</span></div>`);
+								_push(`<div class="${ssrRenderClass([{ closed: isApplicationBlockClosed.value }, "application-block"])}" data-v-16257a40${_scopeId}><div class="application-toggle" data-v-16257a40${_scopeId}><button type="button" class="application-toggle-btn" data-v-16257a40${_scopeId}><img src="/images/arrow-up.svg" alt="Toggle" class="${ssrRenderClass([{ flipped: isApplicationBlockClosed.value }, "toggle-arrow"])}" data-v-16257a40${_scopeId}></button></div><div class="application-card" style="${ssrRenderStyle(!isApplicationBlockClosed.value ? null : { display: "none" })}" data-v-16257a40${_scopeId}><img${ssrRenderAttr("src", __props.activeChat.application.user.avatar_url)} class="application-avatar" data-v-16257a40${_scopeId}><div class="name" data-v-16257a40${_scopeId}><h3 data-v-16257a40${_scopeId}>${ssrInterpolate(__props.activeChat.application.user.name)}</h3><span class="${ssrRenderClass([{ online: isUserOnline(otherUsers.value[0].id) }, "user-status"])}" data-v-16257a40${_scopeId}>${ssrInterpolate(isUserOnline(otherUsers.value[0].id) ? "онлайн" : "оффлайн")}</span></div><p class="account-age" data-v-16257a40${_scopeId}>Аккаунт создан ${ssrInterpolate(formatAccountAge(__props.activeChat.application.user.created_at))}</p>`);
+								if (__props.activeChat.application.user.rating) _push(`<div class="application-rating" data-v-16257a40${_scopeId}><span data-v-16257a40${_scopeId}>Рейтинг: ${ssrInterpolate(__props.activeChat.application.user.rating)}</span></div>`);
 								else _push(`<!---->`);
-								_push(`<div class="application-cover-letter" data-v-02de6714${_scopeId}><h4 data-v-02de6714${_scopeId}>Сопроводительное письмо:</h4><p data-v-02de6714${_scopeId}>${ssrInterpolate(__props.activeChat.application.cover_letter)}</p></div>`);
-								if (__props.activeChat.application.proposed_price) _push(`<div class="application-price" data-v-02de6714${_scopeId}><span class="label" data-v-02de6714${_scopeId}>Предложенная цена:</span><span class="value" data-v-02de6714${_scopeId}>${ssrInterpolate(__props.activeChat.application.proposed_price)} ₽</span></div>`);
+								_push(`<div class="application-cover-letter" data-v-16257a40${_scopeId}><h4 data-v-16257a40${_scopeId}>Сопроводительное письмо:</h4><p data-v-16257a40${_scopeId}>${ssrInterpolate(__props.activeChat.application.cover_letter)}</p></div>`);
+								if (__props.activeChat.application.proposed_price) _push(`<div class="application-price" data-v-16257a40${_scopeId}><span class="label" data-v-16257a40${_scopeId}>Предложенная цена:</span><span class="value" data-v-16257a40${_scopeId}>${ssrInterpolate(__props.activeChat.application.proposed_price)} ₽</span></div>`);
 								else _push(`<!---->`);
-								if (isVacancyAuthor.value) _push(`<div class="application-actions" data-v-02de6714${_scopeId}><form data-v-02de6714${_scopeId}><button type="submit" class="accept-btn" data-v-02de6714${_scopeId}>Принять отклик</button></form><form data-v-02de6714${_scopeId}><button type="submit" class="reject-btn" data-v-02de6714${_scopeId}>Отклонить</button></form></div>`);
+								if (isVacancyAuthor.value) _push(`<div class="application-actions" data-v-16257a40${_scopeId}><form data-v-16257a40${_scopeId}><button type="submit" class="accept-btn" data-v-16257a40${_scopeId}>Принять отклик</button></form><form data-v-16257a40${_scopeId}><button type="submit" class="reject-btn" data-v-16257a40${_scopeId}>Отклонить</button></form></div>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							} else _push(`<!---->`);
-							_push(`<div class="${ssrRenderClass([{ "is-hydrating": isHydratingChat.value }, "chat-messages"])}" data-v-02de6714${_scopeId}>`);
-							if (isHydratingChat.value) {
-								_push(`<div class="chat-skeleton" data-v-02de6714${_scopeId}><!--[-->`);
-								ssrRenderList(skeletonItems.value, (item, index) => {
-									_push(`<div class="${ssrRenderClass([item.side, "skeleton-message"])}" data-v-02de6714${_scopeId}><div class="skeleton-avatar" data-v-02de6714${_scopeId}></div><div class="skeleton-bubble" data-v-02de6714${_scopeId}><div class="skeleton-line" style="${ssrRenderStyle({ width: item.lines[0] })}" data-v-02de6714${_scopeId}></div><div class="skeleton-line short" style="${ssrRenderStyle({ width: item.lines[1] })}" data-v-02de6714${_scopeId}></div>`);
-									if (item.hasThirdLine) _push(`<div class="skeleton-line tiny" style="${ssrRenderStyle({ width: item.lines[2] })}" data-v-02de6714${_scopeId}></div>`);
-									else _push(`<!---->`);
-									_push(`</div></div>`);
-								});
-								_push(`<!--]--></div>`);
-							} else _push(`<!---->`);
-							_push(`<div class="chat-messages-content" data-v-02de6714${_scopeId}><!--[-->`);
+							_push(`<div class="chat-messages" data-v-16257a40${_scopeId}><div class="chat-messages-inner" data-v-16257a40${_scopeId}><div class="chat-messages-content" data-v-16257a40${_scopeId}><!--[-->`);
 							ssrRenderList(__props.activeChat.messages, (message) => {
 								_push(`<div class="${ssrRenderClass([{
 									"right-clicked": rightClickedMessage.value && rightClickedMessage.value.id === message.id,
 									"selected": selectedMessages.value.some((m) => m.id === message.id)
-								}, "message-container"])}" data-v-02de6714${_scopeId}><img${ssrRenderAttr("src", message.user.avatar_url)} class="chat-avatar" data-v-02de6714${_scopeId}><div class="${ssrRenderClass([{
+								}, "message-container"])}" data-v-16257a40${_scopeId}><img${ssrRenderAttr("src", message.user.avatar_url)} class="chat-avatar" data-v-16257a40${_scopeId}><div class="${ssrRenderClass([{
 									"my-message": message.is_mine,
 									"shared-post": isOnlyPostUrl(message.content)
-								}, "message"])}" data-v-02de6714${_scopeId}>`);
-								if (message.image_url) _push(`<img${ssrRenderAttr("src", message.image_url)} alt="Изображение" class="message-image" data-v-02de6714${_scopeId}>`);
+								}, "message"])}" data-v-16257a40${_scopeId}>`);
+								if (message.image_url) _push(`<img${ssrRenderAttr("src", message.image_url)} alt="Изображение" class="message-image" data-v-16257a40${_scopeId}>`);
 								else _push(`<!---->`);
-								if (message.video_url) _push(`<video${ssrRenderAttr("src", message.video_url)} class="message-video" controls data-v-02de6714${_scopeId}></video>`);
+								if (message.video_url) _push(`<video${ssrRenderAttr("src", message.video_url)} class="message-video" controls data-v-16257a40${_scopeId}></video>`);
 								else _push(`<!---->`);
-								_push(`<div class="message-content" data-v-02de6714${_scopeId}>`);
-								if (message.content && !isOnlyPostUrl(message.content)) _push(`<span data-v-02de6714${_scopeId}>${renderContent(message.content) ?? ""}</span>`);
+								_push(`<div class="message-content" data-v-16257a40${_scopeId}>`);
+								if (message.content && !isOnlyPostUrl(message.content)) _push(`<span data-v-16257a40${_scopeId}>${renderContent(message.content) ?? ""}</span>`);
 								else _push(`<!---->`);
 								_push(`<!--[-->`);
 								ssrRenderList(getPostPreviewsFromContent(message.content), (preview) => {
-									_push(`<div class="${ssrRenderClass([{ "shared-post-card": isOnlyPostUrl(message.content) }, "post-preview-card"])}" data-v-02de6714${_scopeId}>`);
-									if (preview.image_url) _push(`<img${ssrRenderAttr("src", preview.image_url)} class="post-preview-img" alt="" data-v-02de6714${_scopeId}>`);
+									_push(`<div class="${ssrRenderClass([{ "shared-post-card": isOnlyPostUrl(message.content) }, "post-preview-card"])}" data-v-16257a40${_scopeId}>`);
+									if (preview.image_url) _push(`<img${ssrRenderAttr("src", preview.image_url)} class="post-preview-img" alt="" data-v-16257a40${_scopeId}>`);
 									else _push(`<!---->`);
-									_push(`<div class="post-preview-body" data-v-02de6714${_scopeId}><div class="post-preview-title" data-v-02de6714${_scopeId}>${ssrInterpolate(preview.title)}</div>`);
-									if (preview.description) _push(`<div class="post-preview-desc" data-v-02de6714${_scopeId}>${ssrInterpolate(preview.description.slice(0, 80))}${ssrInterpolate(preview.description.length > 80 ? "…" : "")}</div>`);
+									_push(`<div class="post-preview-body" data-v-16257a40${_scopeId}><div class="post-preview-title" data-v-16257a40${_scopeId}>${ssrInterpolate(preview.title)}</div>`);
+									if (preview.description) _push(`<div class="post-preview-desc" data-v-16257a40${_scopeId}>${ssrInterpolate(preview.description.slice(0, 80))}${ssrInterpolate(preview.description.length > 80 ? "…" : "")}</div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								});
 								_push(`<!--]-->`);
 								if (message.file_url) {
-									_push(`<div class="file-attachment" data-v-02de6714${_scopeId}><button type="button" class="file-download-circle"${ssrRenderAttr("title", isFileDownloaded(message) ? "Скачано" : "Скачать")} data-v-02de6714${_scopeId}>`);
-									if (!isFileDownloaded(message)) _push(`<span data-v-02de6714${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-02de6714${_scopeId}></span>`);
-									else _push(`<span data-v-02de6714${_scopeId}><img src="/images/document.svg" alt="Файл" data-v-02de6714${_scopeId}></span>`);
-									_push(`</button><div class="file-meta" data-v-02de6714${_scopeId}><div class="file-name" data-v-02de6714${_scopeId}>${ssrInterpolate(message.file_name || "Файл")}</div>`);
-									if (message.file_size) _push(`<div class="file-size" data-v-02de6714${_scopeId}>${ssrInterpolate(formatSize(message.file_size))}</div>`);
+									_push(`<div class="file-attachment" data-v-16257a40${_scopeId}><button type="button" class="file-download-circle"${ssrRenderAttr("title", isFileDownloaded(message) ? "Скачано" : "Скачать")} data-v-16257a40${_scopeId}>`);
+									if (!isFileDownloaded(message)) _push(`<span data-v-16257a40${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-16257a40${_scopeId}></span>`);
+									else _push(`<span data-v-16257a40${_scopeId}><img src="/images/document.svg" alt="Файл" data-v-16257a40${_scopeId}></span>`);
+									_push(`</button><div class="file-meta" data-v-16257a40${_scopeId}><div class="file-name" data-v-16257a40${_scopeId}>${ssrInterpolate(message.file_name || "Файл")}</div>`);
+									if (message.file_size) _push(`<div class="file-size" data-v-16257a40${_scopeId}>${ssrInterpolate(formatSize(message.file_size))}</div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								} else _push(`<!---->`);
-								_push(`</div><div class="message-time" data-v-02de6714${_scopeId}>${ssrInterpolate(message.time)}</div></div></div>`);
+								_push(`</div><div class="message-time" data-v-16257a40${_scopeId}>${ssrInterpolate(message.time)}</div></div></div>`);
 							});
-							_push(`<!--]--></div></div><form class="message-form" enctype="multipart/form-data" data-v-02de6714${_scopeId}>`);
-							if (editingMessage.value) _push(`<div class="editing-indicator" data-v-02de6714${_scopeId}><span data-v-02de6714${_scopeId}>Редактирование сообщения</span><button type="button" class="cancel-edit-btn" data-v-02de6714${_scopeId}>✕</button></div>`);
+							_push(`<!--]--></div>`);
+							if (showSkeleton.value) {
+								_push(`<div class="${ssrRenderClass([{ fading: isSkeletonFading.value }, "chat-skeleton"])}" data-v-16257a40${_scopeId}><!--[-->`);
+								ssrRenderList(skeletonItems.value, (item, index) => {
+									_push(`<div class="${ssrRenderClass([{ right: item.side === "right" }, "skeleton-message"])}" data-v-16257a40${_scopeId}><div class="skeleton-avatar" data-v-16257a40${_scopeId}></div><div class="skeleton-bubble" data-v-16257a40${_scopeId}><div class="skeleton-line" style="${ssrRenderStyle({ width: item.lines[0] })}" data-v-16257a40${_scopeId}></div><div class="skeleton-line short" style="${ssrRenderStyle({ width: item.lines[1] })}" data-v-16257a40${_scopeId}></div>`);
+									if (item.hasThirdLine) _push(`<div class="skeleton-line tiny" style="${ssrRenderStyle({ width: item.lines[2] })}" data-v-16257a40${_scopeId}></div>`);
+									else _push(`<!---->`);
+									_push(`</div></div>`);
+								});
+								_push(`<!--]--></div>`);
+							} else _push(`<!---->`);
+							_push(`</div></div><form class="message-form" enctype="multipart/form-data" data-v-16257a40${_scopeId}>`);
+							if (editingMessage.value) _push(`<div class="editing-indicator" data-v-16257a40${_scopeId}><span data-v-16257a40${_scopeId}>Редактирование сообщения</span><button type="button" class="cancel-edit-btn" data-v-16257a40${_scopeId}>✕</button></div>`);
 							else _push(`<!---->`);
-							_push(`<div class="message-input-container" data-v-02de6714${_scopeId}>`);
-							if (!editingMessage.value) _push(`<div class="add" data-v-02de6714${_scopeId}><img src="/images/clip.svg" alt="Добавить вложение" data-v-02de6714${_scopeId}><div class="add-select" data-v-02de6714${_scopeId}><label data-v-02de6714${_scopeId}> Фото <input type="file" name="photo" accept="image/*" data-v-02de6714${_scopeId}></label><label data-v-02de6714${_scopeId}> Видео <input type="file" name="video" accept="video/*" data-v-02de6714${_scopeId}></label><label data-v-02de6714${_scopeId}> Документ <input type="file" name="document" data-v-02de6714${_scopeId}></label></div></div>`);
+							_push(`<div class="message-input-container" data-v-16257a40${_scopeId}>`);
+							if (!editingMessage.value) _push(`<div class="add" data-v-16257a40${_scopeId}><img src="/images/clip.svg" alt="Добавить вложение" data-v-16257a40${_scopeId}><div class="add-select" data-v-16257a40${_scopeId}><label data-v-16257a40${_scopeId}> Фото <input type="file" name="photo" accept="image/*" data-v-16257a40${_scopeId}></label><label data-v-16257a40${_scopeId}> Видео <input type="file" name="video" accept="video/*" data-v-16257a40${_scopeId}></label><label data-v-16257a40${_scopeId}> Документ <input type="file" name="document" data-v-16257a40${_scopeId}></label></div></div>`);
 							else _push(`<!---->`);
-							_push(`<textarea${ssrRenderAttr("placeholder", editingMessage.value ? "Редактируйте сообщение..." : "Введите сообщение...")} data-v-02de6714${_scopeId}>${ssrInterpolate(unref(form).content)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(form).processing || !canSend.value) ? " disabled" : ""} data-v-02de6714${_scopeId}>${ssrInterpolate(editingMessage.value ? "Сохранить" : "Отправить")}</button></div>`);
+							_push(`<textarea${ssrRenderAttr("placeholder", editingMessage.value ? "Редактируйте сообщение..." : "Введите сообщение...")} data-v-16257a40${_scopeId}>${ssrInterpolate(unref(form).content)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(form).processing || !canSend.value) ? " disabled" : ""} data-v-16257a40${_scopeId}>${ssrInterpolate(editingMessage.value ? "Сохранить" : "Отправить")}</button></div>`);
 							if (photoPreviewUrl.value || videoPreviewUrl.value || documentPreviewName.value) {
-								_push(`<div class="image-preview-container" style="${ssrRenderStyle({ "display": "flex" })}" data-v-02de6714${_scopeId}>`);
-								if (photoPreviewUrl.value) _push(`<img${ssrRenderAttr("src", photoPreviewUrl.value)} alt="Превью" class="image-preview" data-v-02de6714${_scopeId}>`);
+								_push(`<div class="image-preview-container" style="${ssrRenderStyle({ "display": "flex" })}" data-v-16257a40${_scopeId}>`);
+								if (photoPreviewUrl.value) _push(`<img${ssrRenderAttr("src", photoPreviewUrl.value)} alt="Превью" class="image-preview" data-v-16257a40${_scopeId}>`);
 								else _push(`<!---->`);
-								if (videoPreviewUrl.value) _push(`<video${ssrRenderAttr("src", videoPreviewUrl.value)} class="video-preview" controls data-v-02de6714${_scopeId}></video>`);
+								if (videoPreviewUrl.value) _push(`<video${ssrRenderAttr("src", videoPreviewUrl.value)} class="video-preview" controls data-v-16257a40${_scopeId}></video>`);
 								else _push(`<!---->`);
-								if (documentPreviewName.value) _push(`<div class="file-preview" data-v-02de6714${_scopeId}> 📎 ${ssrInterpolate(documentPreviewName.value)}</div>`);
+								if (documentPreviewName.value) _push(`<div class="file-preview" data-v-16257a40${_scopeId}> 📎 ${ssrInterpolate(documentPreviewName.value)}</div>`);
 								else _push(`<!---->`);
-								_push(`<div class="preview-actions" data-v-02de6714${_scopeId}><button type="button" class="select-other-btn" data-v-02de6714${_scopeId}> Выбрать другое </button>`);
-								if (!editingMessage.value) _push(`<button type="button" class="cancel-preview-btn" data-v-02de6714${_scopeId}> Отмена </button>`);
+								_push(`<div class="preview-actions" data-v-16257a40${_scopeId}><button type="button" class="select-other-btn" data-v-16257a40${_scopeId}> Выбрать другое </button>`);
+								if (!editingMessage.value) _push(`<button type="button" class="cancel-preview-btn" data-v-16257a40${_scopeId}> Отмена </button>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							} else _push(`<!---->`);
 							_push(`</form><!--]-->`);
-						} else _push(`<div class="chat-placeholder" data-v-02de6714${_scopeId}><p data-v-02de6714${_scopeId}>Выберите чат для начала общения</p></div>`);
+						} else _push(`<div class="chat-placeholder" data-v-16257a40${_scopeId}><p data-v-16257a40${_scopeId}>Выберите чат для начала общения</p></div>`);
 						_push(`</div></div>`);
-						if (modalOpen.value && modalImage.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-02de6714${_scopeId}><div class="modal-content" data-v-02de6714${_scopeId}><button class="modal-close" type="button" data-v-02de6714${_scopeId}> × </button><img${ssrRenderAttr("src", modalImage.value)} alt="Предпросмотр" data-v-02de6714${_scopeId}></div></div>`);
+						if (modalOpen.value && modalImage.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-16257a40${_scopeId}><div class="modal-content" data-v-16257a40${_scopeId}><button class="modal-close" type="button" data-v-16257a40${_scopeId}> × </button><img${ssrRenderAttr("src", modalImage.value)} alt="Предпросмотр" data-v-16257a40${_scopeId}></div></div>`);
 						else _push(`<!---->`);
-						if (modalOpen.value && modalVideo.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-02de6714${_scopeId}><div class="modal-content modal-video-content" data-v-02de6714${_scopeId}><button class="modal-close" type="button" data-v-02de6714${_scopeId}> × </button><video${ssrRenderAttr("src", modalVideo.value)} controls autoplay class="modal-video" data-v-02de6714${_scopeId}></video></div></div>`);
+						if (modalOpen.value && modalVideo.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-16257a40${_scopeId}><div class="modal-content modal-video-content" data-v-16257a40${_scopeId}><button class="modal-close" type="button" data-v-16257a40${_scopeId}> × </button><video${ssrRenderAttr("src", modalVideo.value)} controls autoplay class="modal-video" data-v-16257a40${_scopeId}></video></div></div>`);
 						else _push(`<!---->`);
 						if (contextMenu.value.show) {
 							_push(`<div class="context-menu" style="${ssrRenderStyle({
 								left: contextMenu.value.x + "px",
 								top: contextMenu.value.y + "px"
-							})}" data-v-02de6714${_scopeId}>`);
-							if (!contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-02de6714${_scopeId}> Ответить </div>`);
+							})}" data-v-16257a40${_scopeId}>`);
+							if (!contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-16257a40${_scopeId}> Ответить </div>`);
 							else _push(`<!---->`);
-							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-02de6714${_scopeId}> Редактировать </div>`);
+							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-16257a40${_scopeId}> Редактировать </div>`);
 							else _push(`<!---->`);
-							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item delete" data-v-02de6714${_scopeId}> Удалить </div>`);
+							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item delete" data-v-16257a40${_scopeId}> Удалить </div>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						} else _push(`<!---->`);
 						if (selectedMessages.value.length > 0) {
-							_push(`<div class="selection-toolbar" data-v-02de6714${_scopeId}><span data-v-02de6714${_scopeId}>${ssrInterpolate(selectedMessages.value.length)} выбрано</span>`);
-							if (canDeleteSelected.value) _push(`<button type="button" class="selection-delete-btn" data-v-02de6714${_scopeId}> Удалить </button>`);
+							_push(`<div class="selection-toolbar" data-v-16257a40${_scopeId}><span data-v-16257a40${_scopeId}>${ssrInterpolate(selectedMessages.value.length)} выбрано</span>`);
+							if (canDeleteSelected.value) _push(`<button type="button" class="selection-delete-btn" data-v-16257a40${_scopeId}> Удалить </button>`);
 							else _push(`<!---->`);
-							_push(`<button type="button" class="selection-clear-btn" data-v-02de6714${_scopeId}> Отмена </button></div>`);
+							_push(`<button type="button" class="selection-clear-btn" data-v-16257a40${_scopeId}> Отмена </button></div>`);
 						} else _push(`<!---->`);
 					} else return [
 						createVNode(unref(Head), { title: "Чаты" }),
@@ -2835,16 +2842,14 @@ var _sfc_main$13 = {
 							onTouchend: onTouchEnd
 						}, [__props.activeChat ? (openBlock(), createBlock(Fragment, { key: 0 }, [
 							createVNode("div", { class: "chat-header" }, [
-								createVNode(unref(Link), {
+								createVNode("button", {
+									type: "button",
 									class: "back",
 									onClick: handleBackClick
-								}, {
-									default: withCtx(() => [createVNode("img", {
-										src: "/images/arrow-left.svg",
-										alt: "назад"
-									})]),
-									_: 1
-								}),
+								}, [createVNode("img", {
+									src: "/images/arrow-left.svg",
+									alt: "назад"
+								})]),
 								createVNode("div", { class: "chat-header-mid" }, [
 									otherUsers.value.length > 0 ? (openBlock(), createBlock(unref(Link), {
 										key: 0,
@@ -2943,32 +2948,10 @@ var _sfc_main$13 = {
 								}, "Отклонить")], 32)])) : createCommentVNode("", true)
 							], 512), [[vShow, !isApplicationBlockClosed.value]])], 2)) : createCommentVNode("", true),
 							createVNode("div", {
-								class: ["chat-messages", { "is-hydrating": isHydratingChat.value }],
+								class: "chat-messages",
 								ref_key: "messagesRef",
 								ref: messagesRef
-							}, [isHydratingChat.value ? (openBlock(), createBlock("div", {
-								key: 0,
-								class: "chat-skeleton"
-							}, [(openBlock(true), createBlock(Fragment, null, renderList(skeletonItems.value, (item, index) => {
-								return openBlock(), createBlock("div", {
-									key: index,
-									class: ["skeleton-message", item.side]
-								}, [createVNode("div", { class: "skeleton-avatar" }), createVNode("div", { class: "skeleton-bubble" }, [
-									createVNode("div", {
-										class: "skeleton-line",
-										style: { width: item.lines[0] }
-									}, null, 4),
-									createVNode("div", {
-										class: "skeleton-line short",
-										style: { width: item.lines[1] }
-									}, null, 4),
-									item.hasThirdLine ? (openBlock(), createBlock("div", {
-										key: 0,
-										class: "skeleton-line tiny",
-										style: { width: item.lines[2] }
-									}, null, 4)) : createCommentVNode("", true)
-								])], 2);
-							}), 128))])) : createCommentVNode("", true), createVNode("div", { class: "chat-messages-content" }, [(openBlock(true), createBlock(Fragment, null, renderList(__props.activeChat.messages, (message) => {
+							}, [createVNode("div", { class: "chat-messages-inner" }, [createVNode("div", { class: "chat-messages-content" }, [(openBlock(true), createBlock(Fragment, null, renderList(__props.activeChat.messages, (message) => {
 								return openBlock(), createBlock("div", {
 									key: message.id,
 									class: ["message-container", {
@@ -3039,7 +3022,29 @@ var _sfc_main$13 = {
 									]),
 									createVNode("div", { class: "message-time" }, toDisplayString(message.time), 1)
 								], 2)], 42, ["onClick", "onContextmenu"]);
-							}), 128))])], 2),
+							}), 128))]), showSkeleton.value ? (openBlock(), createBlock("div", {
+								key: 0,
+								class: ["chat-skeleton", { fading: isSkeletonFading.value }]
+							}, [(openBlock(true), createBlock(Fragment, null, renderList(skeletonItems.value, (item, index) => {
+								return openBlock(), createBlock("div", {
+									key: index,
+									class: ["skeleton-message", { right: item.side === "right" }]
+								}, [createVNode("div", { class: "skeleton-avatar" }), createVNode("div", { class: "skeleton-bubble" }, [
+									createVNode("div", {
+										class: "skeleton-line",
+										style: { width: item.lines[0] }
+									}, null, 4),
+									createVNode("div", {
+										class: "skeleton-line short",
+										style: { width: item.lines[1] }
+									}, null, 4),
+									item.hasThirdLine ? (openBlock(), createBlock("div", {
+										key: 0,
+										class: "skeleton-line tiny",
+										style: { width: item.lines[2] }
+									}, null, 4)) : createCommentVNode("", true)
+								])], 2);
+							}), 128))], 2)) : createCommentVNode("", true)])], 512),
 							createVNode("form", {
 								class: "message-form",
 								onSubmit: withModifiers(sendMessage, ["prevent"]),
@@ -3215,7 +3220,7 @@ _sfc_main$13.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Chat/Chats.vue");
 	return _sfc_setup$13 ? _sfc_setup$13(props, ctx) : void 0;
 };
-var Chats_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$13, [["__scopeId", "data-v-02de6714"]]);
+var Chats_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$13, [["__scopeId", "data-v-16257a40"]]);
 //#endregion
 //#region resources/js/Components/Post.vue
 var _sfc_main$12 = {

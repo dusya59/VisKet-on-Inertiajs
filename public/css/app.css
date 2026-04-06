@@ -205,7 +205,7 @@ header nav{
   position: fixed;
   top: 0;
   right: 0;
-  width: 50%;
+  width: 55%;
   height: 100vh;
   background: white;
   z-index: 200;
@@ -546,7 +546,7 @@ footer div a{
 
 @media (max-width: 1000px) {
   body.mobile-chat-open header {
-    display: none;
+    z-index: 1;
   }
 }
 
