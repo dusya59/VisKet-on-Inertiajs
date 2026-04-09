@@ -183,7 +183,7 @@
 
           <div class="chat-messages" ref="messagesRef">
             <div class="chat-messages-inner">
-              <div class="chat-messages-content">
+              <TransitionGroup name="messages" tag="div" class="chat-messages-content">
                 <div
                   v-for="(message, index) in activeChat.messages"
                   :key="message.id"
@@ -194,7 +194,7 @@
                     'selected': selectedMessages.some(m => m.id === message.id),
                     'search-highlighted': isSearching && searchResults[currentMatchIndex]?.id === message.id
                   }"
-                  @click="toggleMessageSelection(message)"
+                  @click="toggleMessageSelection(message, $event)"
                   @contextmenu.prevent="showContextMenu($event, message)"
                 >
                   <img :src="message.user.avatar_url" class="chat-avatar" />
@@ -214,7 +214,7 @@
                       controls
                       @click.stop="openVideo(message.video_url)"
                     ></video>
-                    <div class="message-content">
+                    <div class="message-content" @click="handleMessageContentClick">
                       <span
                         v-if="message.content && !isOnlyPostUrl(message.content)"
                         v-html="renderContent(message.content)"
@@ -264,7 +264,7 @@
                     <div class="message-time">{{ message.time }}</div>
                   </div>
                 </div>
-              </div>
+              </TransitionGroup>
 
               <div
                 v-if="showSkeleton"
@@ -361,6 +361,96 @@
           <p>Выберите чат для начала общения</p>
         </div>
       </div>
+
+      <div v-if="showChatFiles" class="chat-files-panel">
+        <div class="chat-files-header">
+          <h3>Файлы чата</h3>
+          <button type="button" class="chat-files-close" @click="closeChatFiles">
+            <img src="/images/close.svg" alt="Закрыть">
+          </button>
+        </div>
+        <div class="chat-files-tabs">
+          <button 
+            type="button" 
+            class="chat-files-tab" 
+            :class="{ active: chatFilesTab === 'media' }"
+            @click="chatFilesTab = 'media'"
+          >
+            Медиа
+          </button>
+          <button 
+            type="button" 
+            class="chat-files-tab" 
+            :class="{ active: chatFilesTab === 'files' }"
+            @click="chatFilesTab = 'files'"
+          >
+            Файлы
+          </button>
+          <button 
+            type="button" 
+            class="chat-files-tab" 
+            :class="{ active: chatFilesTab === 'links' }"
+            @click="chatFilesTab = 'links'"
+          >
+            Ссылки
+          </button>
+        </div>
+        <div class="chat-files-content">
+          <div v-if="chatFilesTab === 'media'" class="chat-files-media">
+            <div v-if="chatMediaFiles.length === 0" class="chat-files-empty">
+              Нет медиафайлов
+            </div>
+            <div v-else class="chat-files-grid">
+              <div 
+                v-for="media in chatMediaFiles" 
+                :key="media.id" 
+                class="chat-files-media-item"
+                @click="media.type === 'video' ? openVideo(media.url) : openImage(media.url)"
+              >
+                <img v-if="media.type === 'image'" :src="media.url" alt="Медиа">
+                <video v-else :src="media.url"></video>
+                <div v-if="media.type === 'video'" class="play-icon">▶</div>
+              </div>
+            </div>
+          </div>
+          <div v-if="chatFilesTab === 'files'" class="chat-files-list">
+            <div v-if="chatDocFiles.length === 0" class="chat-files-empty">
+              Нет файлов
+            </div>
+            <div v-else>
+              <div 
+                v-for="file in chatDocFiles" 
+                :key="file.id" 
+                class="chat-files-item"
+              >
+                <button type="button" class="file-download-circle" @click="downloadFile(file)">
+                  <img src="/images/download.svg" alt="Скачать">
+                </button>
+                <div class="file-info">
+                  <div class="file-name">{{ file.file_name }}</div>
+                  <div class="file-size">{{ formatSize(file.file_size) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="chatFilesTab === 'links'" class="chat-files-list">
+            <div v-if="chatLinks.length === 0" class="chat-files-empty">
+              Нет ссылок
+            </div>
+            <div v-else>
+              <div 
+                v-for="link in chatLinks" 
+                :key="link.id" 
+                class="chat-files-link"
+                @click="handleLinkClick(link.url)"
+              >
+                <span class="link-text">{{ link.content }}</span>
+                <span class="link-time">{{ link.time }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div
@@ -444,6 +534,46 @@ const form = useForm({
   document: null
 })
 
+function toLocalPath(url) {
+  try {
+    const parsed = new URL(url)
+    const currentHost = window.location.hostname
+    const isLocal = parsed.hostname === currentHost || 
+                    (parsed.hostname === '127.0.0.1' && (currentHost === '127.0.0.1' || currentHost === 'localhost')) ||
+                    (currentHost === '127.0.0.1' && parsed.hostname === 'localhost')
+    if (isLocal) {
+      return parsed.pathname + parsed.search + parsed.hash
+    }
+  } catch (e) {
+    if (url.startsWith('/')) {
+      return url
+    }
+  }
+  return null
+}
+
+function openExternal(url) {
+  window.open(url, '_blank')
+}
+
+function handleLinkClick(url) {
+  const path = toLocalPath(url)
+  if (path) {
+    router.visit(path)
+  } else {
+    window.open(url, '_blank')
+  }
+}
+
+function handleMessageContentClick(event) {
+  const link = event.target.closest('a')
+  if (link) {
+    event.preventDefault()
+    const url = link.getAttribute('href')
+    handleLinkClick(url)
+  }
+}
+
 const textareaRef = ref(null)
 const messagesRef = ref(null)
 const chatArea = ref(null)
@@ -470,6 +600,8 @@ const optionsMenu = ref({
   x: 15,
   y: 60
 })
+const showChatFiles = ref(false)
+const chatFilesTab = ref('media')
 const onlineUsers = ref(new Set())
 const isSliding = ref(false)
 const touchStartX = ref(0)
@@ -658,6 +790,7 @@ function testPostUrl(text) {
 async function fetchPostPreview(postId) {
   if (postPreviewsCache[postId]) return
   postPreviewsCache[postId] = 'loading'
+  postPreviews.value = { ...postPreviewsCache }
   try {
     const res = await fetch(`/api/posts/${postId}/preview`)
     if (!res.ok) throw new Error('not found')
@@ -666,6 +799,7 @@ async function fetchPostPreview(postId) {
     postPreviews.value = { ...postPreviewsCache }
   } catch {
     postPreviewsCache[postId] = 'error'
+    postPreviews.value = { ...postPreviewsCache }
   }
 }
 
@@ -748,16 +882,21 @@ async function hydrateChat(messages) {
 function getPostPreviewsFromContent(content) {
   const ids = extractPostIds(content)
   return ids
-    .map(id => postPreviewsCache[id])
+    .map(id => postPreviews.value[id])
     .filter(p => p && p !== 'loading' && p !== 'error')
 }
 
 function renderContent(content) {
   if (!content) return ''
-  return content.replace(
+  let result = content.replace(
     /http?:\/\/[^\/\s]+\/posts\/(\d+)/g,
-    (url, id) => `<a href="/posts/${id}" class="post-link" target="_blank">${url}</a>`
+    (url, id) => `<a href="/posts/${id}" class="post-link" data-link="local">${url}</a>`
   )
+  result = result.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    (url) => `<a href="${url}" class="message-link" style="color:#007bff;" target="_blank" rel="noopener">${url}</a>`
+  )
+  return result
 }
 
 function isOnlyPostUrl(content) {
@@ -883,6 +1022,47 @@ const canSend = computed(() => {
     !!form.video ||
     !!form.document
   )
+})
+
+const chatMediaFiles = computed(() => {
+  if (!props.activeChat || !props.activeChat.messages) return []
+  const media = []
+  for (const msg of props.activeChat.messages) {
+    if (msg.image_url) {
+      media.push({ id: msg.id, type: 'image', url: msg.image_url })
+    }
+    if (msg.video_url) {
+      media.push({ id: msg.id, type: 'video', url: msg.video_url })
+    }
+  }
+  return media.reverse()
+})
+
+const chatDocFiles = computed(() => {
+  if (!props.activeChat || !props.activeChat.messages) return []
+  return props.activeChat.messages.filter(m => m.file_url && m.file_name).reverse()
+})
+
+const chatLinks = computed(() => {
+  if (!props.activeChat || !props.activeChat.messages) return []
+  const links = []
+  const URL_REGEX = /https?:\/\/[^\s]+/g
+  for (const msg of props.activeChat.messages) {
+    if (msg.content) {
+      const matches = msg.content.match(URL_REGEX)
+      if (matches) {
+        for (const url of matches) {
+          links.push({
+            id: msg.id + '-' + url,
+            content: url,
+            url: url,
+            time: msg.time
+          })
+        }
+      }
+    }
+  }
+  return links.reverse()
 })
 
 const openImage = (url) => {
@@ -1064,7 +1244,8 @@ const cancelEdit = () => {
   resetForm()
 }
 
-const toggleMessageSelection = (message) => {
+const toggleMessageSelection = (message, event) => {
+  if (event?.target.closest('a')) return
   const index = selectedMessages.value.findIndex(m => m.id === message.id)
   if (index > -1) {
     selectedMessages.value.splice(index, 1)
@@ -1125,8 +1306,12 @@ const hideOptionsMenu = () => {
 }
 
 const handleChatFiles = () => {
-  console.log('Файлы чата')
+  showChatFiles.value = true
   hideOptionsMenu()
+}
+
+const closeChatFiles = () => {
+  showChatFiles.value = false
 }
 
 const handleAddParticipant = () => {
@@ -1387,6 +1572,7 @@ watch(
 
 .chat-list {
     width: 350px;
+    flex-shrink: 0;
     border-right: 1px solid #eee;
     overflow-y: auto;
     background-color: white;
@@ -1661,12 +1847,12 @@ watch(
 }
 
 .chat-area {
-    max-width: 81%;
     flex: 1;
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease;
     position: relative;
+    min-width: 0;
 }
 
 .chat-area.sliding {
@@ -2080,6 +2266,11 @@ watch(
     justify-content: center;
     font-size: 18px;
     transition: background-color 0.2s;
+}
+
+.file-download-circle img {
+    width: 20px;
+    height: 20px;
 }
 
 .file-download-circle:hover {
@@ -2754,5 +2945,215 @@ watch(
 
 .selection-clear-btn:hover {
   background: #5a6268;
+}
+
+.messages-move {
+  transition: transform 0.3s ease;
+}
+
+.messages-enter-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.messages-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  width: 100%;
+  z-index: 0;
+}
+
+.messages-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.messages-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.messages-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.messages-leave-from {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.chat-files-panel {
+  width: 350px;
+  flex-shrink: 0;
+  border-left: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.chat-files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.chat-files-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.chat-files-close {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-files-close:hover {
+  background: #f0f0f0;
+}
+
+.chat-files-close img {
+  width: 20px;
+  height: 20px;
+}
+
+.chat-files-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.chat-files-tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.chat-files-tab:hover {
+  background: #f5f5f5;
+}
+
+.chat-files-tab.active {
+  color: #007bff;
+  font-weight: 600;
+  border-bottom: 2px solid #007bff;
+}
+
+.chat-files-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chat-files-empty {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+}
+
+.chat-files-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.chat-files-media-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.chat-files-media-item img,
+.chat-files-media-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-files-media-item .play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+}
+
+.chat-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-files-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.chat-files-item .file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-files-item .file-name {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-files-item .file-size {
+  font-size: 12px;
+  color: #999;
+}
+
+.chat-files-link {
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.chat-files-link:hover {
+  background: #f5f5f5;
+}
+
+.chat-files-link .link-text {
+  display: block;
+  font-size: 14px;
+  color: #007bff;
+  word-break: break-all;
+}
+
+.chat-files-link .link-time {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
 }
 </style>

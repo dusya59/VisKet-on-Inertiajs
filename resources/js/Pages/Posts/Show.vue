@@ -741,12 +741,12 @@ header {
   width: 100%;
   padding: 14px 20px;
   border: none;
-  background: white;
+  background-color: white;
   color: #334155;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background-color 0.2s ease;
   text-decoration: none;
   font-family: inherit;
 }

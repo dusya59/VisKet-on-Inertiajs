@@ -188,9 +188,9 @@ header nav{
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
   z-index: 150;
-  transition: background 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 .overlay-active-mobile {
   display: none !important;
@@ -665,3 +665,4 @@ footer div a{
   color: rgb(255, 52, 52);
   border-bottom-color: rgb(255, 52, 52);
 }
+
