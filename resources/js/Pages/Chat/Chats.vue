@@ -698,6 +698,17 @@ const touchStartX = ref(0)
 const touchCurrentX = ref(0)
 const isSwiping = ref(false)
 
+const mergeMessages = (newMessages) => {
+  newMessages.forEach(newMsg => {
+    const existing = localMessages.value.find(m => m.id === newMsg.id || m._clientId === newMsg._clientId)
+    if (existing) {
+      Object.assign(existing, newMsg)
+    } else {
+      localMessages.value.push(newMsg)
+    }
+  })
+}
+
 const localMessages = ref([])
 
 const postPreviews = ref(postPreviewsCache)
@@ -1166,23 +1177,37 @@ const isUserOnline = (userId) => {
   return onlineUsers.value.has(userId)
 }
 
-const lastReadAt = computed(() => {
+const lastReadAt = ref(null)
+const otherLastReadAt = ref(null)
+
+const initLastReadAt = () => {
   const raw = props.activeChat?.last_read_at
-  console.log('last_read_at raw:', raw)
-  if (!raw) return null
-  const date = new Date(raw)
-  console.log('last_read_at parsed:', date)
-  return isNaN(date.getTime()) ? null : date
-})
+  if (raw) {
+    const date = new Date(raw)
+    if (!isNaN(date.getTime())) {
+      lastReadAt.value = date
+    }
+  }
+  
+  const otherRaw = props.activeChat?.other_last_read_at
+  if (otherRaw) {
+    const date = new Date(otherRaw)
+    if (!isNaN(date.getTime())) {
+      otherLastReadAt.value = date
+    }
+  }
+}
+initLastReadAt()
 
 const getMessageStatus = (message) => {
-  console.log('getMessageStatus:', message.id, 'is_mine:', message.is_mine, '_status:', message._status, 'created_at:', message.created_at, 'lastReadAt:', lastReadAt.value)
   if (!message.is_mine) return null
   if (message._status) return message._status
-  if (lastReadAt.value && message.created_at) {
-    return new Date(message.created_at) < lastReadAt.value ? 'read' : 'sent'
-  }
-  return 'sent'
+  
+  const readTime = otherLastReadAt.value 
+    ? new Date(otherLastReadAt.value).getTime() 
+    : 0
+  const msgTime = new Date(message.created_at).getTime()
+  return msgTime < readTime ? 'read' : 'sent'
 }
 
 const canSend = computed(() => {
@@ -1382,16 +1407,13 @@ const sendMessage = () => {
           tempMessage._clientId = tempId
           tempMessage._status = 'sent'
         } else {
-          localMessages.value = newMessages.map(m => ({
-            ...m,
-            _clientId: m.id
-          }))
+          mergeMessages(newMessages)
         }
       } else {
-        localMessages.value = newMessages.map(m => ({
+        mergeMessages(newMessages.map(m => ({
           ...m,
           _clientId: m._clientId || m.id
-        }))
+        })))
       }
 
       pendingTempIds.delete(tempId)
@@ -1702,13 +1724,21 @@ onMounted(async () => {
     if (props.activeChat) {
       window.Echo.private(`chat.${props.activeChat.id}`)
         .listen('.message.sent', (e) => {
-          router.reload({ only: ['activeChat'] })
+          const newMessages = page.props.activeChat?.messages ?? []
+          mergeMessages(newMessages)
         })
         .listen('.message.updated', (e) => {
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.deleted', (e) => {
-          router.reload({ only: ['activeChat'] })
+          const newMessages = page.props.activeChat?.messages ?? []
+          mergeMessages(newMessages)
+        })
+        .listen('.messages.read', (e) => {
+          const otherUser = otherUsers.value[0]
+          if (otherUser && e.user_id === otherUser.id && e.last_read_at) {
+            otherLastReadAt.value = new Date(e.last_read_at)
+          }
         });
     }
 
@@ -1762,38 +1792,35 @@ watch(
     if (newChatId) {
       window.Echo.private(`chat.${newChatId}`)
         .listen('.message.sent', (e) => {
-          router.reload({ only: ['activeChat'] })
+          const newMessages = page.props.activeChat?.messages ?? []
+          mergeMessages(newMessages)
         })
         .listen('.message.updated', (e) => {
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.deleted', (e) => {
-          router.reload({ only: ['activeChat'] })
+          const newMessages = page.props.activeChat?.messages ?? []
+          mergeMessages(newMessages)
+        })
+        .listen('.messages.read', (e) => {
+          const otherUser = otherUsers.value[0]
+          if (otherUser && e.user_id === otherUser.id && e.last_read_at) {
+            otherLastReadAt.value = new Date(e.last_read_at)
+          }
         });
     }
   }
 )
 
-watch(
-  () => props.activeChat?.messages?.length,
-  (newLength, oldLength) => {
-    if (newLength && newLength > (oldLength || 0) && !isHydratingChat.value) {
-      scrollToBottom(true)
-    }
-  }
-)
-
-watch(
-  () => props.activeChat?.messages,
-  (msgs) => {
-    if (pendingTempIds.size > 0) return
-    localMessages.value = (msgs || []).map(m => ({
+watch(() => props.activeChat?.messages, (msgs) => {
+  if (pendingTempIds.size > 0) return
+  if (msgs && msgs.length > 0 && localMessages.value.length === 0) {
+    localMessages.value = msgs.map(m => ({
       ...m,
       _clientId: m._clientId || m.id
     }))
-  },
-  { immediate: true }
-)
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>

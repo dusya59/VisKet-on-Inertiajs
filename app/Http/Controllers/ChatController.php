@@ -7,6 +7,7 @@ use App\Models\Message;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -83,7 +84,30 @@ class ChatController extends Controller
             abort(403, 'У вас нет доступа к этому чату.');
         }
 
-        $user->chats()->updateExistingPivot($chat->id, ['last_read_at' => now()]);
+        $user->chats()->syncWithoutDetaching([$chat->id => ['last_read_at' => now()->utc()->format('Y-m-d H:i:s')]]);
+
+        $now = now()->utc();
+        event(new \App\Events\MessagesRead($chat->id, $user->id, $now));
+
+        $pivotData = DB::table('chat_user')
+            ->where('chat_id', $chat->id)
+            ->where('user_id', $user->id)
+            ->first();
+        $lastReadAt = $pivotData?->last_read_at
+            ? \Carbon\Carbon::parse($pivotData->last_read_at)->toIso8601String()
+            : null;
+
+        $otherUser = $chat->users()->where('user_id', '!=', $user->id)->first();
+        $otherLastReadAt = null;
+        if ($otherUser) {
+            $otherPivot = DB::table('chat_user')
+                ->where('chat_id', $chat->id)
+                ->where('user_id', $otherUser->id)
+                ->first();
+            $otherLastReadAt = $otherPivot?->last_read_at
+                ? \Carbon\Carbon::parse($otherPivot->last_read_at)->toIso8601String()
+                : null;
+        }
 
         $activeChat = $chat->load(['messages.user', 'users', 'application.user', 'application.vacancy']);
 
@@ -170,6 +194,9 @@ class ChatController extends Controller
                     'file_url' => $m->file_path ? asset('storage/'.$m->file_path) : null,
                     'file_name' => $m->file_path ? basename($m->file_path) : null,
                     'file_size' => $m->file_path ? Storage::disk('public')->size($m->file_path) : null,
+                    'is_price_proposal' => $m->is_price_proposal,
+                    'proposed_price' => $m->proposed_price,
+                    'price_proposal_status' => $m->price_proposal_status,
                     'user' => [
                         'id' => $m->user->id,
                         'name' => $m->user->name,
@@ -178,9 +205,12 @@ class ChatController extends Controller
                             : asset('images/User-avatar.png'),
                     ],
                     'time' => $m->created_at->setTimezone('Asia/Yekaterinburg')->format('H:i'),
+                    'created_at' => $m->created_at->toIso8601String(),
                     'is_mine' => $m->user_id === auth()->id(),
                 ];
             }),
+            'last_read_at' => $lastReadAt,
+            'other_last_read_at' => $otherLastReadAt,
         ];
 
         return Inertia::render('Chat/Chats', [
@@ -362,6 +392,42 @@ class ChatController extends Controller
         $message->delete();
 
         event(new \App\Events\MessageDeleted($messageId, $chatId));
+
+        return redirect()->route('chat', $chat);
+    }
+
+    public function deleteMessagesBulk(Request $request, Chat $chat)
+    {
+        $user = auth()->user();
+
+        if (! $chat->users->contains($user->id)) {
+            abort(403, 'У вас нет доступа к этому чату.');
+        }
+
+        $ids = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer',
+        ])['ids'];
+
+        $messages = Message::where('chat_id', $chat->id)
+            ->whereIn('id', $ids)
+            ->where('user_id', $user->id)
+            ->get();
+
+        foreach ($messages as $message) {
+            if ($message->image_path && Storage::disk('public')->exists($message->image_path)) {
+                Storage::disk('public')->delete($message->image_path);
+            }
+            if ($message->video_path && Storage::disk('public')->exists($message->video_path)) {
+                Storage::disk('public')->delete($message->video_path);
+            }
+            if ($message->file_path && Storage::disk('public')->exists($message->file_path)) {
+                Storage::disk('public')->delete($message->file_path);
+            }
+            $message->delete();
+        }
+
+        $chat->touch();
 
         return redirect()->route('chat', $chat);
     }
