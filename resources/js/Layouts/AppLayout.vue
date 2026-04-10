@@ -50,7 +50,7 @@
             Баланс: {{ authUser.balance }} ₽
           </Link>
           <Link href="/notifications" @click="closeMenu">
-            <img src="/images/bell.svg" alt="" class="menu-icon">
+            <img src="/images/bell.svg" alt="" class="menu-icon">           
             Уведомления
             <span v-if="authUser.unreadNotificationsCount" class="counter-badge">{{ authUser.unreadNotificationsCount }}</span>
           </Link>

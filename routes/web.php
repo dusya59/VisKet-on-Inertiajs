@@ -103,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/chats/{chat}/messages', [ChatController::class, 'storeMessage'])->name('chats.messages.store');
     Route::match(['PUT', 'POST'], '/chats/{chat}/messages/{message}', [ChatController::class, 'updateMessage'])->name('chats.messages.update');
     Route::delete('/chats/{chat}/messages/{message}', [ChatController::class, 'deleteMessage'])->name('chats.messages.delete');
+    Route::delete('/chats/{chat}/messages', [ChatController::class, 'deleteMessagesBulk'])->name('chats.messages.deleteBulk');
 
     // Balance
     Route::get('/balance', [BalanceController::class, 'index'])->name('balance');
@@ -123,6 +124,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vacancies/{vacancy}/respond', [ApplicationController::class, 'respond'])->name('vacancies.respond');
     Route::post('/applications/{application}/accept', [ApplicationController::class, 'accept'])->name('applications.accept');
     Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
+    Route::post('/applications/{application}/propose-price', [ApplicationController::class, 'proposePrice'])->name('applications.propose-price');
+    Route::post('/messages/{message}/accept-price', [ApplicationController::class, 'acceptPriceProposal'])->name('messages.accept-price');
+    Route::get('/messages/{message}/respond-price', [ApplicationController::class, 'respondToPriceProposal'])->name('messages.respond-price');
 
     Route::get('/api/skills', function () {
         return response()->json(Skill::all());

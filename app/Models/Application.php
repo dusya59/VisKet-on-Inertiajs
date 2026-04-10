@@ -20,4 +20,9 @@ class Application extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function chat()
+    {
+        return $this->hasOne(Chat::class, 'application_id');
+    }
 }

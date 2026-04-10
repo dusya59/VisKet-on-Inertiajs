@@ -7,14 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class Message extends Model
 {
     protected $fillable = [
-        'chat_id', 
-        'user_id', 
+        'chat_id',
+        'user_id',
         'content',
         'image_path',
         'video_path',
-        'file_path'
+        'file_path',
+        'is_price_proposal',
+        'proposed_price',
+        'price_proposal_status',
     ];
 
+    protected $casts = [
+        'is_price_proposal' => 'boolean',
+        'proposed_price' => 'integer',
+    ];
 
     public function chat()
     {

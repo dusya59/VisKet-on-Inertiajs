@@ -23,33 +23,33 @@
           </button>
         </div>
 
-<div
-  v-if="!isSearching"
-  v-for="chat in chats"
-  :key="chat.id"
-  @click="router.visit(`/chats/${chat.id}`)"
-  class="chat-item"
-  :class="{ active: activeChat && chat.id === activeChat.id, 'has-unread': chat.unread_count > 0 }"
-  tabindex="0"
-  @keydown.enter="router.visit(`/chats/${chat.id}`)"
->
-  <div v-if="chat.other_user" class="chat-user-info">
-    <div class="avatar-wrapper">
-      <img :src="chat.other_user.avatar_url" class="chat-avatar" />
-      <span v-if="isUserOnline(chat.other_user.id)" class="online-indicator"></span>
-    </div>
-    <div>
-      <h3>{{ chat.other_user.name }}</h3>
-      <p v-if="chat.latest_message" class="chat-preview" :class="{ unread: chat.unread_count > 0 }">
-        {{ getChatPreview(chat.latest_message) }}
-      </p>
-    </div>
-  </div>
+        <div
+          v-if="!isSearching"
+          v-for="chat in chats"
+          :key="chat.id"
+          @click="router.visit(`/chats/${chat.id}`)"
+          class="chat-item"
+          :class="{ active: activeChat && chat.id === activeChat.id, 'has-unread': chat.unread_count > 0 }"
+          tabindex="0"
+          @keydown.enter="router.visit(`/chats/${chat.id}`)"
+        >
+          <div v-if="chat.other_user" class="chat-user-info">
+            <div class="avatar-wrapper">
+              <img :src="chat.other_user.avatar_url" class="chat-avatar" />
+              <span v-if="isUserOnline(chat.other_user.id)" class="online-indicator"></span>
+            </div>
+            <div>
+              <h3>{{ chat.other_user.name }}</h3>
+              <p v-if="chat.latest_message" class="chat-preview" :class="{ unread: chat.unread_count > 0 }">
+                {{ getChatPreview(chat.latest_message) }}
+              </p>
+            </div>
+          </div>
 
-  <div class="chat-meta">
-    <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
-  </div>
-</div>
+          <div class="chat-meta">
+            <span v-if="chat.unread_count > 0" class="unread-badge">{{ chat.unread_count > 99 ? '99+' : chat.unread_count }}</span>
+          </div>
+        </div>
 
         <div v-if="isSearching" class="search-results">
           <div v-if="searchResults.length === 0" class="search-no-results">
@@ -70,15 +70,15 @@
           </div>
         </div>
       </div>
-        <div 
-          class="chat-area" 
-          :class="{ active: !!activeChat, sliding: isSliding }" 
-          :style="slideOffset > 0 ? { transform: `translateX(${slideOffset}px)` } : {}"
-          ref="chatArea" 
-          @touchstart="onTouchStart" 
-          @touchmove="onTouchMove" 
-          @touchend="onTouchEnd"
-        >
+      <div 
+        class="chat-area" 
+        :class="{ active: !!activeChat, sliding: isSliding }" 
+        :style="slideOffset > 0 ? { transform: `translateX(${slideOffset}px)` } : {}"
+        ref="chatArea" 
+        @touchstart="onTouchStart" 
+        @touchmove="onTouchMove" 
+        @touchend="onTouchEnd"
+      >
         <template v-if="activeChat">
           <div class="chat-header">
             <button type="button" class="back" @click="handleBackClick"> 
@@ -91,10 +91,10 @@
                   <span v-if="isUserOnline(otherUsers[0].id)" class="online-indicator"></span>
                   <span v-else class="offline-indicator"></span>
                 </div>  
-                  <h2>{{ otherUsers[0].name }}</h2>        
+                <h2>{{ otherUsers[0].name }}</h2>        
               </Link>
               <span v-if="vacancyPostId" class="vacancy-link">
-                  откликнулся на 
+                откликнулся на 
               </span>
               <Link :href="`/posts/${vacancyPostId}`"><h2>{{ vacancyPosition }}</h2></Link>
             </div>
@@ -114,7 +114,7 @@
           <div
             v-if="optionsMenu.show"
             class="options-menu"
-            :style="{ right: optionsMenu.x + 'px', top: optionsMenu.y + 'px' }"
+            :style="{ right: optionsMenu.x + 'px', top: optionsMenu.y+ 70 + 'px' }"
           >
             <div class="options-menu-item" @click="handleChatFiles">Файлы чата</div>
             <div class="options-menu-item" @click="handleAddParticipant">Добавить участника в чат</div>
@@ -133,7 +133,6 @@
                 class="application-toggle-btn" 
                 @click="toggleApplicationBlock"
               >
-            
                 <img 
                   src="/images/arrow-up.svg" 
                   alt="Toggle" 
@@ -150,7 +149,7 @@
               <div class="name">
                 <h3>{{ activeChat.application.user.name }}</h3>
                 <span class="user-status" :class="{ online: isUserOnline(otherUsers[0].id) }">
-                    {{ isUserOnline(otherUsers[0].id) ? 'онлайн' : 'оффлайн' }}
+                  {{ isUserOnline(otherUsers[0].id) ? 'онлайн' : 'оффлайн' }}
                 </span>
               </div>
               
@@ -165,9 +164,19 @@
                 <p>{{ activeChat.application.cover_letter }}</p>
               </div>
               
-              <div v-if="activeChat.application.proposed_price" class="application-price">
-                <span class="label">Предложенная цена:</span>
-                <span class="value">{{ activeChat.application.proposed_price }} ₽</span>
+              <div v-if="activeChat.application.proposed_price" class="application-price-row">
+                <div class="application-price">
+                  <span class="label">Предложенная цена:</span>
+                  <span class="value">{{ activeChat.application.proposed_price }} ₽</span>
+                </div>
+                <button 
+                  v-if="isVacancyAuthor && activeChat.application.status === 'pending'"
+                  type="button" 
+                  class="price-edit-btn"
+                  @click="showPriceModal = true"
+                >
+                  <img src="/images/edit.svg" alt="Изменить цену">
+                </button>
               </div>
               
               <div v-if="isVacancyAuthor" class="application-actions">
@@ -185,8 +194,8 @@
             <div class="chat-messages-inner">
               <TransitionGroup name="messages" tag="div" class="chat-messages-content">
                 <div
-                  v-for="(message, index) in activeChat.messages"
-                  :key="message.id"
+                  v-for="(message, index) in localMessages"
+                  :key="message._clientId || message.id"
                   :data-message-id="message.id"
                   class="message-container"
                   :class="{ 
@@ -260,34 +269,47 @@
                           </div>
                         </div>
                       </div>
+                      <div v-if="message.is_price_proposal && message.price_proposal_status === 'pending' && !message.is_mine" class="price-proposal-actions">
+                        <form @submit.prevent="acceptPriceProposal(message)" class="price-action-form">
+                          <button type="submit" class="accept-price-btn" @click.stop>Принять</button>
+                        </form>
+                        <button type="button" class="change-price-btn" @click.stop="openPriceChangeModal(message)">Изменить</button>
+                      </div>
                     </div>
-                    <div class="message-time">{{ message.time }}</div>
+                    <div class="message-time">
+                      <span>{{ message.time }}</span>
+                      <span v-if="getMessageStatus(message)" class="message-status" :class="getMessageStatus(message)">
+                        <img v-if="getMessageStatus(message) === 'sending'" src="/images/loading.svg" alt="Отправляется" class="status-icon spinning" />
+                        <img v-else-if="getMessageStatus(message) === 'sent'" src="/images/check-mark.svg" alt="Отправлено" class="status-icon" />
+                        <img v-else-if="getMessageStatus(message) === 'read'" src="/images/double-check.svg" alt="Прочитано" class="status-icon" style="width: 16px; height: 16px;"/>
+                        <img v-else-if="getMessageStatus(message) === 'failed'" src="/images/exclamation-circle.svg" alt="Не отправлено" class="status-icon" />
+                      </span>
+                    </div>
                   </div>
                 </div>
               </TransitionGroup>
-
               <div
                 v-if="showSkeleton"
-              class="chat-skeleton"
-              :class="{ fading: isSkeletonFading }"
-            >
-              <div
-                v-for="(item, index) in skeletonItems"
-                :key="index"
-                class="skeleton-message"
-                :class="{ right: item.side === 'right' }"
+                class="chat-skeleton"
+                :class="{ fading: isSkeletonFading }"
               >
-                <div class="skeleton-avatar"></div>
+                <div
+                  v-for="(item, index) in skeletonItems"
+                  :key="index"
+                  class="skeleton-message"
+                  :class="{ right: item.side === 'right' }"
+                >
+                  <div class="skeleton-avatar"></div>
 
-                <div class="skeleton-bubble">
-                  <div class="skeleton-line" :style="{ width: item.lines[0] }"></div>
-                  <div class="skeleton-line short" :style="{ width: item.lines[1] }"></div>
-                  <div v-if="item.hasThirdLine" class="skeleton-line tiny" :style="{ width: item.lines[2] }"></div>
+                  <div class="skeleton-bubble">
+                    <div class="skeleton-line" :style="{ width: item.lines[0] }"></div>
+                    <div class="skeleton-line short" :style="{ width: item.lines[1] }"></div>
+                    <div v-if="item.hasThirdLine" class="skeleton-line tiny" :style="{ width: item.lines[2] }"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
           <form class="message-form" @submit.prevent="sendMessage" enctype="multipart/form-data">
             <div v-if="editingMessage" class="editing-indicator">
@@ -506,6 +528,65 @@
         Отмена
       </button>
     </div>
+
+    <div v-if="showPriceModal" class="modal-overlay" style="display: flex" @click.self="showPriceModal = false">
+      <div class="price-modal">
+        <div class="price-modal-header">
+          <h3>Предложить новую цену</h3>
+          <button type="button" class="modal-close" @click="showPriceModal = false">
+            <img src="/images/close.svg" alt="Закрыть">
+          </button>
+        </div>
+        <form @submit.prevent="submitPriceProposal">
+          <div class="price-modal-body">
+            <label for="new-price">Новая цена (₽):</label>
+            <input 
+              id="new-price"
+              v-model="priceForm.proposed_price"
+              type="number"
+              min="0"
+              max="9999999999"
+              placeholder="Введите сумму"
+              required
+            />
+          </div>
+          <div class="price-modal-footer">
+            <button type="button" class="cancel-btn" @click="showPriceModal = false">Отмена</button>
+            <button type="submit" class="submit-btn">Предложить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div v-if="priceChangeModal.show" class="modal-overlay" style="display: flex" @click.self="priceChangeModal.show = false">
+      <div class="price-modal">
+        <div class="price-modal-header">
+          <h3>Предложить новую цену</h3>
+          <button type="button" class="modal-close" @click="priceChangeModal.show = false">
+            <img src="/images/close.svg" alt="Закрыть">
+          </button>
+        </div>
+        <form @submit.prevent="submitPriceChange">
+          <div class="price-modal-body">
+            <p class="price-modal-info">Текущее предложение: {{ priceChangeModal.message?.proposed_price }} ₽</p>
+            <label for="new-price-change">Новая цена (₽):</label>
+            <input 
+              id="new-price-change"
+              v-model="priceChangeModal.newPrice"
+              type="number"
+              min="0"
+              max="9999999999"
+              placeholder="Введите сумму"
+              required
+            />
+          </div>
+          <div class="price-modal-footer">
+            <button type="button" class="cancel-btn" @click="priceChangeModal.show = false">Отмена</button>
+            <button type="submit" class="submit-btn">Предложить</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </AppLayout>
 </template>
 
@@ -581,6 +662,15 @@ const photoPreviewUrl = ref(null)
 const isApplicationBlockClosed = ref(false)
 const videoPreviewUrl = ref(null)
 const documentPreviewName = ref(null)
+const showPriceModal = ref(false)
+const priceForm = ref({
+  proposed_price: ''
+})
+const priceChangeModal = ref({
+  show: false,
+  message: null,
+  newPrice: ''
+})
 const modalOpen = ref(false)
 const modalImage = ref(null)
 const modalVideo = ref(null)
@@ -608,6 +698,8 @@ const touchStartX = ref(0)
 const touchCurrentX = ref(0)
 const isSwiping = ref(false)
 
+const localMessages = ref([])
+
 const postPreviews = ref(postPreviewsCache)
 const isHydratingChat = ref(false)
 const showSkeleton = ref(false)
@@ -616,6 +708,7 @@ const isMessagesStable = ref(false)
 const initialScrollDone = ref(false)
 let stableCheckTimer = null
 let highlightMessageId = null
+const pendingTempIds = new Set()
 
 const isSearching = ref(false)
 const searchQuery = ref('')
@@ -844,9 +937,7 @@ async function hydrateChat(messages) {
       stableCount++
       if (stableCount >= STABLE_THRESHOLD) {
         isMessagesStable.value = true
-        scrollToBottom(true)
-        initialScrollDone.value = true
-
+        
         if (highlightMessageId) {
           const messageId = parseInt(highlightMessageId, 10)
           const msgExists = props.activeChat?.messages?.some(m => m.id === messageId)
@@ -854,7 +945,10 @@ async function hydrateChat(messages) {
             nextTick(() => scrollToMessage(messageId))
           }
           highlightMessageId = null
+        } else {
+          scrollToBottom(true)
         }
+        initialScrollDone.value = true
 
         if (needsFetch) {
           setTimeout(() => {
@@ -928,7 +1022,23 @@ const formatAccountAge = (createdAt) => {
   
   if (diffDays < 30) return `${diffDays} дней назад`
   if (diffDays < 365) return `${Math.floor(diffDays / 30)} мес. назад`
-  return `${Math.floor(diffDays / 365)} лет назад`
+  
+  const years = Math.floor(diffDays / 365)
+  const yearsMod10 = years % 10
+  const yearsMod100 = years % 100
+  
+  let yearText
+  if (yearsMod100 >= 11 && yearsMod100 <= 19) {
+    yearText = 'лет'
+  } else if (yearsMod10 === 1) {
+    yearText = 'год'
+  } else if (yearsMod10 >= 2 && yearsMod10 <= 4) {
+    yearText = 'года'
+  } else {
+    yearText = 'лет'
+  }
+  
+  return `${years} ${yearText} назад`
 }
 
 const scrollToBottom = (force = false) => {
@@ -972,6 +1082,51 @@ const rejectApplication = () => {
   })
 }
 
+const submitPriceProposal = () => {
+  if (!priceForm.value.proposed_price || priceForm.value.proposed_price <= 0) {
+    return
+  }
+  
+  router.post(`/applications/${props.activeChat.application.id}/propose-price`, {
+    proposed_price: priceForm.value.proposed_price
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showPriceModal.value = false
+      priceForm.value.proposed_price = ''
+    }
+  })
+}
+
+const acceptPriceProposal = (message) => {
+  router.post(`/messages/${message.id}/accept-price`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const openPriceChangeModal = (message) => {
+  priceChangeModal.value = {
+    show: true,
+    message: message,
+    newPrice: ''
+  }
+}
+
+const submitPriceChange = () => {
+  if (!priceChangeModal.value.newPrice || priceChangeModal.value.newPrice <= 0) {
+    return
+  }
+  
+  router.post(`/applications/${props.activeChat.application.id}/propose-price`, {
+    proposed_price: priceChangeModal.value.newPrice
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      priceChangeModal.value = { show: false, message: null, newPrice: '' }
+    }
+  })
+}
+
 const otherUsers = computed(() => {
   if (!props.activeChat) return []
   const currentId = page.props.auth?.user?.id
@@ -1009,6 +1164,25 @@ const canDeleteSelected = computed(() => {
 
 const isUserOnline = (userId) => {
   return onlineUsers.value.has(userId)
+}
+
+const lastReadAt = computed(() => {
+  const raw = props.activeChat?.last_read_at
+  console.log('last_read_at raw:', raw)
+  if (!raw) return null
+  const date = new Date(raw)
+  console.log('last_read_at parsed:', date)
+  return isNaN(date.getTime()) ? null : date
+})
+
+const getMessageStatus = (message) => {
+  console.log('getMessageStatus:', message.id, 'is_mine:', message.is_mine, '_status:', message._status, 'created_at:', message.created_at, 'lastReadAt:', lastReadAt.value)
+  if (!message.is_mine) return null
+  if (message._status) return message._status
+  if (lastReadAt.value && message.created_at) {
+    return new Date(message.created_at) < lastReadAt.value ? 'read' : 'sent'
+  }
+  return 'sent'
 }
 
 const canSend = computed(() => {
@@ -1163,23 +1337,72 @@ const downloadFile = (message) => {
 const sendMessage = () => {
   if (!props.activeChat || !canSend.value) return
 
+  const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+  const currentUser = page.props.auth?.user
+
+  if (!editingMessage.value && currentUser) {
+    localMessages.value.push({
+      id: tempId,
+      _clientId: tempId,
+      content: form.content,
+      is_mine: true,
+      user: {
+        id: currentUser.id,
+        name: currentUser.name,
+        avatar_url: currentUser.avatar ? `/storage/${currentUser.avatar}` : '/images/User-avatar.png'
+      },
+      time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      created_at: new Date().toISOString(),
+      image_url: photoPreviewUrl.value,
+      video_url: videoPreviewUrl.value,
+      _status: 'sending'
+    })
+
+    pendingTempIds.add(tempId)
+    scrollToBottom(true)
+  }
+
   const url = editingMessage.value
     ? `/chats/${props.activeChat.id}/messages/${editingMessage.value.id}`
     : `/chats/${props.activeChat.id}/messages`
 
   const wasEditing = !!editingMessage.value
-  const method = wasEditing ? 'put' : 'post'
 
-  form[method](url, {
+  form[wasEditing ? 'put' : 'post'](url, {
     preserveScroll: true,
-    onSuccess: () => {
-      resetForm()
-      if (!wasEditing) {
-        scrollToBottom(true)
+    onSuccess: (page) => {
+      const newMessages = page.props.activeChat?.messages ?? []
+      const realMessage = newMessages[newMessages.length - 1]
+
+      if (!wasEditing && realMessage) {
+        const tempMessage = localMessages.value.find(m => m._clientId === tempId)
+
+        if (tempMessage) {
+          Object.assign(tempMessage, realMessage)
+          tempMessage._clientId = tempId
+          tempMessage._status = 'sent'
+        } else {
+          localMessages.value = newMessages.map(m => ({
+            ...m,
+            _clientId: m.id
+          }))
+        }
+      } else {
+        localMessages.value = newMessages.map(m => ({
+          ...m,
+          _clientId: m._clientId || m.id
+        }))
       }
+
+      pendingTempIds.delete(tempId)
+      resetForm()
+
+      if (!wasEditing) scrollToBottom(true)
     },
-    onError: (errors) => {
-      console.error('Ошибка при отправке сообщения:', errors)
+    onError: () => {
+      pendingTempIds.delete(tempId)
+      const tempMessage = localMessages.value.find(m => m._clientId === tempId)
+      if (tempMessage) tempMessage._status = 'failed'
     }
   })
 }
@@ -1274,27 +1497,32 @@ const clearSelection = () => {
 
 const deleteSelectedMessages = async () => {
   if (selectedMessages.value.length === 0) return
-  
+
   const messagesToDelete = selectedMessages.value.filter(m => m.is_mine)
   if (messagesToDelete.length === 0) return
-  
+
   const messageIds = messagesToDelete.map(m => m.id)
   const confirmMsg = messageIds.length === selectedMessages.value.length
     ? `Удалить ${messageIds.length} сообщение(й)?`
     : `Удалить ${messageIds.length} из ${selectedMessages.value.length} выбранных сообщений?`
-  
-  if (confirm(confirmMsg)) {
-    for (const id of messageIds) {
-      await new Promise(resolve => {
-        router.delete(`/chats/${props.activeChat.id}/messages/${id}`, {
-          preserveScroll: true,
-          onFinish: resolve
-        })
-      })
+
+  if (!confirm(confirmMsg)) return
+
+  const backup = [...localMessages.value]
+  localMessages.value = localMessages.value.filter(m => !messageIds.includes(m.id))
+  selectedMessages.value = []
+
+  router.delete(`/chats/${props.activeChat.id}/messages`, {
+    data: { ids: messageIds },
+    preserveScroll: true,
+    onSuccess: () => {
+      hideContextMenu()
+    },
+    onError: () => {
+      localMessages.value = backup
+      selectedMessages.value = messagesToDelete
     }
-    selectedMessages.value = []
-    hideContextMenu()
-  }
+  })
 }
 
 const toggleOptionsMenu = () => {
@@ -1407,7 +1635,6 @@ const onTouchEnd = () => {
   isSwiping.value = false
 }
 
-
 const syncBodyClass = (hasActiveChat) => {
   if (hasActiveChat) {
     document.body.classList.add('mobile-chat-open')
@@ -1415,48 +1642,50 @@ const syncBodyClass = (hasActiveChat) => {
     document.body.classList.remove('mobile-chat-open')
   }
 }
+
 const resizeObserver = new ResizeObserver(() => {
-   if (props.activeChat && !isHydratingChat.value) {
-      scrollToBottom(true)
-    }
-    })
+  if (props.activeChat && !isHydratingChat.value) {
+    scrollToBottom(true)
+  }
+})
 
 onMounted(async () => {
-   try {
-     const raw = window.localStorage.getItem('visket_downloaded_files')
-     if (raw) {
-       const arr = JSON.parse(raw)
-       downloadedFiles.value = new Set(Array.isArray(arr) ? arr : [])
-     }
-   } catch (e) {
-     console.error('Не удалось прочитать состояние скачанных файлов', e)
-   }
-
-   try {
-     const closed = localStorage.getItem('visket_application_block_closed')
-     if (closed === '1') {
-       isApplicationBlockClosed.value = true
-     }
-   } catch (e) {
-     console.error('Не удалось прочитать состояние блока', e)
-   }
-
-   document.addEventListener('click', hideContextMenu)
-   document.addEventListener('click', hideOptionsMenu)
-
-   const urlParams = new URLSearchParams(window.location.search)
-   highlightMessageId = urlParams.get('highlight')
-
-   syncBodyClass(!!props.activeChat)
-   hydrateChat(props.activeChat?.messages)
-
-    if (messagesRef.value) {
-      resizeObserver.observe(messagesRef.value)
+  try {
+    const raw = window.localStorage.getItem('visket_downloaded_files')
+    if (raw) {
+      const arr = JSON.parse(raw)
+      downloadedFiles.value = new Set(Array.isArray(arr) ? arr : [])
     }
-    if (chatArea.value) {
-      resizeObserver.observe(chatArea.value)
-    }
+  } catch (e) {
+    console.error('Не удалось прочитать состояние скачанных файлов', e)
+  }
 
+  try {
+    const closed = localStorage.getItem('visket_application_block_closed')
+    if (closed === '1') {
+      isApplicationBlockClosed.value = true
+    }
+  } catch (e) {
+    console.error('Не удалось прочитать состояние блока', e)
+  }
+
+  document.addEventListener('click', hideContextMenu)
+  document.addEventListener('click', hideOptionsMenu)
+
+  const urlParams = new URLSearchParams(window.location.search)
+  highlightMessageId = urlParams.get('highlight')
+
+  syncBodyClass(!!props.activeChat)
+  hydrateChat(props.activeChat?.messages)
+
+  if (messagesRef.value) {
+    resizeObserver.observe(messagesRef.value)
+  }
+  if (chatArea.value) {
+    resizeObserver.observe(chatArea.value)
+  }
+
+  try {
     const { default: Pusher } = await import('pusher-js')
     window.Pusher = Pusher
 
@@ -1470,7 +1699,7 @@ onMounted(async () => {
       enabledTransports: ['ws'], 
     })
 
-if (props.activeChat) {
+    if (props.activeChat) {
       window.Echo.private(`chat.${props.activeChat.id}`)
         .listen('.message.sent', (e) => {
           router.reload({ only: ['activeChat'] })
@@ -1485,18 +1714,18 @@ if (props.activeChat) {
 
     window.Echo.join('presence-online')
       .here((users) => {
-        console.log('Presence here:', users)
         onlineUsers.value = new Set(users.map(u => u.id))
       })
       .joining((user) => {
-        console.log('User joined:', user)
         onlineUsers.value.add(user.id)
       })
       .leaving((user) => {
-        console.log('User left:', user)
         onlineUsers.value.delete(user.id)
       })
-  })
+  } catch (error) {
+    console.error('Failed to initialize Echo:', error)
+  }
+})
 
 onUnmounted(() => {
   document.removeEventListener('click', hideContextMenu)
@@ -1515,11 +1744,11 @@ onUnmounted(() => {
 })
 
 watch(
-   () => props.activeChat,
-   (newVal) => {
-     syncBodyClass(!!newVal)
-   }
-  )
+  () => props.activeChat,
+  (newVal) => {
+    syncBodyClass(!!newVal)
+  }
+)
 
 watch(
   () => props.activeChat?.id,
@@ -1554,10 +1783,17 @@ watch(
   }
 )
 
-
-
-
-
+watch(
+  () => props.activeChat?.messages,
+  (msgs) => {
+    if (pendingTempIds.size > 0) return
+    localMessages.value = (msgs || []).map(m => ({
+      ...m,
+      _clientId: m._clientId || m.id
+    }))
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
@@ -2058,6 +2294,31 @@ watch(
     color: #666;
     text-align: right;
     margin-top: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.message-status {
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-icon {
+    width: 10px;
+    height: 10px;
+}
+
+.status-icon.spinning {
+  width: 14px;
+  height: 14px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .message-form {
@@ -2486,13 +2747,21 @@ watch(
   white-space: pre-wrap;
 }
 
+.application-price-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .application-price {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  width: 100%;
   padding: 12px;
   background: #f0fdf4;
   border-radius: 8px;
-  margin-bottom: 16px;
 }
 
 .application-price .label {
@@ -2502,6 +2771,28 @@ watch(
 .application-price .value {
   font-weight: 600;
   color: #16a34a;
+}
+
+.price-edit-btn {
+  background: #f1f5f9;
+  border: none;
+  padding: 14px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.price-edit-btn:hover {
+  opacity: 1;
+}
+
+.price-edit-btn img {
+  width: 16px;
+  height: 16px;
 }
 
 .application-actions {
@@ -3155,5 +3446,125 @@ watch(
   font-size: 12px;
   color: #999;
   margin-top: 4px;
+}
+
+.price-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.price-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.price-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.price-modal-body {
+  padding: 20px;
+}
+
+.price-modal-body label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.price-modal-body input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.price-modal-body input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.price-modal-info {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.price-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+  justify-content: flex-end;
+}
+
+.price-modal-footer .cancel-btn {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.price-modal-footer .submit-btn {
+  padding: 10px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.price-modal-footer .submit-btn:hover {
+  background: #0056b3;
+}
+
+.price-proposal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.price-action-form {
+  margin: 0;
+}
+
+.accept-price-btn {
+  padding: 8px 16px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.accept-price-btn:hover {
+  background: #16a34a;
+}
+
+.change-price-btn {
+  padding: 8px 16px;
+  background: white;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.change-price-btn:hover {
+  background: #f5f5f5;
 }
 </style>
