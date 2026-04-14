@@ -29,7 +29,11 @@
           :key="chat.id"
           @click="router.visit(`/chats/${chat.id}`)"
           class="chat-item"
-          :class="{ active: activeChat && chat.id === activeChat.id, 'has-unread': chat.unread_count > 0 }"
+          :class="{ 
+            active: activeChat && chat.id === activeChat.id, 
+            'has-unread': chat.unread_count > 0,
+            'accepted-chat': chat.application && chat.application.status === 'accepted'
+          }"
           tabindex="0"
           @keydown.enter="router.visit(`/chats/${chat.id}`)"
         >
@@ -94,7 +98,7 @@
                 <h2>{{ otherUsers[0].name }}</h2>        
               </Link>
               <span v-if="vacancyPostId" class="vacancy-link">
-                откликнулся на 
+                {{ isVacancyAuthor ? 'откликнулся на' : 'автор вакансии' }}
               </span>
               <Link :href="`/posts/${vacancyPostId}`"><h2>{{ vacancyPosition }}</h2></Link>
             </div>
@@ -178,14 +182,41 @@
                   <img src="/images/edit.svg" alt="Изменить цену">
                 </button>
               </div>
+
+              <div v-if="activeChat.application.completed_at && !activeChat.application.transaction?.completed_at" class="application-status">
+                <span class="status-badge waiting">⏳ Ожидание зачисления: {{ getDaysRemaining(activeChat.application.completed_at) }} дн.</span>
+              </div>
+
+              <div v-if="activeChat.application.dispute && activeChat.application.dispute.status === 'open'" class="application-status">
+                <span class="status-badge dispute">⚠️ Открыт спор</span>
+              </div>
               
               <div v-if="isVacancyAuthor" class="application-actions">
-                <form @submit.prevent="acceptApplication">
-                  <button type="submit" class="accept-btn">Принять отклик</button>
-                </form>
-                <form @submit.prevent="rejectApplication">
-                  <button type="submit" class="reject-btn">Отклонить</button>
-                </form>
+                <template v-if="activeChat.application.status === 'pending'">
+                  <form @submit.prevent="acceptApplication">
+                    <button type="submit" class="accept-btn">Принять отклик</button>
+                  </form>
+                  <form @submit.prevent="rejectApplication">
+                    <button type="submit" class="reject-btn">Отклонить</button>
+                  </form>
+                </template>
+                <template v-else-if="activeChat.application.status === 'accepted'">
+                  <form @submit.prevent="confirmCompletion" v-if="!activeChat.application.completed_at && !activeChat.application.dispute">
+                    <button type="submit" class="accept-btn">Подтвердить завершение</button>
+                  </form>
+                  <form @submit.prevent="withdrawApplication">
+                    <button type="submit" class="withdraw-btn">Отменить</button>
+                  </form>
+                  <form @submit.prevent="closeVacancy">
+                    <button type="submit" class="close-btn">Закрыть вакансию</button>
+                  </form>
+                </template>
+              </div>
+
+              <div v-if="!isVacancyAuthor && activeChat.application.status === 'accepted' && !activeChat.application.dispute" class="application-actions">
+                <button type="button" class="dispute-btn" @click="openDisputeModal = true">
+                  Открыть спор
+                </button>
               </div>
             </div>
           </div>
@@ -587,6 +618,35 @@
         </form>
       </div>
     </div>
+
+    <div v-if="openDisputeModal" class="modal-overlay" style="display: flex" @click.self="openDisputeModal = false">
+      <div class="price-modal">
+        <div class="price-modal-header">
+          <h3>Открыть спор</h3>
+          <button type="button" class="modal-close" @click="openDisputeModal = false">
+            <img src="/images/close.svg" alt="Закрыть">
+          </button>
+        </div>
+        <form @submit.prevent="submitDispute">
+          <div class="price-modal-body">
+            <label for="dispute-reason">Причина спора:</label>
+            <textarea
+              id="dispute-reason"
+              v-model="disputeForm.reason"
+              rows="5"
+              minlength="10"
+              maxlength="5000"
+              placeholder="Опишите причину спора (минимум 10 символов)"
+              required
+            ></textarea>
+          </div>
+          <div class="price-modal-footer">
+            <button type="button" class="cancel-btn" @click="openDisputeModal = false">Отмена</button>
+            <button type="submit" class="submit-btn">Отправить</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </AppLayout>
 </template>
 
@@ -670,6 +730,10 @@ const priceChangeModal = ref({
   show: false,
   message: null,
   newPrice: ''
+})
+const openDisputeModal = ref(false)
+const disputeForm = ref({
+  reason: ''
 })
 const modalOpen = ref(false)
 const modalImage = ref(null)
@@ -1093,6 +1157,49 @@ const rejectApplication = () => {
   })
 }
 
+const withdrawApplication = () => {
+  router.post(`/applications/${props.activeChat.application.id}/withdraw`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const closeVacancy = () => {
+  router.post(`/applications/${props.activeChat.application.id}/close-vacancy`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const confirmCompletion = () => {
+  router.post(`/applications/${props.activeChat.application.id}/confirm-completion`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const submitDispute = () => {
+  if (!disputeForm.value.reason || disputeForm.value.reason.length < 10) {
+    return
+  }
+  
+  router.post('/disputes', {
+    application_id: props.activeChat.application.id,
+    reason: disputeForm.value.reason
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      openDisputeModal.value = false
+      disputeForm.value.reason = ''
+    }
+  })
+}
+
+const getDaysRemaining = (completedAt) => {
+  const completed = new Date(completedAt)
+  const now = new Date()
+  const diffTime = completed - now
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return Math.max(0, 7 - diffDays)
+}
+
 const submitPriceProposal = () => {
   if (!priceForm.value.proposed_price || priceForm.value.proposed_price <= 0) {
     return
@@ -1157,7 +1264,7 @@ const vacancyPostId = computed(() => {
 const showApplicationBlock = computed(() => {
   if (!props.activeChat) return false
   if (!props.activeChat.application) return false
-  if (props.activeChat.application.status !== 'pending') return false
+  if (!['pending', 'accepted'].includes(props.activeChat.application.status)) return false
   return true
 })
 
@@ -3593,5 +3700,83 @@ watch(() => props.activeChat?.messages, (msgs) => {
 
 .change-price-btn:hover {
   background: #f5f5f5;
+}
+
+.accepted-chat {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-left: 3px solid #22c55e;
+}
+
+.application-status {
+  margin: 10px 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-badge.waiting {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.dispute {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.withdraw-btn,
+.close-btn,
+.dispute-btn {
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.withdraw-btn:hover {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.close-btn:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+  color: white;
+}
+
+.dispute-btn {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.dispute-btn:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.price-modal-body textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.price-modal-body textarea:focus {
+  outline: none;
+  border-color: #007bff;
 }
 </style>

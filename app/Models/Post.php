@@ -5,14 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * @property bool $isLiked
- */
 class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'image', 'user_id', 'active'];
+    protected $fillable = ['title', 'description', 'image', 'user_id', 'active', 'status'];
+
+    protected $casts = [
+        'active' => 'boolean',
+    ];
 
     public function user()
     {
@@ -37,5 +38,30 @@ class Post extends Model
     public function reports()
     {
         return $this->hasMany(Report::class, 'reported_post_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
+    }
+
+    public function scopeClosed($query)
+    {
+        return $query->where('status', 'closed');
+    }
+
+    public function scopeVisible($query)
+    {
+        return $query->where('active', true);
+    }
+
+    public function isHidden(): bool
+    {
+        return ! $this->active && $this->status !== 'closed';
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->status === 'closed';
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Application;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Notification;
+use App\Models\Transaction;
 use App\Models\Vacancy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,9 +63,129 @@ class ApplicationController extends Controller
             abort(403);
         }
 
+        if ($application->status !== 'pending') {
+            return back()->with('error', 'Невозможно принять этот отклик!');
+        }
+
+        $proposedPrice = $application->proposed_price;
+
+        if (! $proposedPrice || $proposedPrice <= 0) {
+            return back()->with('error', 'Укажите корректную сумму для оплаты!');
+        }
+
+        if ($user->balance < $proposedPrice) {
+            return redirect('/balance')->with('error', 'Недостаточно средств на балансе! Пополните баланс для принятия отклика.');
+        }
+
+        $user->balance -= $proposedPrice;
+        $user->save();
+
         $application->update(['status' => 'accepted']);
 
-        return back()->with('success', 'Отклик принят!');
+        Transaction::create([
+            'from_user_id' => $user->id,
+            'to_user_id' => $application->user_id,
+            'amount' => $proposedPrice,
+            'type' => 'payment',
+            'status' => 'pending',
+            'description' => "Оплата за вакансию: {$vacancy->position}",
+            'application_id' => $application->id,
+        ]);
+
+        Notification::create([
+            'user_id' => $application->user_id,
+            'type' => 'application_accepted',
+            'title' => 'Отклик принят!',
+            'content' => "{$user->name} принял ваш отклик на вакансию \"{$vacancy->position}\". Ожидайте завершения работ.",
+            'link' => "/chats/{$application->chat_id}",
+            'is_read' => false,
+        ]);
+
+        return back()->with('success', 'Отклик принят! Средства зарезервированы.');
+    }
+
+    public function withdraw(Application $application)
+    {
+        $user = Auth::user();
+
+        $vacancy = $application->vacancy;
+        if ($vacancy->post->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if ($application->status !== 'accepted') {
+            return back()->with('error', 'Невозможно отменить этот отклик!');
+        }
+
+        $transaction = $application->transaction;
+        if ($transaction && $transaction->status === 'pending') {
+            $author = $transaction->fromUser();
+            $author->balance += $transaction->amount;
+            $author->save();
+
+            $transaction->update(['status' => 'cancelled']);
+        }
+
+        $application->update([
+            'status' => 'withdrawn',
+            'withdrawn_at' => now(),
+        ]);
+
+        return back()->with('success', 'Отклик отменён. Средства возвращены на ваш баланс.');
+    }
+
+    public function closeVacancy(Application $application)
+    {
+        $user = Auth::user();
+
+        $vacancy = $application->vacancy;
+        if ($vacancy->post->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if ($application->status !== 'accepted') {
+            return back()->with('error', 'Невозможно закрыть вакансию!');
+        }
+
+        $vacancy->post->update([
+            'status' => 'closed',
+            'active' => false,
+        ]);
+
+        return back()->with('success', 'Вакансия закрыта!');
+    }
+
+    public function confirmCompletion(Application $application)
+    {
+        $user = Auth::user();
+
+        $vacancy = $application->vacancy;
+        if ($vacancy->post->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if (! $application->canConfirmCompletion()) {
+            return back()->with('error', 'Невозможно подтвердить завершение!');
+        }
+
+        $application->update(['completed_at' => now()]);
+
+        $transaction = $application->transaction;
+        if ($transaction && $transaction->status === 'pending') {
+            $transaction->update(['completed_at' => now()]);
+        }
+
+        $worker = $application->user;
+        Notification::create([
+            'user_id' => $worker->id,
+            'type' => 'work_completed',
+            'title' => 'Работа подтверждена',
+            'content' => "{$user->name} подтвердил выполнение работы по вакансии \"{$vacancy->position}\". Средства поступят на ваш счёт в течение 7 дней.",
+            'link' => "/chats/{$application->chat_id}",
+            'is_read' => false,
+        ]);
+
+        return back()->with('success', 'Подтверждение отправлено! Ожидайте зачисления средств в течение 7 дней.');
     }
 
     public function reject(Application $application)

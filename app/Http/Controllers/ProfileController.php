@@ -15,7 +15,7 @@ class ProfileController extends Controller
         $isOwnProfile = $authUser && $authUser->id === $user->id;
 
         $posts = $user->posts()
-            ->with(['user', 'likes'])
+            ->with(['user', 'likes', 'vacancy'])
             ->where(function ($query) use ($isOwnProfile) {
                 if ($isOwnProfile) {
                     $query->where('active', true)->orWhere('user_id', auth()->id());
@@ -34,6 +34,9 @@ class ProfileController extends Controller
                     'show_url' => route('posts.show', $post->id),
                     'like_url' => route('posts.like', $post->id),
                     'likes_count' => $post->likes->count(),
+                    'active' => $post->active,
+                    'status' => $post->status,
+                    'is_vacancy' => $post->vacancy !== null,
                     'user' => [
                         'id' => $post->user->id,
                         'name' => $post->user->name,
@@ -41,6 +44,35 @@ class ProfileController extends Controller
                     ],
                 ];
             });
+
+        $closedVacancies = [];
+        if ($isOwnProfile) {
+            $closedVacancies = $user->posts()
+                ->with(['user', 'likes', 'vacancy'])
+                ->where('status', 'closed')
+                ->latest()
+                ->get()
+                ->map(function ($post) {
+                    return [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'description' => $post->description,
+                        'image_url' => $post->image ? asset('storage/'.$post->image) : null,
+                        'show_url' => route('posts.show', $post->id),
+                        'like_url' => route('posts.like', $post->id),
+                        'likes_count' => $post->likes->count(),
+                        'active' => $post->active,
+                        'status' => $post->status,
+                        'is_vacancy' => $post->vacancy !== null,
+                        'user' => [
+                            'id' => $post->user->id,
+                            'name' => $post->user->name,
+                            'profile_url' => route('profile', $post->user),
+                        ],
+                    ];
+                });
+        }
+
         $userData = [
             'id' => $user->id,
             'name' => $user->name,
@@ -65,6 +97,8 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Show', [
             'user' => $userData,
             'posts' => $posts,
+            'closedVacancies' => $closedVacancies,
+            'isOwnProfile' => $isOwnProfile,
         ]);
     }
 

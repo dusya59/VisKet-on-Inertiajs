@@ -34,6 +34,8 @@ class PostController extends Controller
                     'like_url' => route('posts.like', $post->id),
                     'likes_count' => $post->likes->count(),
                     'is_liked' => Auth::check() ? $post->likes->contains('user_id', Auth::id()) : false,
+                    'active' => $post->active,
+                    'status' => $post->status,
                     'user' => [
                         'id' => $post->user->id,
                         'name' => $post->user->name,
@@ -141,6 +143,8 @@ class PostController extends Controller
             'edit_url' => $post->user_id === Auth::id() ? route('posts.edit', $post->id) : null,
             'delete_url' => $post->user_id === Auth::id() ? route('posts.destroy', $post->id) : null,
             'is_hidden' => ! $post->active,
+            'active' => $post->active,
+            'status' => $post->status,
             'is_vacancy' => $post->vacancy !== null,
             'vacancy' => $vacancyData,
             'user' => [
@@ -402,41 +406,42 @@ class PostController extends Controller
             ->with('success', 'Вакансия успешно создана!');
     }
 
-    public function share(Request $request, Post $post){
+    public function share(Request $request, Post $post)
+    {
 
-    $validated = $request->validate([
-        'users'   => 'required|array|min:1',
-        'users.*' => 'exists:chats,id',
-        'message' => 'nullable|string|max:5000',
-    ]);
-
-    $user = Auth::user();
-
-    $chats = Chat::whereIn('id', $validated['users'])
-        ->whereHas('users', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })
-        ->get();
-
-    $postUrl = route('posts.show', $post->id);
-
-    foreach ($chats as $chat) {
-        Message::create([
-            'chat_id' => $chat->id,
-            'user_id' => $user->id,
-            'content' => $postUrl,
+        $validated = $request->validate([
+            'users' => 'required|array|min:1',
+            'users.*' => 'exists:chats,id',
+            'message' => 'nullable|string|max:5000',
         ]);
-        if (!empty($validated['message'])) {
+
+        $user = Auth::user();
+
+        $chats = Chat::whereIn('id', $validated['users'])
+            ->whereHas('users', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->get();
+
+        $postUrl = route('posts.show', $post->id);
+
+        foreach ($chats as $chat) {
             Message::create([
                 'chat_id' => $chat->id,
                 'user_id' => $user->id,
-                'content' => $validated['message'],
+                'content' => $postUrl,
             ]);
+            if (! empty($validated['message'])) {
+                Message::create([
+                    'chat_id' => $chat->id,
+                    'user_id' => $user->id,
+                    'content' => $validated['message'],
+                ]);
+            }
+
+            $chat->touch();
         }
 
-        $chat->touch();
-    }
-
-    return back()->with('success', 'Пост отправлен в выбранные чаты');
+        return back()->with('success', 'Пост отправлен в выбранные чаты');
     }
 }

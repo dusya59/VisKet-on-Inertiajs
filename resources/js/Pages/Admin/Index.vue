@@ -15,6 +15,10 @@
         <Link href="/admin/comments" class="admin-nav-item">
           Комментарии
         </Link>
+        <Link href="/admin/disputes" class="admin-nav-item">
+          Споры
+          <span v-if="disputesCount > 0" class="badge">{{ disputesCount }}</span>
+        </Link>
       </div>
       
         <div class="banner">
@@ -67,6 +71,10 @@ import { Link } from '@inertiajs/vue3';
       default: 0
     },
     commentsReportCount: {
+      type: Number,
+      default: 0
+    },
+    disputesCount: {
       type: Number,
       default: 0
     }

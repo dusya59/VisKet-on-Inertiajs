@@ -48,6 +48,7 @@
           <Link href="/balance" @click="closeMenu">
             <img src="/images/wallet.svg" alt="" class="menu-icon">
             Баланс: {{ authUser.balance }} ₽
+            <span v-if="authUser.hasPendingTransactions" class="pending-badge">Ожидание...</span>
           </Link>
           <Link href="/notifications" @click="closeMenu">
             <img src="/images/bell.svg" alt="" class="menu-icon">           
@@ -76,7 +77,10 @@
         </template>
         <Link href="/chats" @click="closeMenu">Чаты</Link>
         <Link :href="'/profile/' + authUser.id" @click="closeMenu">Профиль</Link>
-        <Link href="/balance" @click="closeMenu">Баланс: {{ authUser.balance }} ₽</Link>
+        <Link href="/balance" @click="closeMenu">
+          Баланс: {{ authUser.balance }} ₽
+          <span v-if="authUser.hasPendingTransactions" class="pending-badge">Ожидание...</span>
+        </Link>
         <Link href="/notifications" @click="closeMenu">Уведомления</Link>
         <Link href="/settings" @click="closeMenu">Настройки</Link>
         <div class="mobile-menu-footer">

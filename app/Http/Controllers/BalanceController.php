@@ -12,8 +12,24 @@ class BalanceController extends Controller
     {
         $user = auth()->user();
 
+        $pendingTransactions = Transaction::where('to_user_id', $user->id)
+            ->where('status', 'pending')
+            ->with(['fromUser', 'application.vacancy'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $allTransactions = Transaction::where(function ($query) use ($user) {
+            $query->where('from_user_id', $user->id)
+                ->orWhere('to_user_id', $user->id);
+        })
+            ->with(['fromUser', 'toUser', 'application.vacancy'])
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
         return Inertia::render('Balance/Index', [
             'balance' => (float) $user->balance,
+            'pendingTransactions' => $pendingTransactions,
+            'transactions' => $allTransactions,
         ]);
     }
 

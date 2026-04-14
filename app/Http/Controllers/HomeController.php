@@ -31,6 +31,8 @@ class HomeController extends Controller
                     'is_liked' => auth()->check()
                         ? $post->likes->contains('user_id', auth()->id())
                         : false,
+                    'active' => $post->active,
+                    'status' => $post->status,
                     'is_vacancy' => $post->vacancy !== null,
                     'vacancy' => $post->vacancy ? [
                         'position' => $post->vacancy->position,

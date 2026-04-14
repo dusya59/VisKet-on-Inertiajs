@@ -9,7 +9,11 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['from_user_id', 'to_user_id', 'amount', 'type', 'status', 'description'];
+    protected $fillable = ['from_user_id', 'to_user_id', 'amount', 'type', 'status', 'description', 'application_id', 'completed_at'];
+
+    protected $casts = [
+        'completed_at' => 'datetime',
+    ];
 
     public function fromUser()
     {
@@ -19,5 +23,30 @@ class Transaction extends Model
     public function toUser()
     {
         return $this->belongsTo(User::class, 'to_user_id');
+    }
+
+    public function application()
+    {
+        return $this->belongsTo(Application::class);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    public function isReadyForCompletion(): bool
+    {
+        return $this->isPending() && $this->completed_at && now()->greaterThanOrEqualTo($this->completed_at->addDays(7));
     }
 }

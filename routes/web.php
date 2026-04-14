@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DisputeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
@@ -124,9 +125,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vacancies/{vacancy}/respond', [ApplicationController::class, 'respond'])->name('vacancies.respond');
     Route::post('/applications/{application}/accept', [ApplicationController::class, 'accept'])->name('applications.accept');
     Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
+    Route::post('/applications/{application}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
+    Route::post('/applications/{application}/close-vacancy', [ApplicationController::class, 'closeVacancy'])->name('applications.close-vacancy');
+    Route::post('/applications/{application}/confirm-completion', [ApplicationController::class, 'confirmCompletion'])->name('applications.confirm-completion');
     Route::post('/applications/{application}/propose-price', [ApplicationController::class, 'proposePrice'])->name('applications.propose-price');
     Route::post('/messages/{message}/accept-price', [ApplicationController::class, 'acceptPriceProposal'])->name('messages.accept-price');
     Route::get('/messages/{message}/respond-price', [ApplicationController::class, 'respondToPriceProposal'])->name('messages.respond-price');
+
+    // Disputes
+    Route::post('/disputes', [DisputeController::class, 'store'])->name('disputes.store');
+    Route::post('/disputes/{dispute}/cancel', [DisputeController::class, 'cancel'])->name('disputes.cancel');
 
     Route::get('/api/skills', function () {
         return response()->json(Skill::all());
@@ -158,5 +166,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/posts/{post}/warn', [AdminController::class, 'warnPost'])->name('admin.posts.warn');
         Route::post('/admin/posts/{post}/hide', [AdminController::class, 'hidePost'])->name('admin.posts.hide');
         Route::post('/admin/comments/{comment}/dismiss-reports', [AdminController::class, 'dismissCommentReports'])->name('admin.comments.dismiss-reports');
+
+        // Disputes (admin only)
+        Route::get('/admin/disputes', [DisputeController::class, 'index'])->name('admin.disputes.index');
+        Route::get('/admin/disputes/{dispute}', [DisputeController::class, 'show'])->name('admin.disputes.show');
+        Route::post('/admin/disputes/{dispute}/take', [DisputeController::class, 'take'])->name('admin.disputes.take');
+        Route::post('/admin/disputes/{dispute}/resolve', [DisputeController::class, 'resolve'])->name('admin.disputes.resolve');
     });
 });

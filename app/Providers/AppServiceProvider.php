@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Providers;
-use Inertia\Inertia;
+
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,10 +29,12 @@ class AppServiceProvider extends ServiceProvider
                         'id' => $user->id,
                         'name' => $user->name,
                         'is_admin' => $user->is_admin,
+                        'balance' => $user->balance,
+                        'hasPendingTransactions' => $user->hasPendingTransactions(),
                         'profile_url' => route('profile', $user),
-                    ] : null
+                    ] : null,
                 ];
-            }
+            },
         ]);
     }
 }

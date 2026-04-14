@@ -100,6 +100,26 @@ class User extends Authenticatable
         return $this->hasMany(Transaction::class, 'to_user_id');
     }
 
+    public function pendingTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'to_user_id')->where('status', 'pending');
+    }
+
+    public function hasPendingTransactions(): bool
+    {
+        return $this->pendingTransactions()->exists();
+    }
+
+    public function disputes()
+    {
+        return $this->hasMany(Dispute::class, 'initiator_id');
+    }
+
+    public function disputesManaged()
+    {
+        return $this->hasMany(Dispute::class, 'admin_id');
+    }
+
     public function applications()
     {
         return $this->hasMany(Application::class);

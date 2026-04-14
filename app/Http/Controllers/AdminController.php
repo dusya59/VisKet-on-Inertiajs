@@ -32,11 +32,14 @@ class AdminController extends Controller
             ->distinct('reported_comment_id')
             ->count('reported_comment_id');
 
+        $disputesCount = Dispute::where('status', 'open')->count();
+
         return Inertia::render('Admin/Index', [
             'pendingVerificationCount' => $pendingCount,
             'usersReportCount' => $usersReportCount,
             'postsReportCount' => $postsReportCount,
             'commentsReportCount' => $commentsReportCount,
+            'disputesCount' => $disputesCount,
         ]);
     }
 

@@ -128,6 +128,17 @@
       <h1>у {{ user.name }} пока что нет постов...</h1>
     </div>
 
+    <div v-if="isOwnProfile && closedVacancies && closedVacancies.length > 0" class="closed-vacancies">
+      <h2>Завершённые вакансии</h2>
+      <div class="posts">
+        <Post
+          v-for="post in closedVacancies"
+          :key="post.id"
+          :post="post"
+        />
+      </div>
+    </div>
+
   </AppLayout>
 </template>
 
@@ -141,7 +152,15 @@ import Post from '@/Components/Post.vue'
 const props = defineProps({
   user: Object,
   posts: Object, 
-  auth: Object 
+  auth: Object,
+  closedVacancies: {
+    type: Array,
+    default: () => []
+  },
+  isOwnProfile: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const page = usePage();
@@ -673,4 +692,16 @@ h2 {
 .skills-list .skill-translation { background: #06b6d4; color: white; }
 .skills-list .skill-data, .skills-list .skill-excel { background: #22c55e; color: white; }
 .skills-list .skill-default { background: #64748b; color: white; }
+
+.closed-vacancies {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.closed-vacancies h2 {
+    font-size: 20px;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
 </style>
