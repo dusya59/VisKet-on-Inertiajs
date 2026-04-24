@@ -212,6 +212,7 @@ import { Head, useForm } from '@inertiajs/vue3'
 import { ref, reactive, computed, watch } from 'vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { getSkillClass } from '@/composables/useSkills'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   errors: Object,
@@ -220,6 +221,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+useDarkMode()
 
 const mode = ref('login')
 const currentStep = ref(1)
@@ -1040,6 +1043,111 @@ form button[type="submit"]:disabled {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+html.dark .Authblock {
+  border-color: #334155;
+}
+
+html.dark .form-wrapper {
+  background: #0f172a;
+}
+
+html.dark form h1 {
+  color: #f1f5f9;
+}
+
+html.dark form input[type="email"],
+html.dark form input[type="password"],
+html.dark form input[type="text"],
+html.dark form input[type="tel"] {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark form textarea {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .switch-mode {
+  color: #94a3b8;
+}
+
+html.dark .oauth-divider::before,
+html.dark .oauth-divider::after {
+  background: #334155;
+}
+
+html.dark .oauth-divider span {
+  color: #94a3b8;
+}
+
+html.dark .oauth-btn {
+  border-color: #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+html.dark .oauth-btn:hover {
+  background: #334155;
+}
+
+html.dark .input-group label {
+  color: #94a3b8;
+}
+
+html.dark .help-icon {
+  background: #334155;
+  color: #94a3b8;
+}
+
+html.dark .step-dot {
+  background: #334155;
+}
+
+html.dark .optional-notice {
+  color: #94a3b8;
+}
+
+html.dark .form-group label {
+  color: #94a3b8;
+}
+
+html.dark .avatar-upload label {
+  color: #94a3b8;
+}
+
+html.dark .avatar-preview {
+  border-color: #334155;
+}
+
+html.dark .avatar-placeholder {
+  color: #94a3b8;
+}
+
+html.dark .remove-avatar {
+  color: #94a3b8;
+}
+
+html.dark .file-upload {
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .btn-back {
+  background: #334155;
+  color: #94a3b8;
+}
+
+html.dark .btn-back:hover {
+  background: #475569;
+}
+
+html.dark .checkbox-label {
+  color: #e2e8f0;
 }
 
 @media (max-width: 1000px) {

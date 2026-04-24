@@ -657,6 +657,7 @@ import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { router } from '@inertiajs/vue3'
 import Echo from 'laravel-echo';
 import { postPreviewsCache, addToCache } from '@/composables/usePostPreviewsCache'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   chats: Array,
@@ -667,6 +668,7 @@ const props = defineProps({
 })
 
 const page = usePage()
+useDarkMode()
 
 const form = useForm({
   content: '',
@@ -3778,5 +3780,360 @@ watch(() => props.activeChat?.messages, (msgs) => {
 .price-modal-body textarea:focus {
   outline: none;
   border-color: #007bff;
+}
+
+html.dark .chat-container {
+  border-color: #334155;
+}
+
+html.dark .chat-list {
+  border-right-color: #334155;
+  background-color: #1e293b;
+}
+
+html.dark .search-btn:hover {
+  background-color: #334155;
+}
+
+html.dark .search-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .search-input {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .search-close:hover {
+  background-color: #334155;
+}
+
+html.dark .search-no-results {
+  color: #94a3b8;
+}
+
+html.dark .search-result-item {
+  border-bottom-color: #334155;
+}
+
+html.dark .search-result-item:hover {
+  background-color: #334155;
+}
+
+html.dark .search-result-text {
+  color: #94a3b8;
+}
+
+html.dark .search-navigation {
+  background: #0f172a;
+  border-bottom-color: #334155;
+}
+
+html.dark .search-nav-btn:hover:not(:disabled) {
+  background-color: #334155;
+}
+
+html.dark .search-nav-counter {
+  color: #94a3b8;
+}
+
+html.dark .chat-item {
+  border-bottom-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .chat-item:hover {
+  background: #334155;
+}
+
+html.dark .chat-item.active {
+  background-color: #475569;
+}
+
+html.dark .chat-preview {
+  color: #94a3b8;
+}
+
+html.dark .chat-preview.unread {
+  color: #f1f5f9;
+}
+
+html.dark .chat-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .chat-header a {
+  color: #f1f5f9;
+}
+
+html.dark .vacancy-link {
+  color: #94a3b8;
+}
+
+html.dark .user-status {
+  color: #94a3b8;
+}
+
+html.dark .chat-messages {
+  background: #0f172a;
+}
+
+html.dark .chat-skeleton {
+  background: #0f172a;
+}
+
+html.dark .skeleton-avatar,
+html.dark .skeleton-line {
+  background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+  background-size: 200% 100%;
+}
+
+html.dark .skeleton-bubble {
+  background: #334155;
+}
+
+html.dark .skeleton-message.right .skeleton-bubble {
+  background: #334155;
+}
+
+html.dark .message {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .my-message {
+  background: #1e40af;
+}
+
+html.dark .message-time {
+  color: #94a3b8;
+}
+
+html.dark .message-form {
+  border-top-color: #334155;
+  background: #1e293b;
+}
+
+html.dark .message-form textarea {
+  background: #334155;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+html.dark .chat-placeholder {
+  color: #94a3b8;
+}
+
+html.dark .add-select {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .add-select label:hover {
+  background-color: #334155;
+}
+
+html.dark .context-menu {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .context-menu-item:hover {
+  background-color: #334155;
+}
+
+html.dark .options-menu {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .options-menu-item:hover {
+  background-color: #334155;
+}
+
+html.dark .editing-indicator {
+  background-color: #451a03;
+  border-bottom-color: #78350f;
+  color: #fbbf24;
+}
+
+html.dark .application-block {
+  border-bottom-color: #334155;
+}
+
+html.dark .application-toggle-btn {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .application-card {
+  background: #1e293b;
+}
+
+html.dark .application-card h3 {
+  color: #f1f5f9;
+}
+
+html.dark .account-age {
+  color: #94a3b8;
+}
+
+html.dark .application-rating {
+  color: #e2e8f0;
+}
+
+html.dark .application-cover-letter {
+  background: #334155;
+}
+
+html.dark .application-cover-letter h4 {
+  color: #e2e8f0;
+}
+
+html.dark .application-cover-letter p {
+  color: #f1f5f9;
+}
+
+html.dark .application-price {
+  background: #14532d;
+}
+
+html.dark .application-price .label {
+  color: #e2e8f0;
+}
+
+html.dark .price-edit-btn {
+  background: #334155;
+}
+
+html.dark .file-preview {
+  background: #334155;
+}
+
+html.dark .post-preview-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .post-preview-card:hover {
+  background: #334155;
+}
+
+html.dark .post-preview-title {
+  color: #f1f5f9;
+}
+
+html.dark .post-preview-desc {
+  color: #94a3b8;
+}
+
+html.dark .chat-files-panel {
+  border-left-color: #334155;
+  background: #1e293b;
+}
+
+html.dark .chat-files-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .chat-files-close:hover {
+  background: #334155;
+}
+
+html.dark .chat-files-tabs {
+  border-bottom-color: #334155;
+}
+
+html.dark .chat-files-tab {
+  color: #94a3b8;
+}
+
+html.dark .chat-files-tab:hover {
+  background: #334155;
+}
+
+html.dark .chat-files-empty {
+  color: #94a3b8;
+}
+
+html.dark .chat-files-item {
+  border-color: #334155;
+}
+
+html.dark .chat-files-item .file-size {
+  color: #94a3b8;
+}
+
+html.dark .chat-files-link {
+  border-color: #334155;
+}
+
+html.dark .chat-files-link:hover {
+  background: #334155;
+}
+
+html.dark .chat-files-link .link-time {
+  color: #94a3b8;
+}
+
+html.dark .price-modal {
+  background: #1e293b;
+}
+
+html.dark .price-modal-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .price-modal-body input,
+html.dark .price-modal-body textarea {
+  background: #334155;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+html.dark .price-modal-info {
+  color: #94a3b8;
+}
+
+html.dark .price-modal-footer {
+  border-top-color: #334155;
+}
+
+html.dark .price-modal-footer .cancel-btn {
+  background: #334155;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+html.dark .change-price-btn {
+  background: #334155;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+html.dark .change-price-btn:hover {
+  background: #475569;
+}
+
+html.dark .withdraw-btn,
+html.dark .close-btn {
+  background: #334155;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+html.dark .accepted-chat {
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+html.dark .status-badge.waiting {
+  background: #451a03;
+  color: #fbbf24;
+}
+
+html.dark .status-badge.dispute {
+  background: #450a0a;
+  color: #fca5a5;
 }
 </style>

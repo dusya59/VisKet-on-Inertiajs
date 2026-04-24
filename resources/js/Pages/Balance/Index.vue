@@ -193,6 +193,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   balance: {
@@ -208,6 +209,8 @@ const props = defineProps({
     default: () => ({ data: [], current_page: 1, last_page: 1 })
   }
 })
+
+useDarkMode()
 
 const page = usePage()
 const authUser = computed(() => page.props.auth?.user || page.props.authUser || null)
@@ -624,6 +627,120 @@ const loadPage = (pageNum) => {
 .pagination-info {
   font-size: 14px;
   color: #666;
+}
+
+html.dark .back-link a {
+  color: #94a3b8;
+}
+
+html.dark .balance-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .balance-container h1 {
+  color: #f1f5f9;
+}
+
+html.dark .type-toggle button {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .current-balance {
+  background: #0f172a;
+}
+
+html.dark .current-balance .label {
+  color: #94a3b8;
+}
+
+html.dark .balance-form label {
+  color: #f1f5f9;
+}
+
+html.dark .balance-form input[type="number"] {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .quick-amounts button {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .btn-submit:disabled {
+  background-color: #475569;
+}
+
+html.dark .pending-section,
+html.dark .history-section {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .pending-section h2,
+html.dark .history-section h2 {
+  color: #f1f5f9;
+}
+
+html.dark .transaction-item {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+html.dark .transaction-item.pending {
+  background: #451a03;
+  border-color: #92400e;
+}
+
+html.dark .transaction-item.cancelled {
+  background: #450a0a;
+  border-color: #b91c1c;
+}
+
+html.dark .transaction-type {
+  color: #f1f5f9;
+}
+
+html.dark .transaction-from,
+html.dark .transaction-party,
+html.dark .transaction-vacancy {
+  color: #94a3b8;
+}
+
+html.dark .transaction-date {
+  color: #94a3b8;
+}
+
+html.dark .transaction-status {
+  color: #fbbf24;
+}
+
+html.dark .transaction-amount {
+  color: #f1f5f9;
+}
+
+html.dark .filter-tabs button {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .no-transactions {
+  color: #94a3b8;
+}
+
+html.dark .pagination-btn {
+  border-color: #334155;
+  background: #1e293b;
+}
+
+html.dark .pagination-info {
+  color: #94a3b8;
 }
 
 @media(max-width: 1000px) {

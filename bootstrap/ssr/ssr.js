@@ -16,14 +16,37 @@ var __exportAll = (all, no_symbols) => {
 	return target;
 };
 //#endregion
+//#region resources/js/composables/useDarkMode.js
+var isDark = ref(false);
+function useDarkMode() {
+	onMounted(() => {
+		isDark.value = localStorage.getItem("darkMode") === "true";
+		updateHtmlClass();
+	});
+	const toggleDarkMode = () => {
+		isDark.value = !isDark.value;
+		localStorage.setItem("darkMode", isDark.value);
+		updateHtmlClass();
+	};
+	const updateHtmlClass = () => {
+		if (isDark.value) document.documentElement.classList.add("dark");
+		else document.documentElement.classList.remove("dark");
+	};
+	return {
+		isDark,
+		toggleDarkMode
+	};
+}
+//#endregion
 //#region resources/js/Layouts/AppLayout.vue
-var _sfc_main$21 = {
+var _sfc_main$22 = {
 	__name: "AppLayout",
 	__ssrInlineRender: true,
 	setup(__props) {
 		const page = usePage();
 		const authUser = computed(() => page.props.auth?.user || page.props.authUser || null);
 		const menuTrigger = ref(null);
+		useDarkMode();
 		const menuOpen = ref(false);
 		const closeMenu = () => menuOpen.value = false;
 		const handleClickOutside = (event) => {
@@ -120,12 +143,22 @@ var _sfc_main$21 = {
 					onClick: closeMenu
 				}, {
 					default: withCtx((_, _push, _parent, _scopeId) => {
-						if (_push) _push(`<img src="/images/wallet.svg" alt="" class="menu-icon"${_scopeId}> Баланс: ${ssrInterpolate(authUser.value.balance)} ₽ `);
-						else return [createVNode("img", {
-							src: "/images/wallet.svg",
-							alt: "",
-							class: "menu-icon"
-						}), createTextVNode(" Баланс: " + toDisplayString(authUser.value.balance) + " ₽ ", 1)];
+						if (_push) {
+							_push(`<img src="/images/wallet.svg" alt="" class="menu-icon"${_scopeId}> Баланс: ${ssrInterpolate(authUser.value.balance)} ₽ `);
+							if (authUser.value.hasPendingTransactions) _push(`<span class="pending-badge"${_scopeId}>Ожидание...</span>`);
+							else _push(`<!---->`);
+						} else return [
+							createVNode("img", {
+								src: "/images/wallet.svg",
+								alt: "",
+								class: "menu-icon"
+							}),
+							createTextVNode(" Баланс: " + toDisplayString(authUser.value.balance) + " ₽ ", 1),
+							authUser.value.hasPendingTransactions ? (openBlock(), createBlock("span", {
+								key: 0,
+								class: "pending-badge"
+							}, "Ожидание...")) : createCommentVNode("", true)
+						];
 					}),
 					_: 1
 				}, _parent));
@@ -217,8 +250,14 @@ var _sfc_main$21 = {
 					onClick: closeMenu
 				}, {
 					default: withCtx((_, _push, _parent, _scopeId) => {
-						if (_push) _push(`Баланс: ${ssrInterpolate(authUser.value.balance)} ₽`);
-						else return [createTextVNode("Баланс: " + toDisplayString(authUser.value.balance) + " ₽", 1)];
+						if (_push) {
+							_push(` Баланс: ${ssrInterpolate(authUser.value.balance)} ₽ `);
+							if (authUser.value.hasPendingTransactions) _push(`<span class="pending-badge"${_scopeId}>Ожидание...</span>`);
+							else _push(`<!---->`);
+						} else return [createTextVNode(" Баланс: " + toDisplayString(authUser.value.balance) + " ₽ ", 1), authUser.value.hasPendingTransactions ? (openBlock(), createBlock("span", {
+							key: 0,
+							class: "pending-badge"
+						}, "Ожидание...")) : createCommentVNode("", true)];
 					}),
 					_: 1
 				}, _parent));
@@ -259,11 +298,11 @@ var _sfc_main$21 = {
 		};
 	}
 };
-var _sfc_setup$21 = _sfc_main$21.setup;
-_sfc_main$21.setup = (props, ctx) => {
+var _sfc_setup$22 = _sfc_main$22.setup;
+_sfc_main$22.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Layouts/AppLayout.vue");
-	return _sfc_setup$21 ? _sfc_setup$21(props, ctx) : void 0;
+	return _sfc_setup$22 ? _sfc_setup$22(props, ctx) : void 0;
 };
 //#endregion
 //#region \0plugin-vue:export-helper
@@ -276,7 +315,7 @@ var _plugin_vue_export_helper_default = (sfc, props) => {
 //#region resources/js/Pages/Admin/Comments.vue
 var Comments_exports = /* @__PURE__ */ __exportAll({ default: () => Comments_default });
 var DEFAULT_AVATAR$1 = "/images/User-avatar.png";
-var _sfc_main$20 = {
+var _sfc_main$21 = {
 	__name: "Comments",
 	__ssrInlineRender: true,
 	props: { mode: {
@@ -285,6 +324,7 @@ var _sfc_main$20 = {
 	} },
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		let adminLink = null;
 		let adminScript = null;
 		const comments = ref([]);
@@ -407,10 +447,10 @@ var _sfc_main$20 = {
 			}
 		});
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<div class="admin-container" data-v-aa9f3e92${_scopeId}><h1 data-v-aa9f3e92${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Жалобы на комментарии" : "Управление комментариями")}</h1><div class="admin-nav" data-v-aa9f3e92${_scopeId}>`);
+						_push(`<div class="admin-container" data-v-7c3b66bc${_scopeId}><h1 data-v-7c3b66bc${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Жалобы на комментарии" : "Управление комментариями")}</h1><div class="admin-nav" data-v-7c3b66bc${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "/admin",
 							class: "admin-nav-item"
@@ -451,25 +491,25 @@ var _sfc_main$20 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="search-container" data-v-aa9f3e92${_scopeId}><input type="text" id="commentSearch"${ssrRenderAttr("value", searchQuery.value)} placeholder="Поиск комментария..." data-v-aa9f3e92${_scopeId}></div>`);
-						if (loading.value) _push(`<div class="loading" data-v-aa9f3e92${_scopeId}> Загрузка... </div>`);
-						else if (error.value) _push(`<div class="error" data-v-aa9f3e92${_scopeId}>${ssrInterpolate(error.value)}</div>`);
+						_push(`</div><div class="search-container" data-v-7c3b66bc${_scopeId}><input type="text" id="commentSearch"${ssrRenderAttr("value", searchQuery.value)} placeholder="Поиск комментария..." data-v-7c3b66bc${_scopeId}></div>`);
+						if (loading.value) _push(`<div class="loading" data-v-7c3b66bc${_scopeId}> Загрузка... </div>`);
+						else if (error.value) _push(`<div class="error" data-v-7c3b66bc${_scopeId}>${ssrInterpolate(error.value)}</div>`);
 						else {
-							_push(`<div class="comments-list" data-v-aa9f3e92${_scopeId}><!--[-->`);
+							_push(`<div class="comments-list" data-v-7c3b66bc${_scopeId}><!--[-->`);
 							ssrRenderList(filteredComments.value, (comment) => {
-								_push(`<div class="comment-item" data-v-aa9f3e92${_scopeId}><div class="comment-info" data-v-aa9f3e92${_scopeId}><div class="comment-header" data-v-aa9f3e92${_scopeId}><img${ssrRenderAttr("src", getUserAvatar(comment.user))}${ssrRenderAttr("alt", comment.user?.name)} class="comment-avatar" data-v-aa9f3e92${_scopeId}><div data-v-aa9f3e92${_scopeId}><h3 data-v-aa9f3e92${_scopeId}>${ssrInterpolate(comment.user?.name || "Неизвестный пользователь")}</h3><small data-v-aa9f3e92${_scopeId}>${ssrInterpolate(formatDate(comment.created_at))}</small></div></div><p data-v-aa9f3e92${_scopeId}>${ssrInterpolate(comment.text)}</p><small data-v-aa9f3e92${_scopeId}>К посту: ${ssrInterpolate(comment.post?.title || "Пост удален")}</small>`);
+								_push(`<div class="comment-item" data-v-7c3b66bc${_scopeId}><div class="comment-info" data-v-7c3b66bc${_scopeId}><div class="comment-header" data-v-7c3b66bc${_scopeId}><img${ssrRenderAttr("src", getUserAvatar(comment.user))}${ssrRenderAttr("alt", comment.user?.name)} class="comment-avatar" data-v-7c3b66bc${_scopeId}><div data-v-7c3b66bc${_scopeId}><h3 data-v-7c3b66bc${_scopeId}>${ssrInterpolate(comment.user?.name || "Неизвестный пользователь")}</h3><small data-v-7c3b66bc${_scopeId}>${ssrInterpolate(formatDate(comment.created_at))}</small></div></div><p data-v-7c3b66bc${_scopeId}>${ssrInterpolate(comment.text)}</p><small data-v-7c3b66bc${_scopeId}>К посту: ${ssrInterpolate(comment.post?.title || "Пост удален")}</small>`);
 								if (mode.value === "reports" && comment.reports?.length) {
-									_push(`<div class="reports-info" data-v-aa9f3e92${_scopeId}><p class="reports-count" data-v-aa9f3e92${_scopeId}>Жалоб: ${ssrInterpolate(comment.reports.length)}</p><button class="attempts-toggle" data-v-aa9f3e92${_scopeId}> Подробнее <span class="${ssrRenderClass([{ open: openReports.value[comment.id] }, "arrow"])}" data-v-aa9f3e92${_scopeId}>▼</span></button>`);
+									_push(`<div class="reports-info" data-v-7c3b66bc${_scopeId}><p class="reports-count" data-v-7c3b66bc${_scopeId}>Жалоб: ${ssrInterpolate(comment.reports.length)}</p><button class="attempts-toggle" data-v-7c3b66bc${_scopeId}> Подробнее <span class="${ssrRenderClass([{ open: openReports.value[comment.id] }, "arrow"])}" data-v-7c3b66bc${_scopeId}>▼</span></button>`);
 									if (openReports.value[comment.id]) {
-										_push(`<div class="rejections-dropdown" data-v-aa9f3e92${_scopeId}><!--[-->`);
+										_push(`<div class="rejections-dropdown" data-v-7c3b66bc${_scopeId}><!--[-->`);
 										ssrRenderList(comment.reports, (report) => {
-											_push(`<div class="rejection-item" data-v-aa9f3e92${_scopeId}><div class="rejection-date" data-v-aa9f3e92${_scopeId}>${ssrInterpolate(formatReportDate(report.created_at))}</div><div class="rejection-reason" data-v-aa9f3e92${_scopeId}>${ssrInterpolate(report.reason)}</div><div class="reporter-info" data-v-aa9f3e92${_scopeId}>От: ${ssrInterpolate(report.reporter?.name || "Неизвестный")}</div></div>`);
+											_push(`<div class="rejection-item" data-v-7c3b66bc${_scopeId}><div class="rejection-date" data-v-7c3b66bc${_scopeId}>${ssrInterpolate(formatReportDate(report.created_at))}</div><div class="rejection-reason" data-v-7c3b66bc${_scopeId}>${ssrInterpolate(report.reason)}</div><div class="reporter-info" data-v-7c3b66bc${_scopeId}>От: ${ssrInterpolate(report.reporter?.name || "Неизвестный")}</div></div>`);
 										});
 										_push(`<!--]--></div>`);
 									} else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
-								_push(`</div><div class="comment-actions" data-v-aa9f3e92${_scopeId}>`);
+								_push(`</div><div class="comment-actions" data-v-7c3b66bc${_scopeId}>`);
 								if (comment.post) _push(ssrRenderComponent(unref(Link), {
 									href: `/posts/${comment.post.id}`,
 									class: "btn"
@@ -481,12 +521,12 @@ var _sfc_main$20 = {
 									_: 2
 								}, _parent, _scopeId));
 								else _push(`<!---->`);
-								if (mode.value === "reports") _push(`<!--[--><button class="btn btn-dismiss"${ssrIncludeBooleanAttr(deleting.value === comment.id) ? " disabled" : ""} data-v-aa9f3e92${_scopeId}>${ssrInterpolate(deleting.value === comment.id ? "..." : "Игнорировать")}</button><button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === comment.id) ? " disabled" : ""} data-v-aa9f3e92${_scopeId}> Удалить </button><!--]-->`);
-								else _push(`<button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === comment.id) ? " disabled" : ""} data-v-aa9f3e92${_scopeId}>${ssrInterpolate(deleting.value === comment.id ? "Удаление..." : "Удалить")}</button>`);
+								if (mode.value === "reports") _push(`<!--[--><button class="btn btn-dismiss"${ssrIncludeBooleanAttr(deleting.value === comment.id) ? " disabled" : ""} data-v-7c3b66bc${_scopeId}>${ssrInterpolate(deleting.value === comment.id ? "..." : "Игнорировать")}</button><button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === comment.id) ? " disabled" : ""} data-v-7c3b66bc${_scopeId}> Удалить </button><!--]-->`);
+								else _push(`<button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === comment.id) ? " disabled" : ""} data-v-7c3b66bc${_scopeId}>${ssrInterpolate(deleting.value === comment.id ? "Удаление..." : "Удалить")}</button>`);
 								_push(`</div></div>`);
 							});
 							_push(`<!--]-->`);
-							if (filteredComments.value.length === 0) _push(`<div class="no-results" data-v-aa9f3e92${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Нет жалоб на комментарии" : "Комментарии не найдены")}</div>`);
+							if (filteredComments.value.length === 0) _push(`<div class="no-results" data-v-7c3b66bc${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Нет жалоб на комментарии" : "Комментарии не найдены")}</div>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						}
@@ -607,17 +647,17 @@ var _sfc_main$20 = {
 		};
 	}
 };
-var _sfc_setup$20 = _sfc_main$20.setup;
-_sfc_main$20.setup = (props, ctx) => {
+var _sfc_setup$21 = _sfc_main$21.setup;
+_sfc_main$21.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Admin/Comments.vue");
-	return _sfc_setup$20 ? _sfc_setup$20(props, ctx) : void 0;
+	return _sfc_setup$21 ? _sfc_setup$21(props, ctx) : void 0;
 };
-var Comments_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$20, [["__scopeId", "data-v-aa9f3e92"]]);
+var Comments_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$21, [["__scopeId", "data-v-7c3b66bc"]]);
 //#endregion
 //#region resources/js/Pages/Admin/Index.vue
-var Index_exports$2 = /* @__PURE__ */ __exportAll({ default: () => Index_default$2 });
-var _sfc_main$19 = {
+var Index_exports$3 = /* @__PURE__ */ __exportAll({ default: () => Index_default$3 });
+var _sfc_main$20 = {
 	__name: "Index",
 	__ssrInlineRender: true,
 	props: {
@@ -636,10 +676,15 @@ var _sfc_main$19 = {
 		commentsReportCount: {
 			type: Number,
 			default: 0
+		},
+		disputesCount: {
+			type: Number,
+			default: 0
 		}
 	},
 	setup(__props) {
 		const pendingCount = ref(__props.pendingVerificationCount || 0);
+		useDarkMode();
 		let adminLink = null;
 		onMounted(() => {
 			adminLink = document.createElement("link");
@@ -654,10 +699,10 @@ var _sfc_main$19 = {
 			}
 		});
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<div class="admin-container" data-v-f7a459b7${_scopeId}><h1 data-v-f7a459b7${_scopeId}>Админ панель</h1><div class="admin-nav" data-v-f7a459b7${_scopeId}>`);
+						_push(`<div class="admin-container" data-v-f40cf724${_scopeId}><h1 data-v-f40cf724${_scopeId}>Админ панель</h1><div class="admin-nav" data-v-f40cf724${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "/admin",
 							class: "admin-nav-item active"
@@ -698,46 +743,62 @@ var _sfc_main$19 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="banner" data-v-f7a459b7${_scopeId}>`);
+						_push(ssrRenderComponent(unref(Link), {
+							href: "/admin/disputes",
+							class: "admin-nav-item"
+						}, {
+							default: withCtx((_, _push, _parent, _scopeId) => {
+								if (_push) {
+									_push(` Споры `);
+									if (__props.disputesCount > 0) _push(`<span class="badge" data-v-f40cf724${_scopeId}>${ssrInterpolate(__props.disputesCount)}</span>`);
+									else _push(`<!---->`);
+								} else return [createTextVNode(" Споры "), __props.disputesCount > 0 ? (openBlock(), createBlock("span", {
+									key: 0,
+									class: "badge"
+								}, toDisplayString(__props.disputesCount), 1)) : createCommentVNode("", true)];
+							}),
+							_: 1
+						}, _parent, _scopeId));
+						_push(`</div><div class="banner" data-v-f40cf724${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "/admin/verification-requests",
 							class: "link"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(` Заявки на подтверждение аккаунта <span class="badge" data-v-f7a459b7${_scopeId}>${ssrInterpolate(pendingCount.value)}</span>`);
+								if (_push) _push(` Заявки на подтверждение аккаунта <span class="badge" data-v-f40cf724${_scopeId}>${ssrInterpolate(pendingCount.value)}</span>`);
 								else return [createTextVNode(" Заявки на подтверждение аккаунта "), createVNode("span", { class: "badge" }, toDisplayString(pendingCount.value), 1)];
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><h2 data-v-f7a459b7${_scopeId}>Репорты</h2><div class="banners" data-v-f7a459b7${_scopeId}><div class="banner" data-v-f7a459b7${_scopeId}>`);
+						_push(`</div><h2 data-v-f40cf724${_scopeId}>Репорты</h2><div class="banners" data-v-f40cf724${_scopeId}><div class="banner" data-v-f40cf724${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: `/admin/users?mode=reports`,
 							class: "link"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(` Пользователи <span class="badge" data-v-f7a459b7${_scopeId}>${ssrInterpolate(__props.usersReportCount)}</span>`);
+								if (_push) _push(` Пользователи <span class="badge" data-v-f40cf724${_scopeId}>${ssrInterpolate(__props.usersReportCount)}</span>`);
 								else return [createTextVNode(" Пользователи "), createVNode("span", { class: "badge" }, toDisplayString(__props.usersReportCount), 1)];
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="banner" data-v-f7a459b7${_scopeId}>`);
+						_push(`</div><div class="banner" data-v-f40cf724${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: `/admin/posts?mode=reports`,
 							class: "link"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(` Посты <span class="badge" data-v-f7a459b7${_scopeId}>${ssrInterpolate(__props.postsReportCount)}</span>`);
+								if (_push) _push(` Посты <span class="badge" data-v-f40cf724${_scopeId}>${ssrInterpolate(__props.postsReportCount)}</span>`);
 								else return [createTextVNode(" Посты "), createVNode("span", { class: "badge" }, toDisplayString(__props.postsReportCount), 1)];
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="banner" data-v-f7a459b7${_scopeId}>`);
+						_push(`</div><div class="banner" data-v-f40cf724${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: `/admin/comments?mode=reports`,
 							class: "link"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(` Комментарии <span class="badge" data-v-f7a459b7${_scopeId}>${ssrInterpolate(__props.commentsReportCount)}</span>`);
+								if (_push) _push(` Комментарии <span class="badge" data-v-f40cf724${_scopeId}>${ssrInterpolate(__props.commentsReportCount)}</span>`);
 								else return [createTextVNode(" Комментарии "), createVNode("span", { class: "badge" }, toDisplayString(__props.commentsReportCount), 1)];
 							}),
 							_: 1
@@ -772,6 +833,16 @@ var _sfc_main$19 = {
 								class: "admin-nav-item"
 							}, {
 								default: withCtx(() => [createTextVNode(" Комментарии ")]),
+								_: 1
+							}),
+							createVNode(unref(Link), {
+								href: "/admin/disputes",
+								class: "admin-nav-item"
+							}, {
+								default: withCtx(() => [createTextVNode(" Споры "), __props.disputesCount > 0 ? (openBlock(), createBlock("span", {
+									key: 0,
+									class: "badge"
+								}, toDisplayString(__props.disputesCount), 1)) : createCommentVNode("", true)]),
 								_: 1
 							})
 						]),
@@ -813,17 +884,17 @@ var _sfc_main$19 = {
 		};
 	}
 };
-var _sfc_setup$19 = _sfc_main$19.setup;
-_sfc_main$19.setup = (props, ctx) => {
+var _sfc_setup$20 = _sfc_main$20.setup;
+_sfc_main$20.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Admin/Index.vue");
-	return _sfc_setup$19 ? _sfc_setup$19(props, ctx) : void 0;
+	return _sfc_setup$20 ? _sfc_setup$20(props, ctx) : void 0;
 };
-var Index_default$2 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$19, [["__scopeId", "data-v-f7a459b7"]]);
+var Index_default$3 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$20, [["__scopeId", "data-v-f40cf724"]]);
 //#endregion
 //#region resources/js/Pages/Admin/Posts.vue
 var Posts_exports = /* @__PURE__ */ __exportAll({ default: () => Posts_default });
-var _sfc_main$18 = {
+var _sfc_main$19 = {
 	__name: "Posts",
 	__ssrInlineRender: true,
 	props: { mode: {
@@ -832,6 +903,7 @@ var _sfc_main$18 = {
 	} },
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		let adminLink = null;
 		const mode = computed(() => props.mode || "posts");
 		const posts = ref([]);
@@ -946,10 +1018,10 @@ var _sfc_main$18 = {
 			fetchPosts();
 		});
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<div class="admin-container" data-v-ba772c4e${_scopeId}><h1 data-v-ba772c4e${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Жалобы на посты" : "Управление постами")}</h1><div class="admin-nav" data-v-ba772c4e${_scopeId}>`);
+						_push(`<div class="admin-container" data-v-96aae5b8${_scopeId}><h1 data-v-96aae5b8${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Жалобы на посты" : "Управление постами")}</h1><div class="admin-nav" data-v-96aae5b8${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "/admin",
 							class: "admin-nav-item"
@@ -990,19 +1062,19 @@ var _sfc_main$18 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="search-container" data-v-ba772c4e${_scopeId}><input type="text" id="postSearch"${ssrRenderAttr("value", searchQuery.value)} placeholder="Поиск поста..." data-v-ba772c4e${_scopeId}></div>`);
-						if (loading.value) _push(`<div class="loading" data-v-ba772c4e${_scopeId}> Загрузка... </div>`);
-						else if (error.value) _push(`<div class="error" data-v-ba772c4e${_scopeId}>${ssrInterpolate(error.value)}</div>`);
+						_push(`</div><div class="search-container" data-v-96aae5b8${_scopeId}><input type="text" id="postSearch"${ssrRenderAttr("value", searchQuery.value)} placeholder="Поиск поста..." data-v-96aae5b8${_scopeId}></div>`);
+						if (loading.value) _push(`<div class="loading" data-v-96aae5b8${_scopeId}> Загрузка... </div>`);
+						else if (error.value) _push(`<div class="error" data-v-96aae5b8${_scopeId}>${ssrInterpolate(error.value)}</div>`);
 						else {
-							_push(`<div class="posts-list" data-v-ba772c4e${_scopeId}><!--[-->`);
+							_push(`<div class="posts-list" data-v-96aae5b8${_scopeId}><!--[-->`);
 							ssrRenderList(filteredPosts.value, (post) => {
-								_push(`<div class="post-item" data-v-ba772c4e${_scopeId}><img${ssrRenderAttr("src", `/storage/${post.image}`)}${ssrRenderAttr("alt", post.title)} class="post-image" data-v-ba772c4e${_scopeId}><div class="post-info" data-v-ba772c4e${_scopeId}><h3 data-v-ba772c4e${_scopeId}>${ssrInterpolate(post.title)}</h3><p data-v-ba772c4e${_scopeId}>${ssrInterpolate(post.description)}</p><small data-v-ba772c4e${_scopeId}>Автор: ${ssrInterpolate(post.user?.name)}</small>`);
+								_push(`<div class="post-item" data-v-96aae5b8${_scopeId}><img${ssrRenderAttr("src", `/storage/${post.image}`)}${ssrRenderAttr("alt", post.title)} class="post-image" data-v-96aae5b8${_scopeId}><div class="post-info" data-v-96aae5b8${_scopeId}><h3 data-v-96aae5b8${_scopeId}>${ssrInterpolate(post.title)}</h3><p data-v-96aae5b8${_scopeId}>${ssrInterpolate(post.description)}</p><small data-v-96aae5b8${_scopeId}>Автор: ${ssrInterpolate(post.user?.name)}</small>`);
 								if (mode.value === "reports" && post.reports?.length) {
-									_push(`<div class="reports-info" data-v-ba772c4e${_scopeId}><p class="reports-count" data-v-ba772c4e${_scopeId}>Жалоб: ${ssrInterpolate(post.reports.length)}</p><button class="attempts-toggle" data-v-ba772c4e${_scopeId}> Подробнее <span class="${ssrRenderClass([{ open: openReports.value[post.id] }, "arrow"])}" data-v-ba772c4e${_scopeId}>▼</span></button>`);
+									_push(`<div class="reports-info" data-v-96aae5b8${_scopeId}><p class="reports-count" data-v-96aae5b8${_scopeId}>Жалоб: ${ssrInterpolate(post.reports.length)}</p><button class="attempts-toggle" data-v-96aae5b8${_scopeId}> Подробнее <span class="${ssrRenderClass([{ open: openReports.value[post.id] }, "arrow"])}" data-v-96aae5b8${_scopeId}>▼</span></button>`);
 									if (openReports.value[post.id]) {
-										_push(`<div class="rejections-dropdown" data-v-ba772c4e${_scopeId}><!--[-->`);
+										_push(`<div class="rejections-dropdown" data-v-96aae5b8${_scopeId}><!--[-->`);
 										ssrRenderList(post.reports, (report) => {
-											_push(`<div class="rejection-item" data-v-ba772c4e${_scopeId}><div class="rejection-date" data-v-ba772c4e${_scopeId}>${ssrInterpolate(formatDate(report.created_at))}</div><div class="rejection-reason" data-v-ba772c4e${_scopeId}>${ssrInterpolate(report.reason)}</div>`);
+											_push(`<div class="rejection-item" data-v-96aae5b8${_scopeId}><div class="rejection-date" data-v-96aae5b8${_scopeId}>${ssrInterpolate(formatDate(report.created_at))}</div><div class="rejection-reason" data-v-96aae5b8${_scopeId}>${ssrInterpolate(report.reason)}</div>`);
 											if (report.reporter) _push(ssrRenderComponent(unref(Link), {
 												href: `/profile/${report.reporter.id}`,
 												class: "reporter-info"
@@ -1013,14 +1085,14 @@ var _sfc_main$18 = {
 												}),
 												_: 2
 											}, _parent, _scopeId));
-											else _push(`<div class="reporter-info" data-v-ba772c4e${_scopeId}>От: Неизвестный</div>`);
+											else _push(`<div class="reporter-info" data-v-96aae5b8${_scopeId}>От: Неизвестный</div>`);
 											_push(`</div>`);
 										});
 										_push(`<!--]--></div>`);
 									} else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
-								_push(`</div><div class="post-actions" data-v-ba772c4e${_scopeId}>`);
+								_push(`</div><div class="post-actions" data-v-96aae5b8${_scopeId}>`);
 								_push(ssrRenderComponent(unref(Link), {
 									href: `/posts/${post.id}`,
 									class: "btn"
@@ -1031,12 +1103,12 @@ var _sfc_main$18 = {
 									}),
 									_: 2
 								}, _parent, _scopeId));
-								if (mode.value === "reports") _push(`<!--[--><button class="btn btn-dismiss"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-ba772c4e${_scopeId}>${ssrInterpolate(deleting.value === post.id ? "..." : "Игнорировать")}</button><button class="btn btn-warn"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-ba772c4e${_scopeId}> Предупреждение </button><button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-ba772c4e${_scopeId}> Скрыть </button><!--]-->`);
-								else _push(`<button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-ba772c4e${_scopeId}>${ssrInterpolate(deleting.value === post.id ? "Удаление..." : "Удалить")}</button>`);
+								if (mode.value === "reports") _push(`<!--[--><button class="btn btn-dismiss"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-96aae5b8${_scopeId}>${ssrInterpolate(deleting.value === post.id ? "..." : "Игнорировать")}</button><button class="btn btn-warn"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-96aae5b8${_scopeId}> Предупреждение </button><button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-96aae5b8${_scopeId}> Скрыть </button><!--]-->`);
+								else _push(`<button class="btn btn-danger"${ssrIncludeBooleanAttr(deleting.value === post.id) ? " disabled" : ""} data-v-96aae5b8${_scopeId}>${ssrInterpolate(deleting.value === post.id ? "Удаление..." : "Удалить")}</button>`);
 								_push(`</div></div>`);
 							});
 							_push(`<!--]-->`);
-							if (filteredPosts.value.length === 0) _push(`<div class="no-results" data-v-ba772c4e${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Нет жалоб на посты" : "Посты не найдены")}</div>`);
+							if (filteredPosts.value.length === 0) _push(`<div class="no-results" data-v-96aae5b8${_scopeId}>${ssrInterpolate(mode.value === "reports" ? "Нет жалоб на посты" : "Посты не найдены")}</div>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						}
@@ -1177,18 +1249,18 @@ var _sfc_main$18 = {
 		};
 	}
 };
-var _sfc_setup$18 = _sfc_main$18.setup;
-_sfc_main$18.setup = (props, ctx) => {
+var _sfc_setup$19 = _sfc_main$19.setup;
+_sfc_main$19.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Admin/Posts.vue");
-	return _sfc_setup$18 ? _sfc_setup$18(props, ctx) : void 0;
+	return _sfc_setup$19 ? _sfc_setup$19(props, ctx) : void 0;
 };
-var Posts_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$18, [["__scopeId", "data-v-ba772c4e"]]);
+var Posts_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$19, [["__scopeId", "data-v-96aae5b8"]]);
 //#endregion
 //#region resources/js/Pages/Admin/Users.vue
 var Users_exports = /* @__PURE__ */ __exportAll({ default: () => Users_default });
 var DEFAULT_AVATAR = "/images/User-avatar.png";
-var _sfc_main$17 = {
+var _sfc_main$18 = {
 	__name: "Users",
 	__ssrInlineRender: true,
 	props: { mode: {
@@ -1197,6 +1269,7 @@ var _sfc_main$17 = {
 	} },
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		let adminLink = null;
 		let adminScript = null;
 		const users = ref([]);
@@ -1357,10 +1430,10 @@ var _sfc_main$17 = {
 			}
 		});
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<div class="admin-container" data-v-7198bceb${_scopeId}><h1 data-v-7198bceb${_scopeId}>${ssrInterpolate(getPageTitle())}</h1><div class="admin-nav" data-v-7198bceb${_scopeId}>`);
+						_push(`<div class="admin-container" data-v-db34bf3f${_scopeId}><h1 data-v-db34bf3f${_scopeId}>${ssrInterpolate(getPageTitle())}</h1><div class="admin-nav" data-v-db34bf3f${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "/admin",
 							class: "admin-nav-item"
@@ -1401,39 +1474,39 @@ var _sfc_main$17 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="search-container" data-v-7198bceb${_scopeId}><input type="text" id="userSearch"${ssrRenderAttr("value", searchQuery.value)} placeholder="Поиск пользователя..." data-v-7198bceb${_scopeId}></div>`);
-						if (loading.value) _push(`<div class="loading" data-v-7198bceb${_scopeId}> Загрузка... </div>`);
-						else if (error.value) _push(`<div class="error" data-v-7198bceb${_scopeId}>${ssrInterpolate(error.value)}</div>`);
+						_push(`</div><div class="search-container" data-v-db34bf3f${_scopeId}><input type="text" id="userSearch"${ssrRenderAttr("value", searchQuery.value)} placeholder="Поиск пользователя..." data-v-db34bf3f${_scopeId}></div>`);
+						if (loading.value) _push(`<div class="loading" data-v-db34bf3f${_scopeId}> Загрузка... </div>`);
+						else if (error.value) _push(`<div class="error" data-v-db34bf3f${_scopeId}>${ssrInterpolate(error.value)}</div>`);
 						else {
-							_push(`<div class="users-list" data-v-7198bceb${_scopeId}><!--[-->`);
+							_push(`<div class="users-list" data-v-db34bf3f${_scopeId}><!--[-->`);
 							ssrRenderList(filteredUsers.value, (user) => {
-								_push(`<div class="user-item" data-v-7198bceb${_scopeId}><img${ssrRenderAttr("src", getUserAvatar(user))}${ssrRenderAttr("alt", user.name)} class="user-avatar" data-v-7198bceb${_scopeId}><div class="user-info" data-v-7198bceb${_scopeId}><h3 data-v-7198bceb${_scopeId}>${ssrInterpolate(user.name)}</h3><p data-v-7198bceb${_scopeId}>${ssrInterpolate(user.email)}</p>`);
-								if (user.phone) _push(`<p class="user-phone" data-v-7198bceb${_scopeId}>${ssrInterpolate(user.phone)}</p>`);
+								_push(`<div class="user-item" data-v-db34bf3f${_scopeId}><img${ssrRenderAttr("src", getUserAvatar(user))}${ssrRenderAttr("alt", user.name)} class="user-avatar" data-v-db34bf3f${_scopeId}><div class="user-info" data-v-db34bf3f${_scopeId}><h3 data-v-db34bf3f${_scopeId}>${ssrInterpolate(user.name)}</h3><p data-v-db34bf3f${_scopeId}>${ssrInterpolate(user.email)}</p>`);
+								if (user.phone) _push(`<p class="user-phone" data-v-db34bf3f${_scopeId}>${ssrInterpolate(user.phone)}</p>`);
 								else _push(`<!---->`);
 								if (mode.value === "verification") {
-									_push(`<div class="verification-info" data-v-7198bceb${_scopeId}><button class="attempts-toggle" data-v-7198bceb${_scopeId}> Кол-во попыток получить верификацию: ${ssrInterpolate(user.verification_attempts || 0)} <span class="${ssrRenderClass([{ open: openRejections.value[user.id] }, "arrow"])}" data-v-7198bceb${_scopeId}>▼</span></button>`);
+									_push(`<div class="verification-info" data-v-db34bf3f${_scopeId}><button class="attempts-toggle" data-v-db34bf3f${_scopeId}> Кол-во попыток получить верификацию: ${ssrInterpolate(user.verification_attempts || 0)} <span class="${ssrRenderClass([{ open: openRejections.value[user.id] }, "arrow"])}" data-v-db34bf3f${_scopeId}>▼</span></button>`);
 									if (openRejections.value[user.id] && user.verification_rejections?.length) {
-										_push(`<div class="rejections-dropdown" data-v-7198bceb${_scopeId}><!--[-->`);
+										_push(`<div class="rejections-dropdown" data-v-db34bf3f${_scopeId}><!--[-->`);
 										ssrRenderList(user.verification_rejections, (rejection) => {
-											_push(`<div class="rejection-item" data-v-7198bceb${_scopeId}><div class="rejection-date" data-v-7198bceb${_scopeId}>${ssrInterpolate(formatDate(rejection.rejected_at))}</div><div class="rejection-reason" data-v-7198bceb${_scopeId}>${ssrInterpolate(rejection.reason)}</div></div>`);
+											_push(`<div class="rejection-item" data-v-db34bf3f${_scopeId}><div class="rejection-date" data-v-db34bf3f${_scopeId}>${ssrInterpolate(formatDate(rejection.rejected_at))}</div><div class="rejection-reason" data-v-db34bf3f${_scopeId}>${ssrInterpolate(rejection.reason)}</div></div>`);
 										});
 										_push(`<!--]--></div>`);
-									} else if (openRejections.value[user.id]) _push(`<div class="no-rejections" data-v-7198bceb${_scopeId}> История отказов пуста </div>`);
+									} else if (openRejections.value[user.id]) _push(`<div class="no-rejections" data-v-db34bf3f${_scopeId}> История отказов пуста </div>`);
 									else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
 								if (mode.value === "reports" && user.reports?.length) {
-									_push(`<div class="reports-info" data-v-7198bceb${_scopeId}><p class="reports-count" data-v-7198bceb${_scopeId}>Жалоб: ${ssrInterpolate(user.reports.length)}</p><button class="attempts-toggle" data-v-7198bceb${_scopeId}> Подробнее <span class="${ssrRenderClass([{ open: openReports.value[user.id] }, "arrow"])}" data-v-7198bceb${_scopeId}>▼</span></button>`);
+									_push(`<div class="reports-info" data-v-db34bf3f${_scopeId}><p class="reports-count" data-v-db34bf3f${_scopeId}>Жалоб: ${ssrInterpolate(user.reports.length)}</p><button class="attempts-toggle" data-v-db34bf3f${_scopeId}> Подробнее <span class="${ssrRenderClass([{ open: openReports.value[user.id] }, "arrow"])}" data-v-db34bf3f${_scopeId}>▼</span></button>`);
 									if (openReports.value[user.id]) {
-										_push(`<div class="rejections-dropdown" data-v-7198bceb${_scopeId}><!--[-->`);
+										_push(`<div class="rejections-dropdown" data-v-db34bf3f${_scopeId}><!--[-->`);
 										ssrRenderList(user.reports, (report) => {
-											_push(`<div class="rejection-item" data-v-7198bceb${_scopeId}><div class="rejection-date" data-v-7198bceb${_scopeId}>${ssrInterpolate(formatDate(report.created_at))}</div><div class="rejection-reason" data-v-7198bceb${_scopeId}>${ssrInterpolate(report.reason)}</div><div class="reporter-info" data-v-7198bceb${_scopeId}>От: ${ssrInterpolate(report.reporter?.name || "Неизвестный")}</div></div>`);
+											_push(`<div class="rejection-item" data-v-db34bf3f${_scopeId}><div class="rejection-date" data-v-db34bf3f${_scopeId}>${ssrInterpolate(formatDate(report.created_at))}</div><div class="rejection-reason" data-v-db34bf3f${_scopeId}>${ssrInterpolate(report.reason)}</div><div class="reporter-info" data-v-db34bf3f${_scopeId}>От: ${ssrInterpolate(report.reporter?.name || "Неизвестный")}</div></div>`);
 										});
 										_push(`<!--]--></div>`);
 									} else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
-								_push(`</div><div class="user-actions" data-v-7198bceb${_scopeId}>`);
+								_push(`</div><div class="user-actions" data-v-db34bf3f${_scopeId}>`);
 								_push(ssrRenderComponent(unref(Link), {
 									href: `/profile/${user.id}`,
 									class: "btn"
@@ -1444,17 +1517,17 @@ var _sfc_main$17 = {
 									}),
 									_: 2
 								}, _parent, _scopeId));
-								if (mode.value === "verification") _push(`<!--[--><button class="btn btn-approve"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-7198bceb${_scopeId}>${ssrInterpolate(processingUser.value === user.id ? "..." : "Одобрить")}</button><button class="btn btn-reject"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-7198bceb${_scopeId}> Отказать </button><!--]-->`);
-								else if (mode.value === "reports") _push(`<!--[--><button class="btn btn-dismiss"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-7198bceb${_scopeId}>${ssrInterpolate(processingUser.value === user.id ? "..." : "Игнорировать")}</button><button class="btn btn-danger"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-7198bceb${_scopeId}> Заблокировать </button><!--]-->`);
-								else _push(`<button class="btn"${ssrIncludeBooleanAttr(sendingMessage.value === user.id) ? " disabled" : ""} data-v-7198bceb${_scopeId}>${ssrInterpolate(sendingMessage.value === user.id ? "Отправка..." : "Сообщение")}</button>`);
+								if (mode.value === "verification") _push(`<!--[--><button class="btn btn-approve"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-db34bf3f${_scopeId}>${ssrInterpolate(processingUser.value === user.id ? "..." : "Одобрить")}</button><button class="btn btn-reject"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-db34bf3f${_scopeId}> Отказать </button><!--]-->`);
+								else if (mode.value === "reports") _push(`<!--[--><button class="btn btn-dismiss"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-db34bf3f${_scopeId}>${ssrInterpolate(processingUser.value === user.id ? "..." : "Игнорировать")}</button><button class="btn btn-danger"${ssrIncludeBooleanAttr(processingUser.value === user.id) ? " disabled" : ""} data-v-db34bf3f${_scopeId}> Заблокировать </button><!--]-->`);
+								else _push(`<button class="btn"${ssrIncludeBooleanAttr(sendingMessage.value === user.id) ? " disabled" : ""} data-v-db34bf3f${_scopeId}>${ssrInterpolate(sendingMessage.value === user.id ? "Отправка..." : "Сообщение")}</button>`);
 								_push(`</div></div>`);
 							});
 							_push(`<!--]-->`);
-							if (filteredUsers.value.length === 0) _push(`<div class="no-results" data-v-7198bceb${_scopeId}>${ssrInterpolate(mode.value === "verification" ? "Заявок на подтверждение нет" : mode.value === "reports" ? "Нет жалоб на пользователей" : "Пользователи не найдены")}</div>`);
+							if (filteredUsers.value.length === 0) _push(`<div class="no-results" data-v-db34bf3f${_scopeId}>${ssrInterpolate(mode.value === "verification" ? "Заявок на подтверждение нет" : mode.value === "reports" ? "Нет жалоб на пользователей" : "Пользователи не найдены")}</div>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						}
-						if (rejectingUserId.value) _push(`<div class="modal-overlay" data-v-7198bceb${_scopeId}><div class="modal" data-v-7198bceb${_scopeId}><h3 data-v-7198bceb${_scopeId}>Укажите причину отказа</h3><textarea placeholder="Причина отказа..." rows="4" data-v-7198bceb${_scopeId}>${ssrInterpolate(rejectionReason.value)}</textarea><div class="modal-actions" data-v-7198bceb${_scopeId}><button class="btn btn-cancel" data-v-7198bceb${_scopeId}>Отмена</button><button class="btn btn-reject"${ssrIncludeBooleanAttr(!rejectionReason.value.trim()) ? " disabled" : ""} data-v-7198bceb${_scopeId}> Отправить </button></div></div></div>`);
+						if (rejectingUserId.value) _push(`<div class="modal-overlay" data-v-db34bf3f${_scopeId}><div class="modal" data-v-db34bf3f${_scopeId}><h3 data-v-db34bf3f${_scopeId}>Укажите причину отказа</h3><textarea placeholder="Причина отказа..." rows="4" data-v-db34bf3f${_scopeId}>${ssrInterpolate(rejectionReason.value)}</textarea><div class="modal-actions" data-v-db34bf3f${_scopeId}><button class="btn btn-cancel" data-v-db34bf3f${_scopeId}>Отмена</button><button class="btn btn-reject"${ssrIncludeBooleanAttr(!rejectionReason.value.trim()) ? " disabled" : ""} data-v-db34bf3f${_scopeId}> Отправить </button></div></div></div>`);
 						else _push(`<!---->`);
 						_push(`</div>`);
 					} else return [createVNode("div", { class: "admin-container" }, [
@@ -1625,13 +1698,13 @@ var _sfc_main$17 = {
 		};
 	}
 };
-var _sfc_setup$17 = _sfc_main$17.setup;
-_sfc_main$17.setup = (props, ctx) => {
+var _sfc_setup$18 = _sfc_main$18.setup;
+_sfc_main$18.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Admin/Users.vue");
-	return _sfc_setup$17 ? _sfc_setup$17(props, ctx) : void 0;
+	return _sfc_setup$18 ? _sfc_setup$18(props, ctx) : void 0;
 };
-var Users_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$17, [["__scopeId", "data-v-7198bceb"]]);
+var Users_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$18, [["__scopeId", "data-v-db34bf3f"]]);
 //#endregion
 //#region resources/js/composables/useSkills.js
 function getSkillClass(skillName) {
@@ -1658,7 +1731,7 @@ function getSkillClass(skillName) {
 }
 //#endregion
 //#region resources/js/Components/SkillsSelector.vue
-var _sfc_main$16 = {
+var _sfc_main$17 = {
 	__name: "SkillsSelector",
 	__ssrInlineRender: true,
 	props: {
@@ -1674,6 +1747,7 @@ var _sfc_main$16 = {
 	emits: ["update:modelValue"],
 	setup(__props, { emit: __emit }) {
 		const props = __props;
+		useDarkMode();
 		const dropdownOpen = ref(false);
 		const selectedSkills = ref([...props.modelValue]);
 		watch(() => props.modelValue, (newVal) => {
@@ -1683,15 +1757,15 @@ var _sfc_main$16 = {
 			return selectedSkills.value.some((s) => s.id === skillId);
 		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(`<div${ssrRenderAttrs(_attrs)} data-v-197eee3a><div class="form-row" data-v-197eee3a><div class="form-group" data-v-197eee3a><div class="multiselect-container" data-v-197eee3a><div class="multiselect-trigger" data-v-197eee3a>`);
-			if (selectedSkills.value.length === 0) _push(`<span data-v-197eee3a>Выберите навыки</span>`);
-			else _push(`<span data-v-197eee3a>Выбрано: ${ssrInterpolate(selectedSkills.value.length)}</span>`);
-			_push(`<span class="arrow" data-v-197eee3a>▼</span></div>`);
+			_push(`<div${ssrRenderAttrs(_attrs)} data-v-0c399c5b><div class="form-row" data-v-0c399c5b><div class="form-group" data-v-0c399c5b><div class="multiselect-container" data-v-0c399c5b><div class="multiselect-trigger" data-v-0c399c5b>`);
+			if (selectedSkills.value.length === 0) _push(`<span data-v-0c399c5b>Выберите навыки</span>`);
+			else _push(`<span data-v-0c399c5b>Выбрано: ${ssrInterpolate(selectedSkills.value.length)}</span>`);
+			_push(`<span class="arrow" data-v-0c399c5b>▼</span></div>`);
 			if (dropdownOpen.value) {
-				_push(`<div class="multiselect-dropdown" data-v-197eee3a><!--[-->`);
+				_push(`<div class="multiselect-dropdown" data-v-0c399c5b><!--[-->`);
 				ssrRenderList(__props.skills, (skill) => {
-					_push(`<div class="${ssrRenderClass([{ selected: isSkillSelected(skill.id) }, "multiselect-option"])}" data-v-197eee3a><span class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-name"])}" data-v-197eee3a>${ssrInterpolate(skill.name)}</span>`);
-					if (isSkillSelected(skill.id)) _push(`<span class="check" data-v-197eee3a>✓</span>`);
+					_push(`<div class="${ssrRenderClass([{ selected: isSkillSelected(skill.id) }, "multiselect-option"])}" data-v-0c399c5b><span class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-name"])}" data-v-0c399c5b>${ssrInterpolate(skill.name)}</span>`);
+					if (isSkillSelected(skill.id)) _push(`<span class="check" data-v-0c399c5b>✓</span>`);
 					else _push(`<!---->`);
 					_push(`</div>`);
 				});
@@ -1699,9 +1773,9 @@ var _sfc_main$16 = {
 			} else _push(`<!---->`);
 			_push(`</div></div></div>`);
 			if (selectedSkills.value.length > 0) {
-				_push(`<div class="selected-skills" data-v-197eee3a><!--[-->`);
+				_push(`<div class="selected-skills" data-v-0c399c5b><!--[-->`);
 				ssrRenderList(selectedSkills.value, (skill) => {
-					_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-197eee3a><span class="skill-name" data-v-197eee3a>${ssrInterpolate(skill.name)}</span><div class="skill-level" data-v-197eee3a><select${ssrRenderAttr("value", skill.level)} data-v-197eee3a><option value="1" data-v-197eee3a>1</option><option value="2" data-v-197eee3a>2</option><option value="3" data-v-197eee3a>3</option><option value="4" data-v-197eee3a>4</option><option value="5" data-v-197eee3a>5</option></select></div><button type="button" class="remove-skill" data-v-197eee3a>×</button></div>`);
+					_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-0c399c5b><span class="skill-name" data-v-0c399c5b>${ssrInterpolate(skill.name)}</span><div class="skill-level" data-v-0c399c5b><select${ssrRenderAttr("value", skill.level)} data-v-0c399c5b><option value="1" data-v-0c399c5b>1</option><option value="2" data-v-0c399c5b>2</option><option value="3" data-v-0c399c5b>3</option><option value="4" data-v-0c399c5b>4</option><option value="5" data-v-0c399c5b>5</option></select></div><button type="button" class="remove-skill" data-v-0c399c5b>×</button></div>`);
 				});
 				_push(`<!--]--></div>`);
 			} else _push(`<!---->`);
@@ -1709,17 +1783,17 @@ var _sfc_main$16 = {
 		};
 	}
 };
-var _sfc_setup$16 = _sfc_main$16.setup;
-_sfc_main$16.setup = (props, ctx) => {
+var _sfc_setup$17 = _sfc_main$17.setup;
+_sfc_main$17.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/SkillsSelector.vue");
-	return _sfc_setup$16 ? _sfc_setup$16(props, ctx) : void 0;
+	return _sfc_setup$17 ? _sfc_setup$17(props, ctx) : void 0;
 };
-var SkillsSelector_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$16, [["__scopeId", "data-v-197eee3a"]]);
+var SkillsSelector_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$17, [["__scopeId", "data-v-0c399c5b"]]);
 //#endregion
 //#region resources/js/Pages/Auth/Auth.vue
 var Auth_exports = /* @__PURE__ */ __exportAll({ default: () => Auth_default });
-var _sfc_main$15 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
+var _sfc_main$16 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$22 }, {
 	__name: "Auth",
 	__ssrInlineRender: true,
 	props: {
@@ -1731,6 +1805,7 @@ var _sfc_main$15 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 	},
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		const mode = ref("login");
 		const currentStep = ref(1);
 		const loginError = ref("");
@@ -1780,100 +1855,116 @@ var _sfc_main$15 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: mode.value === "login" ? "Вход" : "Регистрация" }, null, _parent));
-			_push(`<div class="${ssrRenderClass([{ "register-mode": mode.value === "register" }, "Authblock"])}" data-v-3e054f62><div class="form-wrapper" data-v-3e054f62>`);
+			_push(`<div class="${ssrRenderClass([{ "register-mode": mode.value === "register" }, "Authblock"])}" data-v-08cb4a53><div class="form-wrapper" data-v-08cb4a53>`);
 			if (mode.value === "login") {
-				_push(`<form data-v-3e054f62><h1 data-v-3e054f62>Вход</h1>`);
-				if (_ctx.$page.props.errors.error) _push(`<div class="error-message global-error" data-v-3e054f62>${ssrInterpolate(_ctx.$page.props.errors.error)}</div>`);
+				_push(`<form data-v-08cb4a53><h1 data-v-08cb4a53>Вход</h1>`);
+				if (_ctx.$page.props.errors.error) _push(`<div class="error-message global-error" data-v-08cb4a53>${ssrInterpolate(_ctx.$page.props.errors.error)}</div>`);
 				else _push(`<!---->`);
-				_push(`<div class="login-content" data-v-3e054f62><div class="input-group" data-v-3e054f62><label data-v-3e054f62>Email</label><input type="email"${ssrRenderAttr("value", unref(loginForm).email)} placeholder="Введите email" required data-v-3e054f62></div><div class="input-group" data-v-3e054f62><label data-v-3e054f62>Пароль</label><input type="password"${ssrRenderAttr("value", unref(loginForm).password)} placeholder="Введите пароль" required data-v-3e054f62>`);
-				if (loginError.value) _push(`<div class="field-error" data-v-3e054f62>${ssrInterpolate(loginError.value)}</div>`);
+				_push(`<div class="login-content" data-v-08cb4a53><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Email</label><input type="email"${ssrRenderAttr("value", unref(loginForm).email)} placeholder="Введите email" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Пароль</label><input type="password"${ssrRenderAttr("value", unref(loginForm).password)} placeholder="Введите пароль" required data-v-08cb4a53>`);
+				if (loginError.value) _push(`<div class="field-error" data-v-08cb4a53>${ssrInterpolate(loginError.value)}</div>`);
 				else _push(`<!---->`);
-				_push(`</div></div><button type="submit"${ssrIncludeBooleanAttr(unref(loginForm).processing) ? " disabled" : ""} data-v-3e054f62>${ssrInterpolate(unref(loginForm).processing ? "Вход..." : "Войти")}</button><button type="button" class="switch-mode" data-v-3e054f62> Нет аккаунта? Зарегистрироваться </button><div class="oauth-divider" data-v-3e054f62><span data-v-3e054f62>Или</span></div><div class="oauth-buttons" data-v-3e054f62><a href="/auth/google/redirect" class="oauth-btn oauth-google" data-inertia="false" data-v-3e054f62><img src="/images/google.svg" alt="" data-v-3e054f62> Войти через Google </a><a href="/auth/github/redirect" class="oauth-btn oauth-github" data-inertia="false" data-v-3e054f62><img src="/images/github.svg" alt="" data-v-3e054f62> Войти через GitHub </a></div></form>`);
+				_push(`</div></div><button type="submit"${ssrIncludeBooleanAttr(unref(loginForm).processing) ? " disabled" : ""} data-v-08cb4a53>${ssrInterpolate(unref(loginForm).processing ? "Вход..." : "Войти")}</button><button type="button" class="switch-mode" data-v-08cb4a53> Нет аккаунта? Зарегистрироваться </button><div class="oauth-divider" data-v-08cb4a53><span data-v-08cb4a53>Или</span></div><div class="oauth-buttons" data-v-08cb4a53><a href="/auth/google/redirect" class="oauth-btn oauth-google" data-inertia="false" data-v-08cb4a53><img src="/images/google.svg" alt="" data-v-08cb4a53> Войти через Google </a><a href="/auth/github/redirect" class="oauth-btn oauth-github" data-inertia="false" data-v-08cb4a53><img src="/images/github.svg" alt="" data-v-08cb4a53> Войти через GitHub </a></div></form>`);
 			} else {
-				_push(`<form class="register-form" data-v-3e054f62><h1 data-v-3e054f62>Регистрация</h1><div class="step-indicator" data-v-3e054f62><!--[-->`);
+				_push(`<form class="register-form" data-v-08cb4a53><h1 data-v-08cb4a53>Регистрация</h1><div class="step-indicator" data-v-08cb4a53><!--[-->`);
 				ssrRenderList(3, (step) => {
 					_push(`<div class="${ssrRenderClass([{
 						active: currentStep.value === step,
 						completed: currentStep.value > step
-					}, "step-dot"])}" data-v-3e054f62></div>`);
+					}, "step-dot"])}" data-v-08cb4a53></div>`);
 				});
-				_push(`<!--]--></div><div class="step-content" data-v-3e054f62>`);
+				_push(`<!--]--></div><div class="step-content" data-v-08cb4a53>`);
 				if (currentStep.value === 1) {
-					_push(`<div class="step step-1" data-v-3e054f62><div class="input-group" data-v-3e054f62><label data-v-3e054f62>Имя</label><input type="text"${ssrRenderAttr("value", registerData.name)} placeholder="Введите имя" required data-v-3e054f62></div><div class="input-group" data-v-3e054f62><label data-v-3e054f62>Email</label><input type="email"${ssrRenderAttr("value", registerData.email)} placeholder="Введите email" required data-v-3e054f62></div><div class="input-group" data-v-3e054f62><label data-v-3e054f62>Пароль</label><input type="password"${ssrRenderAttr("value", registerData.password)} placeholder="Минимум 8 символов" required data-v-3e054f62></div><div class="input-group" data-v-3e054f62><label data-v-3e054f62>Подтверждение пароля</label><input type="password"${ssrRenderAttr("value", registerData.password_confirmation)} placeholder="Повторите пароль" required data-v-3e054f62></div>`);
-					if (validationErrors.step1) _push(`<div class="error-message" data-v-3e054f62>${ssrInterpolate(validationErrors.step1)}</div>`);
+					_push(`<div class="step step-1" data-v-08cb4a53><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Имя</label><input type="text"${ssrRenderAttr("value", registerData.name)} placeholder="Введите имя" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Email</label><input type="email"${ssrRenderAttr("value", registerData.email)} placeholder="Введите email" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Пароль</label><input type="password"${ssrRenderAttr("value", registerData.password)} placeholder="Минимум 8 символов" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Подтверждение пароля</label><input type="password"${ssrRenderAttr("value", registerData.password_confirmation)} placeholder="Повторите пароль" required data-v-08cb4a53></div>`);
+					if (validationErrors.step1) _push(`<div class="error-message" data-v-08cb4a53>${ssrInterpolate(validationErrors.step1)}</div>`);
 					else _push(`<!---->`);
 					if (registerErrors.value.length > 0) {
-						_push(`<div class="error-message" data-v-3e054f62><!--[-->`);
+						_push(`<div class="error-message" data-v-08cb4a53><!--[-->`);
 						ssrRenderList(registerErrors.value, (err) => {
-							_push(`<div data-v-3e054f62>${ssrInterpolate(err)}</div>`);
+							_push(`<div data-v-08cb4a53>${ssrInterpolate(err)}</div>`);
 						});
 						_push(`<!--]--></div>`);
 					} else _push(`<!---->`);
 					_push(`</div>`);
 				} else if (currentStep.value === 2) {
-					_push(`<div class="step step-2" data-v-3e054f62><p class="optional-notice" data-v-3e054f62>Опционально — вы сможете поменять данные в настройках личного кабинета</p><div class="avatar-upload" data-v-3e054f62><label data-v-3e054f62>Аватар</label><div class="avatar-preview" data-v-3e054f62>`);
-					if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)} alt="Avatar preview" data-v-3e054f62>`);
-					else _push(`<span class="avatar-placeholder" data-v-3e054f62>Нажмите для загрузки</span>`);
-					_push(`</div><input type="file" accept="image/*" hidden data-v-3e054f62>`);
-					if (avatarPreview.value) _push(`<button type="button" class="remove-avatar" data-v-3e054f62>Удалить</button>`);
+					_push(`<div class="step step-2" data-v-08cb4a53><p class="optional-notice" data-v-08cb4a53>Опционально — вы сможете поменять данные в настройках личного кабинета</p><div class="avatar-upload" data-v-08cb4a53><label data-v-08cb4a53>Аватар</label><div class="avatar-preview" data-v-08cb4a53>`);
+					if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)} alt="Avatar preview" data-v-08cb4a53>`);
+					else _push(`<span class="avatar-placeholder" data-v-08cb4a53>Нажмите для загрузки</span>`);
+					_push(`</div><input type="file" accept="image/*" hidden data-v-08cb4a53>`);
+					if (avatarPreview.value) _push(`<button type="button" class="remove-avatar" data-v-08cb4a53>Удалить</button>`);
 					else _push(`<!---->`);
-					_push(`</div><div class="form-group" data-v-3e054f62><label data-v-3e054f62>О себе</label><textarea placeholder="Расскажите о себе..." rows="4" data-v-3e054f62>${ssrInterpolate(registerData.bio)}</textarea></div><div class="form-group" data-v-3e054f62><div class="label-with-tooltip" data-v-3e054f62><label data-v-3e054f62>Навыки</label><div class="tooltip-trigger" data-v-3e054f62><span class="help-icon" data-v-3e054f62>?</span><div class="tooltip-content" data-v-3e054f62> Выберите навыки, которыми вы владеете. Это поможет работодателям найти вас по соответствующим вакансиям. </div></div></div>`);
+					_push(`</div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>О себе</label><textarea placeholder="Расскажите о себе..." rows="4" data-v-08cb4a53>${ssrInterpolate(registerData.bio)}</textarea></div><div class="form-group" data-v-08cb4a53><div class="label-with-tooltip" data-v-08cb4a53><label data-v-08cb4a53>Навыки</label><div class="tooltip-trigger" data-v-08cb4a53><span class="help-icon" data-v-08cb4a53>?</span><div class="tooltip-content" data-v-08cb4a53> Выберите навыки, которыми вы владеете. Это поможет работодателям найти вас по соответствующим вакансиям. </div></div></div>`);
 					_push(ssrRenderComponent(SkillsSelector_default, {
 						modelValue: registerData.skills,
 						"onUpdate:modelValue": ($event) => registerData.skills = $event,
 						skills: __props.skills
 					}, null, _parent));
 					if (registerData.skills.length > 0) {
-						_push(`<div class="selected-skills" data-v-3e054f62><!--[-->`);
+						_push(`<div class="selected-skills" data-v-08cb4a53><!--[-->`);
 						ssrRenderList(registerData.skills, (skill) => {
-							_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-3e054f62><span class="skill-name" data-v-3e054f62>${ssrInterpolate(skill.name)}</span><button type="button" class="remove-skill" data-v-3e054f62>×</button></div>`);
+							_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-08cb4a53><span class="skill-name" data-v-08cb4a53>${ssrInterpolate(skill.name)}</span><button type="button" class="remove-skill" data-v-08cb4a53>×</button></div>`);
 						});
 						_push(`<!--]--></div>`);
 					} else _push(`<!---->`);
 					_push(`</div></div>`);
 				} else if (currentStep.value === 3) {
-					_push(`<div class="step step-3" data-v-3e054f62><p class="optional-notice" data-v-3e054f62>Опционально — повысьте шансы на трудоустройство</p><div class="form-group" data-v-3e054f62><label data-v-3e054f62>Телефон</label><div class="phone-input-wrapper" data-v-3e054f62><input type="tel"${ssrRenderAttr("value", registerData.phone)} placeholder="+7 (___) ___-__-__" data-v-3e054f62><span class="phone-hint" data-v-3e054f62>Пригодится для двухфакторной аутентификации</span></div></div><div class="form-group" data-v-3e054f62><label data-v-3e054f62>Резюме</label><div class="file-upload" data-v-3e054f62>`);
-					if (registerData.resume) _push(`<span data-v-3e054f62>${ssrInterpolate(registerData.resume.name)}</span>`);
-					else _push(`<span data-v-3e054f62>Нажмите для загрузки PDF, DOC, DOCX</span>`);
-					_push(`</div><input type="file" accept=".pdf,.doc,.docx" hidden data-v-3e054f62></div><div class="form-group" data-v-3e054f62><label data-v-3e054f62>Паспорт</label><div class="file-upload" data-v-3e054f62>`);
-					if (registerData.passport) _push(`<span data-v-3e054f62>${ssrInterpolate(registerData.passport.name)}</span>`);
-					else _push(`<span data-v-3e054f62>Загрузите скан паспорта или сфоткайте разворот</span>`);
-					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-3e054f62></div><div class="form-group" data-v-3e054f62><label data-v-3e054f62>Диплом/Сертификаты</label><div class="file-upload" data-v-3e054f62>`);
-					if (registerData.certificates) _push(`<span data-v-3e054f62>${ssrInterpolate(registerData.certificates.name)}</span>`);
-					else _push(`<span data-v-3e054f62>Загрузите документы об образовании</span>`);
-					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-3e054f62><span class="phone-hint" data-v-3e054f62>(Вы сможете найти их в настройках в вкладке Мои файлы) </span></div><div class="checkbox-group" data-v-3e054f62><label class="checkbox-label" data-v-3e054f62><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.email_confirmed) ? ssrLooseContain(registerData.email_confirmed, null) : registerData.email_confirmed) ? " checked" : ""} data-v-3e054f62><span data-v-3e054f62>Подтвердить email</span></label></div><div class="checkbox-group" data-v-3e054f62><label class="checkbox-label verification-label" data-v-3e054f62><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.request_verification) ? ssrLooseContain(registerData.request_verification, null) : registerData.request_verification) ? " checked" : ""} data-v-3e054f62><span data-v-3e054f62>Запросить верификацию аккаунта</span><div class="tooltip-trigger" data-v-3e054f62><span class="help-icon" data-v-3e054f62>?</span><div class="tooltip-content" data-v-3e054f62> Верификация добавит галочку <img src="/images/verified.svg" alt="" data-v-3e054f62> рядом с вашим именем, что повысит доверие работодателей. </div></div></label></div></div>`);
+					_push(`<div class="step step-3" data-v-08cb4a53><p class="optional-notice" data-v-08cb4a53>Опционально — повысьте шансы на трудоустройство</p><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Телефон</label><div class="phone-input-wrapper" data-v-08cb4a53><input type="tel"${ssrRenderAttr("value", registerData.phone)} placeholder="+7 (___) ___-__-__" data-v-08cb4a53><span class="phone-hint" data-v-08cb4a53>Пригодится для двухфакторной аутентификации</span></div></div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Резюме</label><div class="file-upload" data-v-08cb4a53>`);
+					if (registerData.resume) _push(`<span data-v-08cb4a53>${ssrInterpolate(registerData.resume.name)}</span>`);
+					else _push(`<span data-v-08cb4a53>Нажмите для загрузки PDF, DOC, DOCX</span>`);
+					_push(`</div><input type="file" accept=".pdf,.doc,.docx" hidden data-v-08cb4a53></div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Паспорт</label><div class="file-upload" data-v-08cb4a53>`);
+					if (registerData.passport) _push(`<span data-v-08cb4a53>${ssrInterpolate(registerData.passport.name)}</span>`);
+					else _push(`<span data-v-08cb4a53>Загрузите скан паспорта или сфоткайте разворот</span>`);
+					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-08cb4a53></div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Диплом/Сертификаты</label><div class="file-upload" data-v-08cb4a53>`);
+					if (registerData.certificates) _push(`<span data-v-08cb4a53>${ssrInterpolate(registerData.certificates.name)}</span>`);
+					else _push(`<span data-v-08cb4a53>Загрузите документы об образовании</span>`);
+					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-08cb4a53><span class="phone-hint" data-v-08cb4a53>(Вы сможете найти их в настройках в вкладке Мои файлы) </span></div><div class="checkbox-group" data-v-08cb4a53><label class="checkbox-label" data-v-08cb4a53><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.email_confirmed) ? ssrLooseContain(registerData.email_confirmed, null) : registerData.email_confirmed) ? " checked" : ""} data-v-08cb4a53><span data-v-08cb4a53>Подтвердить email</span></label></div><div class="checkbox-group" data-v-08cb4a53><label class="checkbox-label verification-label" data-v-08cb4a53><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.request_verification) ? ssrLooseContain(registerData.request_verification, null) : registerData.request_verification) ? " checked" : ""} data-v-08cb4a53><span data-v-08cb4a53>Запросить верификацию аккаунта</span><div class="tooltip-trigger" data-v-08cb4a53><span class="help-icon" data-v-08cb4a53>?</span><div class="tooltip-content" data-v-08cb4a53> Верификация добавит галочку <img src="/images/verified.svg" alt="" data-v-08cb4a53> рядом с вашим именем, что повысит доверие работодателей. </div></div></label></div></div>`);
 				} else _push(`<!---->`);
-				_push(`</div><div class="form-actions" data-v-3e054f62>`);
-				if (currentStep.value > 1) _push(`<button type="button" class="btn-back" data-v-3e054f62> Назад </button>`);
+				_push(`</div><div class="form-actions" data-v-08cb4a53>`);
+				if (currentStep.value > 1) _push(`<button type="button" class="btn-back" data-v-08cb4a53> Назад </button>`);
 				else _push(`<!---->`);
-				if (currentStep.value < 3) _push(`<button type="button" class="btn-next" data-v-3e054f62> Далее </button>`);
-				else _push(`<button type="submit"${ssrIncludeBooleanAttr(unref(registerForm).processing) ? " disabled" : ""} class="btn-submit" data-v-3e054f62>${ssrInterpolate(unref(registerForm).processing ? "Регистрация..." : "Зарегистрироваться")}</button>`);
-				_push(`</div><button type="button" class="switch-mode" data-v-3e054f62> Уже есть аккаунт? Войти </button></form>`);
+				if (currentStep.value < 3) _push(`<button type="button" class="btn-next" data-v-08cb4a53> Далее </button>`);
+				else _push(`<button type="submit"${ssrIncludeBooleanAttr(unref(registerForm).processing) ? " disabled" : ""} class="btn-submit" data-v-08cb4a53>${ssrInterpolate(unref(registerForm).processing ? "Регистрация..." : "Зарегистрироваться")}</button>`);
+				_push(`</div><button type="button" class="switch-mode" data-v-08cb4a53> Уже есть аккаунт? Войти </button></form>`);
 			}
 			_push(`</div></div><!--]-->`);
 		};
 	}
 });
-var _sfc_setup$15 = _sfc_main$15.setup;
-_sfc_main$15.setup = (props, ctx) => {
+var _sfc_setup$16 = _sfc_main$16.setup;
+_sfc_main$16.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Auth/Auth.vue");
-	return _sfc_setup$15 ? _sfc_setup$15(props, ctx) : void 0;
+	return _sfc_setup$16 ? _sfc_setup$16(props, ctx) : void 0;
 };
-var Auth_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$15, [["__scopeId", "data-v-3e054f62"]]);
+var Auth_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$16, [["__scopeId", "data-v-08cb4a53"]]);
 //#endregion
 //#region resources/js/Pages/Balance/Index.vue
-var Index_exports$1 = /* @__PURE__ */ __exportAll({ default: () => Index_default$1 });
-var _sfc_main$14 = {
+var Index_exports$2 = /* @__PURE__ */ __exportAll({ default: () => Index_default$2 });
+var _sfc_main$15 = {
 	__name: "Index",
 	__ssrInlineRender: true,
-	props: { balance: {
-		type: [Number, String],
-		default: 0
-	} },
+	props: {
+		balance: {
+			type: [Number, String],
+			default: 0
+		},
+		pendingTransactions: {
+			type: Array,
+			default: () => []
+		},
+		transactions: {
+			type: Object,
+			default: () => ({
+				data: [],
+				current_page: 1,
+				last_page: 1
+			})
+		}
+	},
 	setup(__props) {
+		const props = __props;
+		useDarkMode();
 		const page = usePage();
-		computed(() => page.props.auth?.user || page.props.user || null);
+		const authUser = computed(() => page.props.auth?.user || page.props.authUser || null);
 		const quickAmounts = [
 			100,
 			300,
@@ -1891,6 +1982,7 @@ var _sfc_main$14 = {
 			5e3
 		];
 		const isWithdrawal = ref(false);
+		const filter = ref("all");
 		const form = useForm({ amount: "" });
 		const submitBalance = () => {
 			const url = isWithdrawal.value ? "/balance/withdraw" : "/balance/add";
@@ -1901,12 +1993,67 @@ var _sfc_main$14 = {
 				}
 			});
 		};
+		const getDaysRemaining = (transaction) => {
+			if (!transaction.completed_at) return 7;
+			const diffTime = new Date(transaction.completed_at) - /* @__PURE__ */ new Date();
+			const diffDays = Math.ceil(diffTime / (1e3 * 60 * 60 * 24));
+			return Math.max(0, 7 - diffDays);
+		};
+		const filteredTransactions = computed(() => {
+			if (!props.transactions || !props.transactions.data) return [];
+			return props.transactions.data.filter((transaction) => {
+				if (filter.value === "all") return true;
+				if (filter.value === "incoming") return transaction.to_user_id === authUser.value?.id;
+				if (filter.value === "outgoing") return transaction.from_user_id === authUser.value?.id;
+				return true;
+			});
+		});
+		const isIncoming = (transaction) => {
+			return transaction.to_user_id === authUser.value?.id;
+		};
+		const isOutgoing = (transaction) => {
+			return transaction.from_user_id === authUser.value?.id;
+		};
+		const getTransactionIcon = (transaction) => {
+			if (transaction.status === "pending") return "⏳";
+			if (transaction.status === "cancelled") return "❌";
+			if (transaction.type === "deposit") return "💰";
+			if (transaction.type === "withdrawal") return "💸";
+			if (transaction.type === "payment") return "💳";
+			return "💱";
+		};
+		const getTransactionType = (transaction) => {
+			if (transaction.status === "pending") return "Ожидание зачисления";
+			if (transaction.status === "cancelled") return "Отменено";
+			if (transaction.type === "deposit") return "Пополнение баланса";
+			if (transaction.type === "withdrawal") return "Снятие средств";
+			if (transaction.type === "payment") return transaction.description || "Оплата";
+			return transaction.description || "Перевод";
+		};
+		const getTransactionParty = (transaction) => {
+			if (transaction.type === "deposit" || transaction.type === "withdrawal") return null;
+			if (isIncoming(transaction) && transaction.from_user) return `От: ${transaction.from_user.name}`;
+			if (isOutgoing(transaction) && transaction.to_user) return `Кому: ${transaction.to_user.name}`;
+			return null;
+		};
+		const formatDate = (dateString) => {
+			return new Date(dateString).toLocaleDateString("ru-RU", {
+				day: "numeric",
+				month: "short",
+				year: "numeric",
+				hour: "2-digit",
+				minute: "2-digit"
+			});
+		};
+		const loadPage = (pageNum) => {
+			window.location.href = `/balance?page=${pageNum}`;
+		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(ssrRenderComponent(unref(Head), { title: "Пополнение баланса" }, null, _parent, _scopeId));
-						_push(`<div class="balance-page" data-v-fee6bedc${_scopeId}><div class="balance-container" data-v-fee6bedc${_scopeId}><div class="back-link" data-v-fee6bedc${_scopeId}>`);
+						_push(ssrRenderComponent(unref(Head), { title: "Баланс" }, null, _parent, _scopeId));
+						_push(`<div class="balance-page" data-v-02d1a703${_scopeId}><div class="back-link" data-v-02d1a703${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "#",
 							onclick: "history.back(); return false;"
@@ -1917,93 +2064,220 @@ var _sfc_main$14 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="balance-card" data-v-fee6bedc${_scopeId}><h1 data-v-fee6bedc${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Снятие средств" : "Пополнение баланса")}</h1><div class="current-balance" data-v-fee6bedc${_scopeId}><span class="label" data-v-fee6bedc${_scopeId}>Текущий баланс:</span><span class="amount" data-v-fee6bedc${_scopeId}>${ssrInterpolate(Number(__props.balance))} ₽</span></div><div class="type-toggle" data-v-fee6bedc${_scopeId}><button class="${ssrRenderClass({ active: !isWithdrawal.value })}" data-v-fee6bedc${_scopeId}> Пополнение </button><button class="${ssrRenderClass({ active: isWithdrawal.value })}"${ssrIncludeBooleanAttr(Number(__props.balance) <= 0) ? " disabled" : ""} data-v-fee6bedc${_scopeId}> Снятие </button></div><form class="balance-form" data-v-fee6bedc${_scopeId}><div class="form-group" data-v-fee6bedc${_scopeId}><label for="amount" data-v-fee6bedc${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Сумма снятия:" : "Сумма пополнения:")}</label><input type="number" name="amount" id="amount"${ssrRenderAttr("value", unref(form).amount)}${ssrRenderAttr("min", 1)}${ssrRenderAttr("max", isWithdrawal.value ? Number(__props.balance) : 1e5)} required placeholder="Введите сумму" data-v-fee6bedc${_scopeId}></div>`);
+						_push(`</div><div class="balance-container" data-v-02d1a703${_scopeId}>`);
+						if (__props.pendingTransactions && __props.pendingTransactions.length > 0) {
+							_push(`<div class="pending-section" data-v-02d1a703${_scopeId}><h2 data-v-02d1a703${_scopeId}>Ожидающие зачисления</h2><div class="transactions-list" data-v-02d1a703${_scopeId}><!--[-->`);
+							ssrRenderList(__props.pendingTransactions, (transaction) => {
+								_push(`<div class="transaction-item pending" data-v-02d1a703${_scopeId}><div class="transaction-icon" data-v-02d1a703${_scopeId}>⏳</div><div class="transaction-details" data-v-02d1a703${_scopeId}><div class="transaction-type" data-v-02d1a703${_scopeId}>${ssrInterpolate(transaction.type === "payment" ? "Оплата за работу" : transaction.description)}</div>`);
+								if (transaction.from_user) _push(`<div class="transaction-from" data-v-02d1a703${_scopeId}> От: ${ssrInterpolate(transaction.from_user.name)}</div>`);
+								else _push(`<!---->`);
+								if (transaction.application?.vacancy) _push(`<div class="transaction-vacancy" data-v-02d1a703${_scopeId}> Вакансия: ${ssrInterpolate(transaction.application.vacancy.position)}</div>`);
+								else _push(`<!---->`);
+								_push(`<div class="transaction-status" data-v-02d1a703${_scopeId}> Ожидание: ${ssrInterpolate(getDaysRemaining(transaction))} дн. </div></div><div class="transaction-amount" data-v-02d1a703${_scopeId}>+${ssrInterpolate(Number(transaction.amount).toFixed(2))} ₽</div></div>`);
+							});
+							_push(`<!--]--></div></div>`);
+						} else _push(`<!---->`);
+						_push(`<div class="history-section" data-v-02d1a703${_scopeId}><h1 data-v-02d1a703${_scopeId}>История транзакций</h1><div class="filter-tabs" data-v-02d1a703${_scopeId}><button class="${ssrRenderClass({ active: filter.value === "all" })}" data-v-02d1a703${_scopeId}> Все </button><button class="${ssrRenderClass({ active: filter.value === "incoming" })}" data-v-02d1a703${_scopeId}> Входящие </button><button class="${ssrRenderClass({ active: filter.value === "outgoing" })}" data-v-02d1a703${_scopeId}> Исходящие </button></div>`);
+						if (filteredTransactions.value.length > 0) {
+							_push(`<div class="transactions-list" data-v-02d1a703${_scopeId}><!--[-->`);
+							ssrRenderList(filteredTransactions.value, (transaction) => {
+								_push(`<div class="${ssrRenderClass([{
+									pending: transaction.status === "pending",
+									cancelled: transaction.status === "cancelled"
+								}, "transaction-item"])}" data-v-02d1a703${_scopeId}><div class="transaction-icon" data-v-02d1a703${_scopeId}>${ssrInterpolate(getTransactionIcon(transaction))}</div><div class="transaction-details" data-v-02d1a703${_scopeId}><div class="transaction-type" data-v-02d1a703${_scopeId}>${ssrInterpolate(getTransactionType(transaction))}</div>`);
+								if (getTransactionParty(transaction)) _push(`<div class="transaction-party" data-v-02d1a703${_scopeId}>${ssrInterpolate(getTransactionParty(transaction))}</div>`);
+								else _push(`<!---->`);
+								_push(`<div class="transaction-date" data-v-02d1a703${_scopeId}>${ssrInterpolate(formatDate(transaction.created_at))}</div></div><div class="${ssrRenderClass([{
+									incoming: isIncoming(transaction),
+									outgoing: isOutgoing(transaction)
+								}, "transaction-amount"])}" data-v-02d1a703${_scopeId}>${ssrInterpolate(isIncoming(transaction) ? "+" : "-")}${ssrInterpolate(Number(transaction.amount).toFixed(2))} ₽ </div></div>`);
+							});
+							_push(`<!--]--></div>`);
+						} else _push(`<div class="no-transactions" data-v-02d1a703${_scopeId}> Транзакций пока нет </div>`);
+						if (__props.transactions && __props.transactions.last_page > 1) {
+							_push(`<div class="pagination" data-v-02d1a703${_scopeId}>`);
+							if (__props.transactions.current_page > 1) _push(`<button class="pagination-btn" data-v-02d1a703${_scopeId}> ← Назад </button>`);
+							else _push(`<!---->`);
+							_push(`<span class="pagination-info" data-v-02d1a703${_scopeId}> Страница ${ssrInterpolate(__props.transactions.current_page)} из ${ssrInterpolate(__props.transactions.last_page)}</span>`);
+							if (__props.transactions.current_page < __props.transactions.last_page) _push(`<button class="pagination-btn" data-v-02d1a703${_scopeId}> Вперёд → </button>`);
+							else _push(`<!---->`);
+							_push(`</div>`);
+						} else _push(`<!---->`);
+						_push(`</div><div class="balance-card" data-v-02d1a703${_scopeId}><h1 data-v-02d1a703${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Снятие средств" : "Пополнение баланса")}</h1><div class="current-balance" data-v-02d1a703${_scopeId}><span class="label" data-v-02d1a703${_scopeId}>Текущий баланс:</span><span class="amount" data-v-02d1a703${_scopeId}>${ssrInterpolate(Number(__props.balance))} ₽</span></div><div class="type-toggle" data-v-02d1a703${_scopeId}><button class="${ssrRenderClass({ active: !isWithdrawal.value })}" data-v-02d1a703${_scopeId}> Пополнение </button><button class="${ssrRenderClass({ active: isWithdrawal.value })}"${ssrIncludeBooleanAttr(Number(__props.balance) <= 0) ? " disabled" : ""} data-v-02d1a703${_scopeId}> Снятие </button></div><form class="balance-form" data-v-02d1a703${_scopeId}><div class="form-group" data-v-02d1a703${_scopeId}><label for="amount" data-v-02d1a703${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Сумма снятия:" : "Сумма пополнения:")}</label><input type="number" name="amount" id="amount"${ssrRenderAttr("value", unref(form).amount)}${ssrRenderAttr("min", 1)}${ssrRenderAttr("max", isWithdrawal.value ? Number(__props.balance) : 1e5)} required placeholder="Введите сумму" data-v-02d1a703${_scopeId}></div>`);
 						if (!isWithdrawal.value) {
-							_push(`<div class="quick-amounts" data-v-fee6bedc${_scopeId}><!--[-->`);
+							_push(`<div class="quick-amounts" data-v-02d1a703${_scopeId}><!--[-->`);
 							ssrRenderList(quickAmounts, (amount) => {
-								_push(`<button type="button" class="${ssrRenderClass({ active: unref(form).amount === amount })}" data-v-fee6bedc${_scopeId}>${ssrInterpolate(amount)} ₽ </button>`);
+								_push(`<button type="button" class="${ssrRenderClass({ active: unref(form).amount === amount })}" data-v-02d1a703${_scopeId}>${ssrInterpolate(amount)} ₽ </button>`);
 							});
 							_push(`<!--]--></div>`);
 						} else {
-							_push(`<div class="quick-amounts" data-v-fee6bedc${_scopeId}><!--[-->`);
+							_push(`<div class="quick-amounts" data-v-02d1a703${_scopeId}><!--[-->`);
 							ssrRenderList(withdrawalAmounts, (amount) => {
-								_push(`<button type="button" class="${ssrRenderClass({ active: unref(form).amount === amount })}" data-v-fee6bedc${_scopeId}>${ssrInterpolate(amount)} ₽ </button>`);
+								_push(`<button type="button" class="${ssrRenderClass({ active: unref(form).amount === amount })}" data-v-02d1a703${_scopeId}>${ssrInterpolate(amount)} ₽ </button>`);
 							});
 							_push(`<!--]--></div>`);
 						}
-						_push(`<button type="submit" class="btn-submit"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-fee6bedc${_scopeId}>${ssrInterpolate(unref(form).processing ? isWithdrawal.value ? "Снятие..." : "Пополнение..." : isWithdrawal.value ? "Снять средства" : "Пополнить баланс")}</button></form></div></div></div>`);
-					} else return [createVNode(unref(Head), { title: "Пополнение баланса" }), createVNode("div", { class: "balance-page" }, [createVNode("div", { class: "balance-container" }, [createVNode("div", { class: "back-link" }, [createVNode(unref(Link), {
+						_push(`<button type="submit" class="btn-submit"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-02d1a703${_scopeId}>${ssrInterpolate(unref(form).processing ? isWithdrawal.value ? "Снятие..." : "Пополнение..." : isWithdrawal.value ? "Снять средства" : "Пополнить баланс")}</button></form></div></div></div>`);
+					} else return [createVNode(unref(Head), { title: "Баланс" }), createVNode("div", { class: "balance-page" }, [createVNode("div", { class: "back-link" }, [createVNode(unref(Link), {
 						href: "#",
 						onclick: "history.back(); return false;"
 					}, {
 						default: withCtx(() => [createTextVNode(" ← Назад ")]),
 						_: 1
-					})]), createVNode("div", { class: "balance-card" }, [
-						createVNode("h1", null, toDisplayString(isWithdrawal.value ? "Снятие средств" : "Пополнение баланса"), 1),
-						createVNode("div", { class: "current-balance" }, [createVNode("span", { class: "label" }, "Текущий баланс:"), createVNode("span", { class: "amount" }, toDisplayString(Number(__props.balance)) + " ₽", 1)]),
-						createVNode("div", { class: "type-toggle" }, [createVNode("button", {
-							class: { active: !isWithdrawal.value },
-							onClick: ($event) => isWithdrawal.value = false
-						}, " Пополнение ", 10, ["onClick"]), createVNode("button", {
-							class: { active: isWithdrawal.value },
-							onClick: ($event) => isWithdrawal.value = true,
-							disabled: Number(__props.balance) <= 0
-						}, " Снятие ", 10, ["onClick", "disabled"])]),
-						createVNode("form", {
-							onSubmit: withModifiers(submitBalance, ["prevent"]),
-							class: "balance-form"
-						}, [
-							createVNode("div", { class: "form-group" }, [createVNode("label", { for: "amount" }, toDisplayString(isWithdrawal.value ? "Сумма снятия:" : "Сумма пополнения:"), 1), withDirectives(createVNode("input", {
-								type: "number",
-								name: "amount",
-								id: "amount",
-								"onUpdate:modelValue": ($event) => unref(form).amount = $event,
-								min: 1,
-								max: isWithdrawal.value ? Number(__props.balance) : 1e5,
-								required: "",
-								placeholder: "Введите сумму"
-							}, null, 8, ["onUpdate:modelValue", "max"]), [[vModelText, unref(form).amount]])]),
-							!isWithdrawal.value ? (openBlock(), createBlock("div", {
+					})]), createVNode("div", { class: "balance-container" }, [
+						__props.pendingTransactions && __props.pendingTransactions.length > 0 ? (openBlock(), createBlock("div", {
+							key: 0,
+							class: "pending-section"
+						}, [createVNode("h2", null, "Ожидающие зачисления"), createVNode("div", { class: "transactions-list" }, [(openBlock(true), createBlock(Fragment, null, renderList(__props.pendingTransactions, (transaction) => {
+							return openBlock(), createBlock("div", {
+								key: transaction.id,
+								class: "transaction-item pending"
+							}, [
+								createVNode("div", { class: "transaction-icon" }, "⏳"),
+								createVNode("div", { class: "transaction-details" }, [
+									createVNode("div", { class: "transaction-type" }, toDisplayString(transaction.type === "payment" ? "Оплата за работу" : transaction.description), 1),
+									transaction.from_user ? (openBlock(), createBlock("div", {
+										key: 0,
+										class: "transaction-from"
+									}, " От: " + toDisplayString(transaction.from_user.name), 1)) : createCommentVNode("", true),
+									transaction.application?.vacancy ? (openBlock(), createBlock("div", {
+										key: 1,
+										class: "transaction-vacancy"
+									}, " Вакансия: " + toDisplayString(transaction.application.vacancy.position), 1)) : createCommentVNode("", true),
+									createVNode("div", { class: "transaction-status" }, " Ожидание: " + toDisplayString(getDaysRemaining(transaction)) + " дн. ", 1)
+								]),
+								createVNode("div", { class: "transaction-amount" }, "+" + toDisplayString(Number(transaction.amount).toFixed(2)) + " ₽", 1)
+							]);
+						}), 128))])])) : createCommentVNode("", true),
+						createVNode("div", { class: "history-section" }, [
+							createVNode("h1", null, "История транзакций"),
+							createVNode("div", { class: "filter-tabs" }, [
+								createVNode("button", {
+									class: { active: filter.value === "all" },
+									onClick: ($event) => filter.value = "all"
+								}, " Все ", 10, ["onClick"]),
+								createVNode("button", {
+									class: { active: filter.value === "incoming" },
+									onClick: ($event) => filter.value = "incoming"
+								}, " Входящие ", 10, ["onClick"]),
+								createVNode("button", {
+									class: { active: filter.value === "outgoing" },
+									onClick: ($event) => filter.value = "outgoing"
+								}, " Исходящие ", 10, ["onClick"])
+							]),
+							filteredTransactions.value.length > 0 ? (openBlock(), createBlock("div", {
 								key: 0,
-								class: "quick-amounts"
-							}, [(openBlock(), createBlock(Fragment, null, renderList(quickAmounts, (amount) => {
-								return createVNode("button", {
-									type: "button",
-									key: amount,
-									onClick: ($event) => unref(form).amount = amount,
-									class: { active: unref(form).amount === amount }
-								}, toDisplayString(amount) + " ₽ ", 11, ["onClick"]);
-							}), 64))])) : (openBlock(), createBlock("div", {
+								class: "transactions-list"
+							}, [(openBlock(true), createBlock(Fragment, null, renderList(filteredTransactions.value, (transaction) => {
+								return openBlock(), createBlock("div", {
+									key: transaction.id,
+									class: ["transaction-item", {
+										pending: transaction.status === "pending",
+										cancelled: transaction.status === "cancelled"
+									}]
+								}, [
+									createVNode("div", { class: "transaction-icon" }, toDisplayString(getTransactionIcon(transaction)), 1),
+									createVNode("div", { class: "transaction-details" }, [
+										createVNode("div", { class: "transaction-type" }, toDisplayString(getTransactionType(transaction)), 1),
+										getTransactionParty(transaction) ? (openBlock(), createBlock("div", {
+											key: 0,
+											class: "transaction-party"
+										}, toDisplayString(getTransactionParty(transaction)), 1)) : createCommentVNode("", true),
+										createVNode("div", { class: "transaction-date" }, toDisplayString(formatDate(transaction.created_at)), 1)
+									]),
+									createVNode("div", { class: ["transaction-amount", {
+										incoming: isIncoming(transaction),
+										outgoing: isOutgoing(transaction)
+									}] }, toDisplayString(isIncoming(transaction) ? "+" : "-") + toDisplayString(Number(transaction.amount).toFixed(2)) + " ₽ ", 3)
+								], 2);
+							}), 128))])) : (openBlock(), createBlock("div", {
 								key: 1,
-								class: "quick-amounts"
-							}, [(openBlock(), createBlock(Fragment, null, renderList(withdrawalAmounts, (amount) => {
-								return createVNode("button", {
-									type: "button",
-									key: amount,
-									onClick: ($event) => unref(form).amount = amount,
-									class: { active: unref(form).amount === amount }
-								}, toDisplayString(amount) + " ₽ ", 11, ["onClick"]);
-							}), 64))])),
-							createVNode("button", {
-								type: "submit",
-								class: "btn-submit",
-								disabled: unref(form).processing
-							}, toDisplayString(unref(form).processing ? isWithdrawal.value ? "Снятие..." : "Пополнение..." : isWithdrawal.value ? "Снять средства" : "Пополнить баланс"), 9, ["disabled"])
-						], 32)
-					])])])];
+								class: "no-transactions"
+							}, " Транзакций пока нет ")),
+							__props.transactions && __props.transactions.last_page > 1 ? (openBlock(), createBlock("div", {
+								key: 2,
+								class: "pagination"
+							}, [
+								__props.transactions.current_page > 1 ? (openBlock(), createBlock("button", {
+									key: 0,
+									onClick: ($event) => loadPage(__props.transactions.current_page - 1),
+									class: "pagination-btn"
+								}, " ← Назад ", 8, ["onClick"])) : createCommentVNode("", true),
+								createVNode("span", { class: "pagination-info" }, " Страница " + toDisplayString(__props.transactions.current_page) + " из " + toDisplayString(__props.transactions.last_page), 1),
+								__props.transactions.current_page < __props.transactions.last_page ? (openBlock(), createBlock("button", {
+									key: 1,
+									onClick: ($event) => loadPage(__props.transactions.current_page + 1),
+									class: "pagination-btn"
+								}, " Вперёд → ", 8, ["onClick"])) : createCommentVNode("", true)
+							])) : createCommentVNode("", true)
+						]),
+						createVNode("div", { class: "balance-card" }, [
+							createVNode("h1", null, toDisplayString(isWithdrawal.value ? "Снятие средств" : "Пополнение баланса"), 1),
+							createVNode("div", { class: "current-balance" }, [createVNode("span", { class: "label" }, "Текущий баланс:"), createVNode("span", { class: "amount" }, toDisplayString(Number(__props.balance)) + " ₽", 1)]),
+							createVNode("div", { class: "type-toggle" }, [createVNode("button", {
+								class: { active: !isWithdrawal.value },
+								onClick: ($event) => isWithdrawal.value = false
+							}, " Пополнение ", 10, ["onClick"]), createVNode("button", {
+								class: { active: isWithdrawal.value },
+								onClick: ($event) => isWithdrawal.value = true,
+								disabled: Number(__props.balance) <= 0
+							}, " Снятие ", 10, ["onClick", "disabled"])]),
+							createVNode("form", {
+								onSubmit: withModifiers(submitBalance, ["prevent"]),
+								class: "balance-form"
+							}, [
+								createVNode("div", { class: "form-group" }, [createVNode("label", { for: "amount" }, toDisplayString(isWithdrawal.value ? "Сумма снятия:" : "Сумма пополнения:"), 1), withDirectives(createVNode("input", {
+									type: "number",
+									name: "amount",
+									id: "amount",
+									"onUpdate:modelValue": ($event) => unref(form).amount = $event,
+									min: 1,
+									max: isWithdrawal.value ? Number(__props.balance) : 1e5,
+									required: "",
+									placeholder: "Введите сумму"
+								}, null, 8, ["onUpdate:modelValue", "max"]), [[vModelText, unref(form).amount]])]),
+								!isWithdrawal.value ? (openBlock(), createBlock("div", {
+									key: 0,
+									class: "quick-amounts"
+								}, [(openBlock(), createBlock(Fragment, null, renderList(quickAmounts, (amount) => {
+									return createVNode("button", {
+										type: "button",
+										key: amount,
+										onClick: ($event) => unref(form).amount = amount,
+										class: { active: unref(form).amount === amount }
+									}, toDisplayString(amount) + " ₽ ", 11, ["onClick"]);
+								}), 64))])) : (openBlock(), createBlock("div", {
+									key: 1,
+									class: "quick-amounts"
+								}, [(openBlock(), createBlock(Fragment, null, renderList(withdrawalAmounts, (amount) => {
+									return createVNode("button", {
+										type: "button",
+										key: amount,
+										onClick: ($event) => unref(form).amount = amount,
+										class: { active: unref(form).amount === amount }
+									}, toDisplayString(amount) + " ₽ ", 11, ["onClick"]);
+								}), 64))])),
+								createVNode("button", {
+									type: "submit",
+									class: "btn-submit",
+									disabled: unref(form).processing
+								}, toDisplayString(unref(form).processing ? isWithdrawal.value ? "Снятие..." : "Пополнение..." : isWithdrawal.value ? "Снять средства" : "Пополнить баланс"), 9, ["disabled"])
+							], 32)
+						])
+					])])];
 				}),
 				_: 1
 			}, _parent));
 		};
 	}
 };
-var _sfc_setup$14 = _sfc_main$14.setup;
-_sfc_main$14.setup = (props, ctx) => {
+var _sfc_setup$15 = _sfc_main$15.setup;
+_sfc_main$15.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Balance/Index.vue");
-	return _sfc_setup$14 ? _sfc_setup$14(props, ctx) : void 0;
+	return _sfc_setup$15 ? _sfc_setup$15(props, ctx) : void 0;
 };
-var Index_default$1 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$14, [["__scopeId", "data-v-fee6bedc"]]);
+var Index_default$2 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$15, [["__scopeId", "data-v-02d1a703"]]);
 //#endregion
 //#region resources/js/composables/usePostPreviewsCache.js
 var postPreviewsCache = {};
@@ -2013,7 +2287,7 @@ function addToCache(postId, data) {
 //#endregion
 //#region resources/js/Pages/Chat/Chats.vue
 var Chats_exports = /* @__PURE__ */ __exportAll({ default: () => Chats_default });
-var _sfc_main$13 = {
+var _sfc_main$14 = {
 	__name: "Chats",
 	__ssrInlineRender: true,
 	props: {
@@ -2026,6 +2300,7 @@ var _sfc_main$13 = {
 	setup(__props) {
 		const props = __props;
 		const page = usePage();
+		useDarkMode();
 		const form = useForm({
 			content: "",
 			photo: null,
@@ -2068,6 +2343,8 @@ var _sfc_main$13 = {
 			message: null,
 			newPrice: ""
 		});
+		const openDisputeModal = ref(false);
+		const disputeForm = ref({ reason: "" });
 		const modalOpen = ref(false);
 		const modalImage = ref(null);
 		const modalVideo = ref(null);
@@ -2427,6 +2704,33 @@ var _sfc_main$13 = {
 		const rejectApplication = () => {
 			router.post(`/applications/${props.activeChat.application.id}/reject`, {}, { preserveScroll: true });
 		};
+		const withdrawApplication = () => {
+			router.post(`/applications/${props.activeChat.application.id}/withdraw`, {}, { preserveScroll: true });
+		};
+		const closeVacancy = () => {
+			router.post(`/applications/${props.activeChat.application.id}/close-vacancy`, {}, { preserveScroll: true });
+		};
+		const confirmCompletion = () => {
+			router.post(`/applications/${props.activeChat.application.id}/confirm-completion`, {}, { preserveScroll: true });
+		};
+		const submitDispute = () => {
+			if (!disputeForm.value.reason || disputeForm.value.reason.length < 10) return;
+			router.post("/disputes", {
+				application_id: props.activeChat.application.id,
+				reason: disputeForm.value.reason
+			}, {
+				preserveScroll: true,
+				onSuccess: () => {
+					openDisputeModal.value = false;
+					disputeForm.value.reason = "";
+				}
+			});
+		};
+		const getDaysRemaining = (completedAt) => {
+			const diffTime = new Date(completedAt) - /* @__PURE__ */ new Date();
+			const diffDays = Math.ceil(diffTime / (1e3 * 60 * 60 * 24));
+			return Math.max(0, 7 - diffDays);
+		};
 		const submitPriceProposal = () => {
 			if (!priceForm.value.proposed_price || priceForm.value.proposed_price <= 0) return;
 			router.post(`/applications/${props.activeChat.application.id}/propose-price`, { proposed_price: priceForm.value.proposed_price }, {
@@ -2476,7 +2780,7 @@ var _sfc_main$13 = {
 		const showApplicationBlock = computed(() => {
 			if (!props.activeChat) return false;
 			if (!props.activeChat.application) return false;
-			if (props.activeChat.application.status !== "pending") return false;
+			if (!["pending", "accepted"].includes(props.activeChat.application.status)) return false;
 			return true;
 		});
 		const isVacancyAuthor = computed(() => {
@@ -2954,45 +3258,46 @@ var _sfc_main$13 = {
 			}));
 		}, { immediate: true });
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Чаты" }, null, _parent, _scopeId));
-						_push(`<div class="chat-container" data-v-3f8c28c2${_scopeId}><div class="chat-list" data-v-3f8c28c2${_scopeId}>`);
-						if (!isSearching.value) _push(`<div class="chat-list-header" data-v-3f8c28c2${_scopeId}><h2 data-v-3f8c28c2${_scopeId}>Чаты</h2><button type="button" class="search-btn" data-v-3f8c28c2${_scopeId}><img src="/images/search.svg" alt="Поиск" data-v-3f8c28c2${_scopeId}></button></div>`);
-						else _push(`<div class="search-header" data-v-3f8c28c2${_scopeId}><input${ssrRenderAttr("value", searchQuery.value)} type="text"${ssrRenderAttr("placeholder", isGlobalSearch.value ? "Поиск чатов и сообщений..." : "Поиск в чате...")} class="search-input" data-v-3f8c28c2${_scopeId}><button type="button" class="search-close" data-v-3f8c28c2${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-3f8c28c2${_scopeId}></button></div>`);
+						_push(`<div class="chat-container" data-v-acb4c5a1${_scopeId}><div class="chat-list" data-v-acb4c5a1${_scopeId}>`);
+						if (!isSearching.value) _push(`<div class="chat-list-header" data-v-acb4c5a1${_scopeId}><h2 data-v-acb4c5a1${_scopeId}>Чаты</h2><button type="button" class="search-btn" data-v-acb4c5a1${_scopeId}><img src="/images/search.svg" alt="Поиск" data-v-acb4c5a1${_scopeId}></button></div>`);
+						else _push(`<div class="search-header" data-v-acb4c5a1${_scopeId}><input${ssrRenderAttr("value", searchQuery.value)} type="text"${ssrRenderAttr("placeholder", isGlobalSearch.value ? "Поиск чатов и сообщений..." : "Поиск в чате...")} class="search-input" data-v-acb4c5a1${_scopeId}><button type="button" class="search-close" data-v-acb4c5a1${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-acb4c5a1${_scopeId}></button></div>`);
 						if (!isSearching.value) {
 							_push(`<!--[-->`);
 							ssrRenderList(__props.chats, (chat) => {
 								_push(`<div class="${ssrRenderClass([{
 									active: __props.activeChat && chat.id === __props.activeChat.id,
-									"has-unread": chat.unread_count > 0
-								}, "chat-item"])}" tabindex="0" data-v-3f8c28c2${_scopeId}>`);
+									"has-unread": chat.unread_count > 0,
+									"accepted-chat": chat.application && chat.application.status === "accepted"
+								}, "chat-item"])}" tabindex="0" data-v-acb4c5a1${_scopeId}>`);
 								if (chat.other_user) {
-									_push(`<div class="chat-user-info" data-v-3f8c28c2${_scopeId}><div class="avatar-wrapper" data-v-3f8c28c2${_scopeId}><img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar" data-v-3f8c28c2${_scopeId}>`);
-									if (isUserOnline(chat.other_user.id)) _push(`<span class="online-indicator" data-v-3f8c28c2${_scopeId}></span>`);
+									_push(`<div class="chat-user-info" data-v-acb4c5a1${_scopeId}><div class="avatar-wrapper" data-v-acb4c5a1${_scopeId}><img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar" data-v-acb4c5a1${_scopeId}>`);
+									if (isUserOnline(chat.other_user.id)) _push(`<span class="online-indicator" data-v-acb4c5a1${_scopeId}></span>`);
 									else _push(`<!---->`);
-									_push(`</div><div data-v-3f8c28c2${_scopeId}><h3 data-v-3f8c28c2${_scopeId}>${ssrInterpolate(chat.other_user.name)}</h3>`);
-									if (chat.latest_message) _push(`<p class="${ssrRenderClass([{ unread: chat.unread_count > 0 }, "chat-preview"])}" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(getChatPreview(chat.latest_message))}</p>`);
+									_push(`</div><div data-v-acb4c5a1${_scopeId}><h3 data-v-acb4c5a1${_scopeId}>${ssrInterpolate(chat.other_user.name)}</h3>`);
+									if (chat.latest_message) _push(`<p class="${ssrRenderClass([{ unread: chat.unread_count > 0 }, "chat-preview"])}" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(getChatPreview(chat.latest_message))}</p>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								} else _push(`<!---->`);
-								_push(`<div class="chat-meta" data-v-3f8c28c2${_scopeId}>`);
-								if (chat.unread_count > 0) _push(`<span class="unread-badge" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(chat.unread_count > 99 ? "99+" : chat.unread_count)}</span>`);
+								_push(`<div class="chat-meta" data-v-acb4c5a1${_scopeId}>`);
+								if (chat.unread_count > 0) _push(`<span class="unread-badge" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(chat.unread_count > 99 ? "99+" : chat.unread_count)}</span>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							});
 							_push(`<!--]-->`);
 						} else _push(`<!---->`);
 						if (isSearching.value) {
-							_push(`<div class="search-results" data-v-3f8c28c2${_scopeId}>`);
-							if (searchResults.value.length === 0) _push(`<div class="search-no-results" data-v-3f8c28c2${_scopeId}> Ничего не найдено </div>`);
+							_push(`<div class="search-results" data-v-acb4c5a1${_scopeId}>`);
+							if (searchResults.value.length === 0) _push(`<div class="search-no-results" data-v-acb4c5a1${_scopeId}> Ничего не найдено </div>`);
 							else _push(`<!---->`);
 							_push(`<!--[-->`);
 							ssrRenderList(searchResults.value, (result) => {
-								_push(`<div class="search-result-item" data-v-3f8c28c2${_scopeId}><img${ssrRenderAttr("src", result.user.avatar_url)} class="chat-avatar" data-v-3f8c28c2${_scopeId}><div class="search-result-content" data-v-3f8c28c2${_scopeId}><div class="search-result-name" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(result.user.name)}</div>`);
-								if (result.type === "chat") _push(`<div class="search-result-type" data-v-3f8c28c2${_scopeId}>Чат</div>`);
-								else _push(`<div class="search-result-text" data-v-3f8c28c2${_scopeId}>${highlight(result.content) ?? ""}</div>`);
+								_push(`<div class="search-result-item" data-v-acb4c5a1${_scopeId}><img${ssrRenderAttr("src", result.user.avatar_url)} class="chat-avatar" data-v-acb4c5a1${_scopeId}><div class="search-result-content" data-v-acb4c5a1${_scopeId}><div class="search-result-name" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(result.user.name)}</div>`);
+								if (result.type === "chat") _push(`<div class="search-result-type" data-v-acb4c5a1${_scopeId}>Чат</div>`);
+								else _push(`<div class="search-result-text" data-v-acb4c5a1${_scopeId}>${highlight(result.content) ?? ""}</div>`);
 								_push(`</div></div>`);
 							});
 							_push(`<!--]--></div>`);
@@ -3000,19 +3305,19 @@ var _sfc_main$13 = {
 						_push(`</div><div class="${ssrRenderClass([{
 							active: !!__props.activeChat,
 							sliding: isSliding.value
-						}, "chat-area"])}" style="${ssrRenderStyle(slideOffset.value > 0 ? { transform: `translateX(${slideOffset.value}px)` } : {})}" data-v-3f8c28c2${_scopeId}>`);
+						}, "chat-area"])}" style="${ssrRenderStyle(slideOffset.value > 0 ? { transform: `translateX(${slideOffset.value}px)` } : {})}" data-v-acb4c5a1${_scopeId}>`);
 						if (__props.activeChat) {
-							_push(`<!--[--><div class="chat-header" data-v-3f8c28c2${_scopeId}><button type="button" class="back" data-v-3f8c28c2${_scopeId}><img src="/images/arrow-left.svg" alt="назад" data-v-3f8c28c2${_scopeId}></button><div class="chat-header-mid" data-v-3f8c28c2${_scopeId}>`);
+							_push(`<!--[--><div class="chat-header" data-v-acb4c5a1${_scopeId}><button type="button" class="back" data-v-acb4c5a1${_scopeId}><img src="/images/arrow-left.svg" alt="назад" data-v-acb4c5a1${_scopeId}></button><div class="chat-header-mid" data-v-acb4c5a1${_scopeId}>`);
 							if (otherUsers.value.length > 0) _push(ssrRenderComponent(unref(Link), {
 								href: `/profile/${otherUsers.value[0].id}`,
 								class: "chat-header-user"
 							}, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
 									if (_push) {
-										_push(`<div class="avatar-wrapper" data-v-3f8c28c2${_scopeId}><img${ssrRenderAttr("src", otherUsers.value[0].avatar_url)} class="chat-avatar" data-v-3f8c28c2${_scopeId}>`);
-										if (isUserOnline(otherUsers.value[0].id)) _push(`<span class="online-indicator" data-v-3f8c28c2${_scopeId}></span>`);
-										else _push(`<span class="offline-indicator" data-v-3f8c28c2${_scopeId}></span>`);
-										_push(`</div><h2 data-v-3f8c28c2${_scopeId}>${ssrInterpolate(otherUsers.value[0].name)}</h2>`);
+										_push(`<div class="avatar-wrapper" data-v-acb4c5a1${_scopeId}><img${ssrRenderAttr("src", otherUsers.value[0].avatar_url)} class="chat-avatar" data-v-acb4c5a1${_scopeId}>`);
+										if (isUserOnline(otherUsers.value[0].id)) _push(`<span class="online-indicator" data-v-acb4c5a1${_scopeId}></span>`);
+										else _push(`<span class="offline-indicator" data-v-acb4c5a1${_scopeId}></span>`);
+										_push(`</div><h2 data-v-acb4c5a1${_scopeId}>${ssrInterpolate(otherUsers.value[0].name)}</h2>`);
 									} else return [createVNode("div", { class: "avatar-wrapper" }, [createVNode("img", {
 										src: otherUsers.value[0].avatar_url,
 										class: "chat-avatar"
@@ -3027,90 +3332,105 @@ var _sfc_main$13 = {
 								_: 1
 							}, _parent, _scopeId));
 							else _push(`<!---->`);
-							if (vacancyPostId.value) _push(`<span class="vacancy-link" data-v-3f8c28c2${_scopeId}> откликнулся на </span>`);
+							if (vacancyPostId.value) _push(`<span class="vacancy-link" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(isVacancyAuthor.value ? "откликнулся на" : "автор вакансии")}</span>`);
 							else _push(`<!---->`);
 							_push(ssrRenderComponent(unref(Link), { href: `/posts/${vacancyPostId.value}` }, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<h2 data-v-3f8c28c2${_scopeId}>${ssrInterpolate(vacancyPosition.value)}</h2>`);
+									if (_push) _push(`<h2 data-v-acb4c5a1${_scopeId}>${ssrInterpolate(vacancyPosition.value)}</h2>`);
 									else return [createVNode("h2", null, toDisplayString(vacancyPosition.value), 1)];
 								}),
 								_: 1
 							}, _parent, _scopeId));
-							_push(`</div><img class="chat-options" src="/images/dots.svg" alt="опции" data-v-3f8c28c2${_scopeId}></div>`);
-							if (isSearching.value && !isGlobalSearch.value && __props.activeChat) _push(`<div class="search-navigation" data-v-3f8c28c2${_scopeId}><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value <= 0) ? " disabled" : ""} data-v-3f8c28c2${_scopeId}><img src="/images/arrow-up.svg" alt="вверх" data-v-3f8c28c2${_scopeId}></button><span class="search-nav-counter" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(searchResults.value.length > 0 ? currentMatchIndex.value + 1 : 0)} / ${ssrInterpolate(searchResults.value.length)}</span><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value >= searchResults.value.length - 1) ? " disabled" : ""} data-v-3f8c28c2${_scopeId}><img src="/images/arrow-up.svg" alt="вниз" style="${ssrRenderStyle({ "transform": "rotate(180deg)" })}" data-v-3f8c28c2${_scopeId}></button></div>`);
+							_push(`</div><img class="chat-options" src="/images/dots.svg" alt="опции" data-v-acb4c5a1${_scopeId}></div>`);
+							if (isSearching.value && !isGlobalSearch.value && __props.activeChat) _push(`<div class="search-navigation" data-v-acb4c5a1${_scopeId}><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value <= 0) ? " disabled" : ""} data-v-acb4c5a1${_scopeId}><img src="/images/arrow-up.svg" alt="вверх" data-v-acb4c5a1${_scopeId}></button><span class="search-nav-counter" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(searchResults.value.length > 0 ? currentMatchIndex.value + 1 : 0)} / ${ssrInterpolate(searchResults.value.length)}</span><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value >= searchResults.value.length - 1) ? " disabled" : ""} data-v-acb4c5a1${_scopeId}><img src="/images/arrow-up.svg" alt="вниз" style="${ssrRenderStyle({ "transform": "rotate(180deg)" })}" data-v-acb4c5a1${_scopeId}></button></div>`);
 							else _push(`<!---->`);
 							if (optionsMenu.value.show) _push(`<div class="options-menu" style="${ssrRenderStyle({
 								right: optionsMenu.value.x + "px",
 								top: optionsMenu.value.y + 70 + "px"
-							})}" data-v-3f8c28c2${_scopeId}><div class="options-menu-item" data-v-3f8c28c2${_scopeId}>Файлы чата</div><div class="options-menu-item" data-v-3f8c28c2${_scopeId}>Добавить участника в чат</div><div class="options-menu-item" data-v-3f8c28c2${_scopeId}>Поиск по чату</div><div class="options-menu-item delete" data-v-3f8c28c2${_scopeId}>Удалить чат</div></div>`);
+							})}" data-v-acb4c5a1${_scopeId}><div class="options-menu-item" data-v-acb4c5a1${_scopeId}>Файлы чата</div><div class="options-menu-item" data-v-acb4c5a1${_scopeId}>Добавить участника в чат</div><div class="options-menu-item" data-v-acb4c5a1${_scopeId}>Поиск по чату</div><div class="options-menu-item delete" data-v-acb4c5a1${_scopeId}>Удалить чат</div></div>`);
 							else _push(`<!---->`);
 							if (showApplicationBlock.value) {
-								_push(`<div class="${ssrRenderClass([{ closed: isApplicationBlockClosed.value }, "application-block"])}" data-v-3f8c28c2${_scopeId}><div class="application-toggle" data-v-3f8c28c2${_scopeId}><button type="button" class="application-toggle-btn" data-v-3f8c28c2${_scopeId}><img src="/images/arrow-up.svg" alt="Toggle" class="${ssrRenderClass([{ flipped: isApplicationBlockClosed.value }, "toggle-arrow"])}" data-v-3f8c28c2${_scopeId}></button></div><div class="application-card" style="${ssrRenderStyle(!isApplicationBlockClosed.value ? null : { display: "none" })}" data-v-3f8c28c2${_scopeId}><img${ssrRenderAttr("src", __props.activeChat.application.user.avatar_url)} class="application-avatar" data-v-3f8c28c2${_scopeId}><div class="name" data-v-3f8c28c2${_scopeId}><h3 data-v-3f8c28c2${_scopeId}>${ssrInterpolate(__props.activeChat.application.user.name)}</h3><span class="${ssrRenderClass([{ online: isUserOnline(otherUsers.value[0].id) }, "user-status"])}" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(isUserOnline(otherUsers.value[0].id) ? "онлайн" : "оффлайн")}</span></div><p class="account-age" data-v-3f8c28c2${_scopeId}>Аккаунт создан ${ssrInterpolate(formatAccountAge(__props.activeChat.application.user.created_at))}</p>`);
-								if (__props.activeChat.application.user.rating) _push(`<div class="application-rating" data-v-3f8c28c2${_scopeId}><span data-v-3f8c28c2${_scopeId}>Рейтинг: ${ssrInterpolate(__props.activeChat.application.user.rating)}</span></div>`);
+								_push(`<div class="${ssrRenderClass([{ closed: isApplicationBlockClosed.value }, "application-block"])}" data-v-acb4c5a1${_scopeId}><div class="application-toggle" data-v-acb4c5a1${_scopeId}><button type="button" class="application-toggle-btn" data-v-acb4c5a1${_scopeId}><img src="/images/arrow-up.svg" alt="Toggle" class="${ssrRenderClass([{ flipped: isApplicationBlockClosed.value }, "toggle-arrow"])}" data-v-acb4c5a1${_scopeId}></button></div><div class="application-card" style="${ssrRenderStyle(!isApplicationBlockClosed.value ? null : { display: "none" })}" data-v-acb4c5a1${_scopeId}><img${ssrRenderAttr("src", __props.activeChat.application.user.avatar_url)} class="application-avatar" data-v-acb4c5a1${_scopeId}><div class="name" data-v-acb4c5a1${_scopeId}><h3 data-v-acb4c5a1${_scopeId}>${ssrInterpolate(__props.activeChat.application.user.name)}</h3><span class="${ssrRenderClass([{ online: isUserOnline(otherUsers.value[0].id) }, "user-status"])}" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(isUserOnline(otherUsers.value[0].id) ? "онлайн" : "оффлайн")}</span></div><p class="account-age" data-v-acb4c5a1${_scopeId}>Аккаунт создан ${ssrInterpolate(formatAccountAge(__props.activeChat.application.user.created_at))}</p>`);
+								if (__props.activeChat.application.user.rating) _push(`<div class="application-rating" data-v-acb4c5a1${_scopeId}><span data-v-acb4c5a1${_scopeId}>Рейтинг: ${ssrInterpolate(__props.activeChat.application.user.rating)}</span></div>`);
 								else _push(`<!---->`);
-								_push(`<div class="application-cover-letter" data-v-3f8c28c2${_scopeId}><h4 data-v-3f8c28c2${_scopeId}>Сопроводительное письмо:</h4><p data-v-3f8c28c2${_scopeId}>${ssrInterpolate(__props.activeChat.application.cover_letter)}</p></div>`);
+								_push(`<div class="application-cover-letter" data-v-acb4c5a1${_scopeId}><h4 data-v-acb4c5a1${_scopeId}>Сопроводительное письмо:</h4><p data-v-acb4c5a1${_scopeId}>${ssrInterpolate(__props.activeChat.application.cover_letter)}</p></div>`);
 								if (__props.activeChat.application.proposed_price) {
-									_push(`<div class="application-price-row" data-v-3f8c28c2${_scopeId}><div class="application-price" data-v-3f8c28c2${_scopeId}><span class="label" data-v-3f8c28c2${_scopeId}>Предложенная цена:</span><span class="value" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(__props.activeChat.application.proposed_price)} ₽</span></div>`);
-									if (isVacancyAuthor.value && __props.activeChat.application.status === "pending") _push(`<button type="button" class="price-edit-btn" data-v-3f8c28c2${_scopeId}><img src="/images/edit.svg" alt="Изменить цену" data-v-3f8c28c2${_scopeId}></button>`);
+									_push(`<div class="application-price-row" data-v-acb4c5a1${_scopeId}><div class="application-price" data-v-acb4c5a1${_scopeId}><span class="label" data-v-acb4c5a1${_scopeId}>Предложенная цена:</span><span class="value" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(__props.activeChat.application.proposed_price)} ₽</span></div>`);
+									if (isVacancyAuthor.value && __props.activeChat.application.status === "pending") _push(`<button type="button" class="price-edit-btn" data-v-acb4c5a1${_scopeId}><img src="/images/edit.svg" alt="Изменить цену" data-v-acb4c5a1${_scopeId}></button>`);
 									else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
-								if (isVacancyAuthor.value) _push(`<div class="application-actions" data-v-3f8c28c2${_scopeId}><form data-v-3f8c28c2${_scopeId}><button type="submit" class="accept-btn" data-v-3f8c28c2${_scopeId}>Принять отклик</button></form><form data-v-3f8c28c2${_scopeId}><button type="submit" class="reject-btn" data-v-3f8c28c2${_scopeId}>Отклонить</button></form></div>`);
+								if (__props.activeChat.application.completed_at && !__props.activeChat.application.transaction?.completed_at) _push(`<div class="application-status" data-v-acb4c5a1${_scopeId}><span class="status-badge waiting" data-v-acb4c5a1${_scopeId}>⏳ Ожидание зачисления: ${ssrInterpolate(getDaysRemaining(__props.activeChat.application.completed_at))} дн.</span></div>`);
+								else _push(`<!---->`);
+								if (__props.activeChat.application.dispute && __props.activeChat.application.dispute.status === "open") _push(`<div class="application-status" data-v-acb4c5a1${_scopeId}><span class="status-badge dispute" data-v-acb4c5a1${_scopeId}>⚠️ Открыт спор</span></div>`);
+								else _push(`<!---->`);
+								if (isVacancyAuthor.value) {
+									_push(`<div class="application-actions" data-v-acb4c5a1${_scopeId}>`);
+									if (__props.activeChat.application.status === "pending") _push(`<!--[--><form data-v-acb4c5a1${_scopeId}><button type="submit" class="accept-btn" data-v-acb4c5a1${_scopeId}>Принять отклик</button></form><form data-v-acb4c5a1${_scopeId}><button type="submit" class="reject-btn" data-v-acb4c5a1${_scopeId}>Отклонить</button></form><!--]-->`);
+									else if (__props.activeChat.application.status === "accepted") {
+										_push(`<!--[-->`);
+										if (!__props.activeChat.application.completed_at && !__props.activeChat.application.dispute) _push(`<form data-v-acb4c5a1${_scopeId}><button type="submit" class="accept-btn" data-v-acb4c5a1${_scopeId}>Подтвердить завершение</button></form>`);
+										else _push(`<!---->`);
+										_push(`<form data-v-acb4c5a1${_scopeId}><button type="submit" class="withdraw-btn" data-v-acb4c5a1${_scopeId}>Отменить</button></form><form data-v-acb4c5a1${_scopeId}><button type="submit" class="close-btn" data-v-acb4c5a1${_scopeId}>Закрыть вакансию</button></form><!--]-->`);
+									} else _push(`<!---->`);
+									_push(`</div>`);
+								} else _push(`<!---->`);
+								if (!isVacancyAuthor.value && __props.activeChat.application.status === "accepted" && !__props.activeChat.application.dispute) _push(`<div class="application-actions" data-v-acb4c5a1${_scopeId}><button type="button" class="dispute-btn" data-v-acb4c5a1${_scopeId}> Открыть спор </button></div>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							} else _push(`<!---->`);
-							_push(`<div class="chat-messages" data-v-3f8c28c2${_scopeId}><div class="chat-messages-inner" data-v-3f8c28c2${_scopeId}><div${ssrRenderAttrs({
+							_push(`<div class="chat-messages" data-v-acb4c5a1${_scopeId}><div class="chat-messages-inner" data-v-acb4c5a1${_scopeId}><div${ssrRenderAttrs({
 								name: "messages",
 								class: "chat-messages-content"
-							})} data-v-3f8c28c2>`);
+							})} data-v-acb4c5a1>`);
 							ssrRenderList(localMessages.value, (message, index) => {
 								_push(`<div${ssrRenderAttr("data-message-id", message.id)} class="${ssrRenderClass([{
 									"right-clicked": rightClickedMessage.value && rightClickedMessage.value.id === message.id,
 									"selected": selectedMessages.value.some((m) => m.id === message.id),
 									"search-highlighted": isSearching.value && searchResults.value[currentMatchIndex.value]?.id === message.id
-								}, "message-container"])}" data-v-3f8c28c2${_scopeId}><img${ssrRenderAttr("src", message.user.avatar_url)} class="chat-avatar" data-v-3f8c28c2${_scopeId}><div class="${ssrRenderClass([{
+								}, "message-container"])}" data-v-acb4c5a1${_scopeId}><img${ssrRenderAttr("src", message.user.avatar_url)} class="chat-avatar" data-v-acb4c5a1${_scopeId}><div class="${ssrRenderClass([{
 									"my-message": message.is_mine,
 									"shared-post": isOnlyPostUrl(message.content)
-								}, "message"])}" data-v-3f8c28c2${_scopeId}>`);
-								if (message.image_url) _push(`<img${ssrRenderAttr("src", message.image_url)} alt="Изображение" class="message-image" data-v-3f8c28c2${_scopeId}>`);
+								}, "message"])}" data-v-acb4c5a1${_scopeId}>`);
+								if (message.image_url) _push(`<img${ssrRenderAttr("src", message.image_url)} alt="Изображение" class="message-image" data-v-acb4c5a1${_scopeId}>`);
 								else _push(`<!---->`);
-								if (message.video_url) _push(`<video${ssrRenderAttr("src", message.video_url)} class="message-video" controls data-v-3f8c28c2${_scopeId}></video>`);
+								if (message.video_url) _push(`<video${ssrRenderAttr("src", message.video_url)} class="message-video" controls data-v-acb4c5a1${_scopeId}></video>`);
 								else _push(`<!---->`);
-								_push(`<div class="message-content" data-v-3f8c28c2${_scopeId}>`);
-								if (message.content && !isOnlyPostUrl(message.content)) _push(`<span data-v-3f8c28c2${_scopeId}>${renderContent(message.content) ?? ""}</span>`);
+								_push(`<div class="message-content" data-v-acb4c5a1${_scopeId}>`);
+								if (message.content && !isOnlyPostUrl(message.content)) _push(`<span data-v-acb4c5a1${_scopeId}>${renderContent(message.content) ?? ""}</span>`);
 								else _push(`<!---->`);
 								_push(`<!--[-->`);
 								ssrRenderList(getPostPreviewsFromContent(message.content), (preview) => {
-									_push(`<div class="${ssrRenderClass([{ "shared-post-card": isOnlyPostUrl(message.content) }, "post-preview-card"])}" data-v-3f8c28c2${_scopeId}>`);
-									if (preview.image_url) _push(`<img${ssrRenderAttr("src", preview.image_url)} class="post-preview-img" alt="" data-v-3f8c28c2${_scopeId}>`);
+									_push(`<div class="${ssrRenderClass([{ "shared-post-card": isOnlyPostUrl(message.content) }, "post-preview-card"])}" data-v-acb4c5a1${_scopeId}>`);
+									if (preview.image_url) _push(`<img${ssrRenderAttr("src", preview.image_url)} class="post-preview-img" alt="" data-v-acb4c5a1${_scopeId}>`);
 									else _push(`<!---->`);
-									_push(`<div class="post-preview-body" data-v-3f8c28c2${_scopeId}><div class="post-preview-title" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(preview.title)}</div>`);
-									if (preview.description) _push(`<div class="post-preview-desc" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(preview.description.slice(0, 80))}${ssrInterpolate(preview.description.length > 80 ? "…" : "")}</div>`);
+									_push(`<div class="post-preview-body" data-v-acb4c5a1${_scopeId}><div class="post-preview-title" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(preview.title)}</div>`);
+									if (preview.description) _push(`<div class="post-preview-desc" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(preview.description.slice(0, 80))}${ssrInterpolate(preview.description.length > 80 ? "…" : "")}</div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								});
 								_push(`<!--]-->`);
 								if (message.file_url) {
-									_push(`<div class="file-attachment" data-v-3f8c28c2${_scopeId}><button type="button" class="file-download-circle"${ssrRenderAttr("title", isFileDownloaded(message) ? "Скачано" : "Скачать")} data-v-3f8c28c2${_scopeId}>`);
-									if (!isFileDownloaded(message)) _push(`<span data-v-3f8c28c2${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-3f8c28c2${_scopeId}></span>`);
-									else _push(`<span data-v-3f8c28c2${_scopeId}><img src="/images/document.svg" alt="Файл" data-v-3f8c28c2${_scopeId}></span>`);
-									_push(`</button><div class="file-meta" data-v-3f8c28c2${_scopeId}><div class="file-name" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(message.file_name || "Файл")}</div>`);
-									if (message.file_size) _push(`<div class="file-size" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(formatSize(message.file_size))}</div>`);
+									_push(`<div class="file-attachment" data-v-acb4c5a1${_scopeId}><button type="button" class="file-download-circle"${ssrRenderAttr("title", isFileDownloaded(message) ? "Скачано" : "Скачать")} data-v-acb4c5a1${_scopeId}>`);
+									if (!isFileDownloaded(message)) _push(`<span data-v-acb4c5a1${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-acb4c5a1${_scopeId}></span>`);
+									else _push(`<span data-v-acb4c5a1${_scopeId}><img src="/images/document.svg" alt="Файл" data-v-acb4c5a1${_scopeId}></span>`);
+									_push(`</button><div class="file-meta" data-v-acb4c5a1${_scopeId}><div class="file-name" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(message.file_name || "Файл")}</div>`);
+									if (message.file_size) _push(`<div class="file-size" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(formatSize(message.file_size))}</div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								} else _push(`<!---->`);
-								if (message.is_price_proposal && message.price_proposal_status === "pending" && !message.is_mine) _push(`<div class="price-proposal-actions" data-v-3f8c28c2${_scopeId}><form class="price-action-form" data-v-3f8c28c2${_scopeId}><button type="submit" class="accept-price-btn" data-v-3f8c28c2${_scopeId}>Принять</button></form><button type="button" class="change-price-btn" data-v-3f8c28c2${_scopeId}>Изменить</button></div>`);
+								if (message.is_price_proposal && message.price_proposal_status === "pending" && !message.is_mine) _push(`<div class="price-proposal-actions" data-v-acb4c5a1${_scopeId}><form class="price-action-form" data-v-acb4c5a1${_scopeId}><button type="submit" class="accept-price-btn" data-v-acb4c5a1${_scopeId}>Принять</button></form><button type="button" class="change-price-btn" data-v-acb4c5a1${_scopeId}>Изменить</button></div>`);
 								else _push(`<!---->`);
-								_push(`</div><div class="message-time" data-v-3f8c28c2${_scopeId}><span data-v-3f8c28c2${_scopeId}>${ssrInterpolate(message.time)}</span>`);
+								_push(`</div><div class="message-time" data-v-acb4c5a1${_scopeId}><span data-v-acb4c5a1${_scopeId}>${ssrInterpolate(message.time)}</span>`);
 								if (getMessageStatus(message)) {
-									_push(`<span class="${ssrRenderClass([getMessageStatus(message), "message-status"])}" data-v-3f8c28c2${_scopeId}>`);
-									if (getMessageStatus(message) === "sending") _push(`<img src="/images/loading.svg" alt="Отправляется" class="status-icon spinning" data-v-3f8c28c2${_scopeId}>`);
-									else if (getMessageStatus(message) === "sent") _push(`<img src="/images/check-mark.svg" alt="Отправлено" class="status-icon" data-v-3f8c28c2${_scopeId}>`);
+									_push(`<span class="${ssrRenderClass([getMessageStatus(message), "message-status"])}" data-v-acb4c5a1${_scopeId}>`);
+									if (getMessageStatus(message) === "sending") _push(`<img src="/images/loading.svg" alt="Отправляется" class="status-icon spinning" data-v-acb4c5a1${_scopeId}>`);
+									else if (getMessageStatus(message) === "sent") _push(`<img src="/images/check-mark.svg" alt="Отправлено" class="status-icon" data-v-acb4c5a1${_scopeId}>`);
 									else if (getMessageStatus(message) === "read") _push(`<img src="/images/double-check.svg" alt="Прочитано" class="status-icon" style="${ssrRenderStyle({
 										"width": "16px",
 										"height": "16px"
-									})}" data-v-3f8c28c2${_scopeId}>`);
-									else if (getMessageStatus(message) === "failed") _push(`<img src="/images/exclamation-circle.svg" alt="Не отправлено" class="status-icon" data-v-3f8c28c2${_scopeId}>`);
+									})}" data-v-acb4c5a1${_scopeId}>`);
+									else if (getMessageStatus(message) === "failed") _push(`<img src="/images/exclamation-circle.svg" alt="Не отправлено" class="status-icon" data-v-acb4c5a1${_scopeId}>`);
 									else _push(`<!---->`);
 									_push(`</span>`);
 								} else _push(`<!---->`);
@@ -3118,50 +3438,50 @@ var _sfc_main$13 = {
 							});
 							_push(`</div>`);
 							if (showSkeleton.value) {
-								_push(`<div class="${ssrRenderClass([{ fading: isSkeletonFading.value }, "chat-skeleton"])}" data-v-3f8c28c2${_scopeId}><!--[-->`);
+								_push(`<div class="${ssrRenderClass([{ fading: isSkeletonFading.value }, "chat-skeleton"])}" data-v-acb4c5a1${_scopeId}><!--[-->`);
 								ssrRenderList(skeletonItems.value, (item, index) => {
-									_push(`<div class="${ssrRenderClass([{ right: item.side === "right" }, "skeleton-message"])}" data-v-3f8c28c2${_scopeId}><div class="skeleton-avatar" data-v-3f8c28c2${_scopeId}></div><div class="skeleton-bubble" data-v-3f8c28c2${_scopeId}><div class="skeleton-line" style="${ssrRenderStyle({ width: item.lines[0] })}" data-v-3f8c28c2${_scopeId}></div><div class="skeleton-line short" style="${ssrRenderStyle({ width: item.lines[1] })}" data-v-3f8c28c2${_scopeId}></div>`);
-									if (item.hasThirdLine) _push(`<div class="skeleton-line tiny" style="${ssrRenderStyle({ width: item.lines[2] })}" data-v-3f8c28c2${_scopeId}></div>`);
+									_push(`<div class="${ssrRenderClass([{ right: item.side === "right" }, "skeleton-message"])}" data-v-acb4c5a1${_scopeId}><div class="skeleton-avatar" data-v-acb4c5a1${_scopeId}></div><div class="skeleton-bubble" data-v-acb4c5a1${_scopeId}><div class="skeleton-line" style="${ssrRenderStyle({ width: item.lines[0] })}" data-v-acb4c5a1${_scopeId}></div><div class="skeleton-line short" style="${ssrRenderStyle({ width: item.lines[1] })}" data-v-acb4c5a1${_scopeId}></div>`);
+									if (item.hasThirdLine) _push(`<div class="skeleton-line tiny" style="${ssrRenderStyle({ width: item.lines[2] })}" data-v-acb4c5a1${_scopeId}></div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								});
 								_push(`<!--]--></div>`);
 							} else _push(`<!---->`);
-							_push(`</div></div><form class="message-form" enctype="multipart/form-data" data-v-3f8c28c2${_scopeId}>`);
-							if (editingMessage.value) _push(`<div class="editing-indicator" data-v-3f8c28c2${_scopeId}><span data-v-3f8c28c2${_scopeId}>Редактирование сообщения</span><button type="button" class="cancel-edit-btn" data-v-3f8c28c2${_scopeId}>✕</button></div>`);
+							_push(`</div></div><form class="message-form" enctype="multipart/form-data" data-v-acb4c5a1${_scopeId}>`);
+							if (editingMessage.value) _push(`<div class="editing-indicator" data-v-acb4c5a1${_scopeId}><span data-v-acb4c5a1${_scopeId}>Редактирование сообщения</span><button type="button" class="cancel-edit-btn" data-v-acb4c5a1${_scopeId}>✕</button></div>`);
 							else _push(`<!---->`);
-							_push(`<div class="message-input-container" data-v-3f8c28c2${_scopeId}>`);
-							if (!editingMessage.value) _push(`<div class="add" data-v-3f8c28c2${_scopeId}><img src="/images/clip.svg" alt="Добавить вложение" data-v-3f8c28c2${_scopeId}><div class="add-select" data-v-3f8c28c2${_scopeId}><label data-v-3f8c28c2${_scopeId}> Фото <input type="file" name="photo" accept="image/*" data-v-3f8c28c2${_scopeId}></label><label data-v-3f8c28c2${_scopeId}> Видео <input type="file" name="video" accept="video/*" data-v-3f8c28c2${_scopeId}></label><label data-v-3f8c28c2${_scopeId}> Документ <input type="file" name="document" data-v-3f8c28c2${_scopeId}></label></div></div>`);
+							_push(`<div class="message-input-container" data-v-acb4c5a1${_scopeId}>`);
+							if (!editingMessage.value) _push(`<div class="add" data-v-acb4c5a1${_scopeId}><img src="/images/clip.svg" alt="Добавить вложение" data-v-acb4c5a1${_scopeId}><div class="add-select" data-v-acb4c5a1${_scopeId}><label data-v-acb4c5a1${_scopeId}> Фото <input type="file" name="photo" accept="image/*" data-v-acb4c5a1${_scopeId}></label><label data-v-acb4c5a1${_scopeId}> Видео <input type="file" name="video" accept="video/*" data-v-acb4c5a1${_scopeId}></label><label data-v-acb4c5a1${_scopeId}> Документ <input type="file" name="document" data-v-acb4c5a1${_scopeId}></label></div></div>`);
 							else _push(`<!---->`);
-							_push(`<textarea${ssrRenderAttr("placeholder", editingMessage.value ? "Редактируйте сообщение..." : "Введите сообщение...")} data-v-3f8c28c2${_scopeId}>${ssrInterpolate(unref(form).content)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(form).processing || !canSend.value) ? " disabled" : ""} data-v-3f8c28c2${_scopeId}>${ssrInterpolate(editingMessage.value ? "Сохранить" : "Отправить")}</button></div>`);
+							_push(`<textarea${ssrRenderAttr("placeholder", editingMessage.value ? "Редактируйте сообщение..." : "Введите сообщение...")} data-v-acb4c5a1${_scopeId}>${ssrInterpolate(unref(form).content)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(form).processing || !canSend.value) ? " disabled" : ""} data-v-acb4c5a1${_scopeId}>${ssrInterpolate(editingMessage.value ? "Сохранить" : "Отправить")}</button></div>`);
 							if (photoPreviewUrl.value || videoPreviewUrl.value || documentPreviewName.value) {
-								_push(`<div class="image-preview-container" style="${ssrRenderStyle({ "display": "flex" })}" data-v-3f8c28c2${_scopeId}>`);
-								if (photoPreviewUrl.value) _push(`<img${ssrRenderAttr("src", photoPreviewUrl.value)} alt="Превью" class="image-preview" data-v-3f8c28c2${_scopeId}>`);
+								_push(`<div class="image-preview-container" style="${ssrRenderStyle({ "display": "flex" })}" data-v-acb4c5a1${_scopeId}>`);
+								if (photoPreviewUrl.value) _push(`<img${ssrRenderAttr("src", photoPreviewUrl.value)} alt="Превью" class="image-preview" data-v-acb4c5a1${_scopeId}>`);
 								else _push(`<!---->`);
-								if (videoPreviewUrl.value) _push(`<video${ssrRenderAttr("src", videoPreviewUrl.value)} class="video-preview" controls data-v-3f8c28c2${_scopeId}></video>`);
+								if (videoPreviewUrl.value) _push(`<video${ssrRenderAttr("src", videoPreviewUrl.value)} class="video-preview" controls data-v-acb4c5a1${_scopeId}></video>`);
 								else _push(`<!---->`);
-								if (documentPreviewName.value) _push(`<div class="file-preview" data-v-3f8c28c2${_scopeId}> 📎 ${ssrInterpolate(documentPreviewName.value)}</div>`);
+								if (documentPreviewName.value) _push(`<div class="file-preview" data-v-acb4c5a1${_scopeId}> 📎 ${ssrInterpolate(documentPreviewName.value)}</div>`);
 								else _push(`<!---->`);
-								_push(`<div class="preview-actions" data-v-3f8c28c2${_scopeId}><button type="button" class="select-other-btn" data-v-3f8c28c2${_scopeId}> Выбрать другое </button>`);
-								if (!editingMessage.value) _push(`<button type="button" class="cancel-preview-btn" data-v-3f8c28c2${_scopeId}> Отмена </button>`);
+								_push(`<div class="preview-actions" data-v-acb4c5a1${_scopeId}><button type="button" class="select-other-btn" data-v-acb4c5a1${_scopeId}> Выбрать другое </button>`);
+								if (!editingMessage.value) _push(`<button type="button" class="cancel-preview-btn" data-v-acb4c5a1${_scopeId}> Отмена </button>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							} else _push(`<!---->`);
 							_push(`</form><!--]-->`);
-						} else _push(`<div class="chat-placeholder" data-v-3f8c28c2${_scopeId}><p data-v-3f8c28c2${_scopeId}>Выберите чат для начала общения</p></div>`);
+						} else _push(`<div class="chat-placeholder" data-v-acb4c5a1${_scopeId}><p data-v-acb4c5a1${_scopeId}>Выберите чат для начала общения</p></div>`);
 						_push(`</div>`);
 						if (showChatFiles.value) {
-							_push(`<div class="chat-files-panel" data-v-3f8c28c2${_scopeId}><div class="chat-files-header" data-v-3f8c28c2${_scopeId}><h3 data-v-3f8c28c2${_scopeId}>Файлы чата</h3><button type="button" class="chat-files-close" data-v-3f8c28c2${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-3f8c28c2${_scopeId}></button></div><div class="chat-files-tabs" data-v-3f8c28c2${_scopeId}><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "media" }, "chat-files-tab"])}" data-v-3f8c28c2${_scopeId}> Медиа </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "files" }, "chat-files-tab"])}" data-v-3f8c28c2${_scopeId}> Файлы </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "links" }, "chat-files-tab"])}" data-v-3f8c28c2${_scopeId}> Ссылки </button></div><div class="chat-files-content" data-v-3f8c28c2${_scopeId}>`);
+							_push(`<div class="chat-files-panel" data-v-acb4c5a1${_scopeId}><div class="chat-files-header" data-v-acb4c5a1${_scopeId}><h3 data-v-acb4c5a1${_scopeId}>Файлы чата</h3><button type="button" class="chat-files-close" data-v-acb4c5a1${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-acb4c5a1${_scopeId}></button></div><div class="chat-files-tabs" data-v-acb4c5a1${_scopeId}><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "media" }, "chat-files-tab"])}" data-v-acb4c5a1${_scopeId}> Медиа </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "files" }, "chat-files-tab"])}" data-v-acb4c5a1${_scopeId}> Файлы </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "links" }, "chat-files-tab"])}" data-v-acb4c5a1${_scopeId}> Ссылки </button></div><div class="chat-files-content" data-v-acb4c5a1${_scopeId}>`);
 							if (chatFilesTab.value === "media") {
-								_push(`<div class="chat-files-media" data-v-3f8c28c2${_scopeId}>`);
-								if (chatMediaFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-3f8c28c2${_scopeId}> Нет медиафайлов </div>`);
+								_push(`<div class="chat-files-media" data-v-acb4c5a1${_scopeId}>`);
+								if (chatMediaFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-acb4c5a1${_scopeId}> Нет медиафайлов </div>`);
 								else {
-									_push(`<div class="chat-files-grid" data-v-3f8c28c2${_scopeId}><!--[-->`);
+									_push(`<div class="chat-files-grid" data-v-acb4c5a1${_scopeId}><!--[-->`);
 									ssrRenderList(chatMediaFiles.value, (media) => {
-										_push(`<div class="chat-files-media-item" data-v-3f8c28c2${_scopeId}>`);
-										if (media.type === "image") _push(`<img${ssrRenderAttr("src", media.url)} alt="Медиа" data-v-3f8c28c2${_scopeId}>`);
-										else _push(`<video${ssrRenderAttr("src", media.url)} data-v-3f8c28c2${_scopeId}></video>`);
-										if (media.type === "video") _push(`<div class="play-icon" data-v-3f8c28c2${_scopeId}>▶</div>`);
+										_push(`<div class="chat-files-media-item" data-v-acb4c5a1${_scopeId}>`);
+										if (media.type === "image") _push(`<img${ssrRenderAttr("src", media.url)} alt="Медиа" data-v-acb4c5a1${_scopeId}>`);
+										else _push(`<video${ssrRenderAttr("src", media.url)} data-v-acb4c5a1${_scopeId}></video>`);
+										if (media.type === "video") _push(`<div class="play-icon" data-v-acb4c5a1${_scopeId}>▶</div>`);
 										else _push(`<!---->`);
 										_push(`</div>`);
 									});
@@ -3170,24 +3490,24 @@ var _sfc_main$13 = {
 								_push(`</div>`);
 							} else _push(`<!---->`);
 							if (chatFilesTab.value === "files") {
-								_push(`<div class="chat-files-list" data-v-3f8c28c2${_scopeId}>`);
-								if (chatDocFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-3f8c28c2${_scopeId}> Нет файлов </div>`);
+								_push(`<div class="chat-files-list" data-v-acb4c5a1${_scopeId}>`);
+								if (chatDocFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-acb4c5a1${_scopeId}> Нет файлов </div>`);
 								else {
-									_push(`<div data-v-3f8c28c2${_scopeId}><!--[-->`);
+									_push(`<div data-v-acb4c5a1${_scopeId}><!--[-->`);
 									ssrRenderList(chatDocFiles.value, (file) => {
-										_push(`<div class="chat-files-item" data-v-3f8c28c2${_scopeId}><button type="button" class="file-download-circle" data-v-3f8c28c2${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-3f8c28c2${_scopeId}></button><div class="file-info" data-v-3f8c28c2${_scopeId}><div class="file-name" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(file.file_name)}</div><div class="file-size" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(formatSize(file.file_size))}</div></div></div>`);
+										_push(`<div class="chat-files-item" data-v-acb4c5a1${_scopeId}><button type="button" class="file-download-circle" data-v-acb4c5a1${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-acb4c5a1${_scopeId}></button><div class="file-info" data-v-acb4c5a1${_scopeId}><div class="file-name" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(file.file_name)}</div><div class="file-size" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(formatSize(file.file_size))}</div></div></div>`);
 									});
 									_push(`<!--]--></div>`);
 								}
 								_push(`</div>`);
 							} else _push(`<!---->`);
 							if (chatFilesTab.value === "links") {
-								_push(`<div class="chat-files-list" data-v-3f8c28c2${_scopeId}>`);
-								if (chatLinks.value.length === 0) _push(`<div class="chat-files-empty" data-v-3f8c28c2${_scopeId}> Нет ссылок </div>`);
+								_push(`<div class="chat-files-list" data-v-acb4c5a1${_scopeId}>`);
+								if (chatLinks.value.length === 0) _push(`<div class="chat-files-empty" data-v-acb4c5a1${_scopeId}> Нет ссылок </div>`);
 								else {
-									_push(`<div data-v-3f8c28c2${_scopeId}><!--[-->`);
+									_push(`<div data-v-acb4c5a1${_scopeId}><!--[-->`);
 									ssrRenderList(chatLinks.value, (link) => {
-										_push(`<div class="chat-files-link" data-v-3f8c28c2${_scopeId}><span class="link-text" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(link.content)}</span><span class="link-time" data-v-3f8c28c2${_scopeId}>${ssrInterpolate(link.time)}</span></div>`);
+										_push(`<div class="chat-files-link" data-v-acb4c5a1${_scopeId}><span class="link-text" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(link.content)}</span><span class="link-time" data-v-acb4c5a1${_scopeId}>${ssrInterpolate(link.time)}</span></div>`);
 									});
 									_push(`<!--]--></div>`);
 								}
@@ -3196,32 +3516,34 @@ var _sfc_main$13 = {
 							_push(`</div></div>`);
 						} else _push(`<!---->`);
 						_push(`</div>`);
-						if (modalOpen.value && modalImage.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-3f8c28c2${_scopeId}><div class="modal-content" data-v-3f8c28c2${_scopeId}><button class="modal-close" type="button" data-v-3f8c28c2${_scopeId}> × </button><img${ssrRenderAttr("src", modalImage.value)} alt="Предпросмотр" data-v-3f8c28c2${_scopeId}></div></div>`);
+						if (modalOpen.value && modalImage.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-acb4c5a1${_scopeId}><div class="modal-content" data-v-acb4c5a1${_scopeId}><button class="modal-close" type="button" data-v-acb4c5a1${_scopeId}> × </button><img${ssrRenderAttr("src", modalImage.value)} alt="Предпросмотр" data-v-acb4c5a1${_scopeId}></div></div>`);
 						else _push(`<!---->`);
-						if (modalOpen.value && modalVideo.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-3f8c28c2${_scopeId}><div class="modal-content modal-video-content" data-v-3f8c28c2${_scopeId}><button class="modal-close" type="button" data-v-3f8c28c2${_scopeId}> × </button><video${ssrRenderAttr("src", modalVideo.value)} controls autoplay class="modal-video" data-v-3f8c28c2${_scopeId}></video></div></div>`);
+						if (modalOpen.value && modalVideo.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-acb4c5a1${_scopeId}><div class="modal-content modal-video-content" data-v-acb4c5a1${_scopeId}><button class="modal-close" type="button" data-v-acb4c5a1${_scopeId}> × </button><video${ssrRenderAttr("src", modalVideo.value)} controls autoplay class="modal-video" data-v-acb4c5a1${_scopeId}></video></div></div>`);
 						else _push(`<!---->`);
 						if (contextMenu.value.show) {
 							_push(`<div class="context-menu" style="${ssrRenderStyle({
 								left: contextMenu.value.x + "px",
 								top: contextMenu.value.y + "px"
-							})}" data-v-3f8c28c2${_scopeId}>`);
-							if (!contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-3f8c28c2${_scopeId}> Ответить </div>`);
+							})}" data-v-acb4c5a1${_scopeId}>`);
+							if (!contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-acb4c5a1${_scopeId}> Ответить </div>`);
 							else _push(`<!---->`);
-							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-3f8c28c2${_scopeId}> Редактировать </div>`);
+							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-acb4c5a1${_scopeId}> Редактировать </div>`);
 							else _push(`<!---->`);
-							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item delete" data-v-3f8c28c2${_scopeId}> Удалить </div>`);
+							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item delete" data-v-acb4c5a1${_scopeId}> Удалить </div>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						} else _push(`<!---->`);
 						if (selectedMessages.value.length > 0) {
-							_push(`<div class="selection-toolbar" data-v-3f8c28c2${_scopeId}><span data-v-3f8c28c2${_scopeId}>${ssrInterpolate(selectedMessages.value.length)} выбрано</span>`);
-							if (canDeleteSelected.value) _push(`<button type="button" class="selection-delete-btn" data-v-3f8c28c2${_scopeId}> Удалить </button>`);
+							_push(`<div class="selection-toolbar" data-v-acb4c5a1${_scopeId}><span data-v-acb4c5a1${_scopeId}>${ssrInterpolate(selectedMessages.value.length)} выбрано</span>`);
+							if (canDeleteSelected.value) _push(`<button type="button" class="selection-delete-btn" data-v-acb4c5a1${_scopeId}> Удалить </button>`);
 							else _push(`<!---->`);
-							_push(`<button type="button" class="selection-clear-btn" data-v-3f8c28c2${_scopeId}> Отмена </button></div>`);
+							_push(`<button type="button" class="selection-clear-btn" data-v-acb4c5a1${_scopeId}> Отмена </button></div>`);
 						} else _push(`<!---->`);
-						if (showPriceModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-3f8c28c2${_scopeId}><div class="price-modal" data-v-3f8c28c2${_scopeId}><div class="price-modal-header" data-v-3f8c28c2${_scopeId}><h3 data-v-3f8c28c2${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-3f8c28c2${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-3f8c28c2${_scopeId}></button></div><form data-v-3f8c28c2${_scopeId}><div class="price-modal-body" data-v-3f8c28c2${_scopeId}><label for="new-price" data-v-3f8c28c2${_scopeId}>Новая цена (₽):</label><input id="new-price"${ssrRenderAttr("value", priceForm.value.proposed_price)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-3f8c28c2${_scopeId}></div><div class="price-modal-footer" data-v-3f8c28c2${_scopeId}><button type="button" class="cancel-btn" data-v-3f8c28c2${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-3f8c28c2${_scopeId}>Предложить</button></div></form></div></div>`);
+						if (showPriceModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-acb4c5a1${_scopeId}><div class="price-modal" data-v-acb4c5a1${_scopeId}><div class="price-modal-header" data-v-acb4c5a1${_scopeId}><h3 data-v-acb4c5a1${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-acb4c5a1${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-acb4c5a1${_scopeId}></button></div><form data-v-acb4c5a1${_scopeId}><div class="price-modal-body" data-v-acb4c5a1${_scopeId}><label for="new-price" data-v-acb4c5a1${_scopeId}>Новая цена (₽):</label><input id="new-price"${ssrRenderAttr("value", priceForm.value.proposed_price)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-acb4c5a1${_scopeId}></div><div class="price-modal-footer" data-v-acb4c5a1${_scopeId}><button type="button" class="cancel-btn" data-v-acb4c5a1${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-acb4c5a1${_scopeId}>Предложить</button></div></form></div></div>`);
 						else _push(`<!---->`);
-						if (priceChangeModal.value.show) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-3f8c28c2${_scopeId}><div class="price-modal" data-v-3f8c28c2${_scopeId}><div class="price-modal-header" data-v-3f8c28c2${_scopeId}><h3 data-v-3f8c28c2${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-3f8c28c2${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-3f8c28c2${_scopeId}></button></div><form data-v-3f8c28c2${_scopeId}><div class="price-modal-body" data-v-3f8c28c2${_scopeId}><p class="price-modal-info" data-v-3f8c28c2${_scopeId}>Текущее предложение: ${ssrInterpolate(priceChangeModal.value.message?.proposed_price)} ₽</p><label for="new-price-change" data-v-3f8c28c2${_scopeId}>Новая цена (₽):</label><input id="new-price-change"${ssrRenderAttr("value", priceChangeModal.value.newPrice)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-3f8c28c2${_scopeId}></div><div class="price-modal-footer" data-v-3f8c28c2${_scopeId}><button type="button" class="cancel-btn" data-v-3f8c28c2${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-3f8c28c2${_scopeId}>Предложить</button></div></form></div></div>`);
+						if (priceChangeModal.value.show) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-acb4c5a1${_scopeId}><div class="price-modal" data-v-acb4c5a1${_scopeId}><div class="price-modal-header" data-v-acb4c5a1${_scopeId}><h3 data-v-acb4c5a1${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-acb4c5a1${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-acb4c5a1${_scopeId}></button></div><form data-v-acb4c5a1${_scopeId}><div class="price-modal-body" data-v-acb4c5a1${_scopeId}><p class="price-modal-info" data-v-acb4c5a1${_scopeId}>Текущее предложение: ${ssrInterpolate(priceChangeModal.value.message?.proposed_price)} ₽</p><label for="new-price-change" data-v-acb4c5a1${_scopeId}>Новая цена (₽):</label><input id="new-price-change"${ssrRenderAttr("value", priceChangeModal.value.newPrice)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-acb4c5a1${_scopeId}></div><div class="price-modal-footer" data-v-acb4c5a1${_scopeId}><button type="button" class="cancel-btn" data-v-acb4c5a1${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-acb4c5a1${_scopeId}>Предложить</button></div></form></div></div>`);
+						else _push(`<!---->`);
+						if (openDisputeModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-acb4c5a1${_scopeId}><div class="price-modal" data-v-acb4c5a1${_scopeId}><div class="price-modal-header" data-v-acb4c5a1${_scopeId}><h3 data-v-acb4c5a1${_scopeId}>Открыть спор</h3><button type="button" class="modal-close" data-v-acb4c5a1${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-acb4c5a1${_scopeId}></button></div><form data-v-acb4c5a1${_scopeId}><div class="price-modal-body" data-v-acb4c5a1${_scopeId}><label for="dispute-reason" data-v-acb4c5a1${_scopeId}>Причина спора:</label><textarea id="dispute-reason" rows="5" minlength="10" maxlength="5000" placeholder="Опишите причину спора (минимум 10 символов)" required data-v-acb4c5a1${_scopeId}>${ssrInterpolate(disputeForm.value.reason)}</textarea></div><div class="price-modal-footer" data-v-acb4c5a1${_scopeId}><button type="button" class="cancel-btn" data-v-acb4c5a1${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-acb4c5a1${_scopeId}>Отправить</button></div></form></div></div>`);
 						else _push(`<!---->`);
 					} else return [
 						createVNode(unref(Head), { title: "Чаты" }),
@@ -3262,7 +3584,8 @@ var _sfc_main$13 = {
 										onClick: ($event) => unref(router).visit(`/chats/${chat.id}`),
 										class: ["chat-item", {
 											active: __props.activeChat && chat.id === __props.activeChat.id,
-											"has-unread": chat.unread_count > 0
+											"has-unread": chat.unread_count > 0,
+											"accepted-chat": chat.application && chat.application.status === "accepted"
 										}],
 										tabindex: "0",
 										onKeydown: withKeys(($event) => unref(router).visit(`/chats/${chat.id}`), ["enter"])
@@ -3349,7 +3672,7 @@ var _sfc_main$13 = {
 										vacancyPostId.value ? (openBlock(), createBlock("span", {
 											key: 1,
 											class: "vacancy-link"
-										}, " откликнулся на ")) : createCommentVNode("", true),
+										}, toDisplayString(isVacancyAuthor.value ? "откликнулся на" : "автор вакансии"), 1)) : createCommentVNode("", true),
 										createVNode(unref(Link), { href: `/posts/${vacancyPostId.value}` }, {
 											default: withCtx(() => [createVNode("h2", null, toDisplayString(vacancyPosition.value), 1)]),
 											_: 1
@@ -3447,16 +3770,48 @@ var _sfc_main$13 = {
 										src: "/images/edit.svg",
 										alt: "Изменить цену"
 									})], 8, ["onClick"])) : createCommentVNode("", true)])) : createCommentVNode("", true),
-									isVacancyAuthor.value ? (openBlock(), createBlock("div", {
+									__props.activeChat.application.completed_at && !__props.activeChat.application.transaction?.completed_at ? (openBlock(), createBlock("div", {
 										key: 2,
+										class: "application-status"
+									}, [createVNode("span", { class: "status-badge waiting" }, "⏳ Ожидание зачисления: " + toDisplayString(getDaysRemaining(__props.activeChat.application.completed_at)) + " дн.", 1)])) : createCommentVNode("", true),
+									__props.activeChat.application.dispute && __props.activeChat.application.dispute.status === "open" ? (openBlock(), createBlock("div", {
+										key: 3,
+										class: "application-status"
+									}, [createVNode("span", { class: "status-badge dispute" }, "⚠️ Открыт спор")])) : createCommentVNode("", true),
+									isVacancyAuthor.value ? (openBlock(), createBlock("div", {
+										key: 4,
 										class: "application-actions"
-									}, [createVNode("form", { onSubmit: withModifiers(acceptApplication, ["prevent"]) }, [createVNode("button", {
+									}, [__props.activeChat.application.status === "pending" ? (openBlock(), createBlock(Fragment, { key: 0 }, [createVNode("form", { onSubmit: withModifiers(acceptApplication, ["prevent"]) }, [createVNode("button", {
 										type: "submit",
 										class: "accept-btn"
 									}, "Принять отклик")], 32), createVNode("form", { onSubmit: withModifiers(rejectApplication, ["prevent"]) }, [createVNode("button", {
 										type: "submit",
 										class: "reject-btn"
-									}, "Отклонить")], 32)])) : createCommentVNode("", true)
+									}, "Отклонить")], 32)], 64)) : __props.activeChat.application.status === "accepted" ? (openBlock(), createBlock(Fragment, { key: 1 }, [
+										!__props.activeChat.application.completed_at && !__props.activeChat.application.dispute ? (openBlock(), createBlock("form", {
+											key: 0,
+											onSubmit: withModifiers(confirmCompletion, ["prevent"])
+										}, [createVNode("button", {
+											type: "submit",
+											class: "accept-btn"
+										}, "Подтвердить завершение")], 32)) : createCommentVNode("", true),
+										createVNode("form", { onSubmit: withModifiers(withdrawApplication, ["prevent"]) }, [createVNode("button", {
+											type: "submit",
+											class: "withdraw-btn"
+										}, "Отменить")], 32),
+										createVNode("form", { onSubmit: withModifiers(closeVacancy, ["prevent"]) }, [createVNode("button", {
+											type: "submit",
+											class: "close-btn"
+										}, "Закрыть вакансию")], 32)
+									], 64)) : createCommentVNode("", true)])) : createCommentVNode("", true),
+									!isVacancyAuthor.value && __props.activeChat.application.status === "accepted" && !__props.activeChat.application.dispute ? (openBlock(), createBlock("div", {
+										key: 5,
+										class: "application-actions"
+									}, [createVNode("button", {
+										type: "button",
+										class: "dispute-btn",
+										onClick: ($event) => openDisputeModal.value = true
+									}, " Открыть спор ", 8, ["onClick"])])) : createCommentVNode("", true)
 								], 512), [[vShow, !isApplicationBlockClosed.value]])], 2)) : createCommentVNode("", true),
 								createVNode("div", {
 									class: "chat-messages",
@@ -3926,8 +4281,249 @@ var _sfc_main$13 = {
 						}, "Отмена", 8, ["onClick"]), createVNode("button", {
 							type: "submit",
 							class: "submit-btn"
-						}, "Предложить")])], 32)])], 8, ["onClick"])) : createCommentVNode("", true)
+						}, "Предложить")])], 32)])], 8, ["onClick"])) : createCommentVNode("", true),
+						openDisputeModal.value ? (openBlock(), createBlock("div", {
+							key: 6,
+							class: "modal-overlay",
+							style: { "display": "flex" },
+							onClick: withModifiers(($event) => openDisputeModal.value = false, ["self"])
+						}, [createVNode("div", { class: "price-modal" }, [createVNode("div", { class: "price-modal-header" }, [createVNode("h3", null, "Открыть спор"), createVNode("button", {
+							type: "button",
+							class: "modal-close",
+							onClick: ($event) => openDisputeModal.value = false
+						}, [createVNode("img", {
+							src: "/images/close.svg",
+							alt: "Закрыть"
+						})], 8, ["onClick"])]), createVNode("form", { onSubmit: withModifiers(submitDispute, ["prevent"]) }, [createVNode("div", { class: "price-modal-body" }, [createVNode("label", { for: "dispute-reason" }, "Причина спора:"), withDirectives(createVNode("textarea", {
+							id: "dispute-reason",
+							"onUpdate:modelValue": ($event) => disputeForm.value.reason = $event,
+							rows: "5",
+							minlength: "10",
+							maxlength: "5000",
+							placeholder: "Опишите причину спора (минимум 10 символов)",
+							required: ""
+						}, null, 8, ["onUpdate:modelValue"]), [[vModelText, disputeForm.value.reason]])]), createVNode("div", { class: "price-modal-footer" }, [createVNode("button", {
+							type: "button",
+							class: "cancel-btn",
+							onClick: ($event) => openDisputeModal.value = false
+						}, "Отмена", 8, ["onClick"]), createVNode("button", {
+							type: "submit",
+							class: "submit-btn"
+						}, "Отправить")])], 32)])], 8, ["onClick"])) : createCommentVNode("", true)
 					];
+				}),
+				_: 1
+			}, _parent));
+		};
+	}
+};
+var _sfc_setup$14 = _sfc_main$14.setup;
+_sfc_main$14.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Chat/Chats.vue");
+	return _sfc_setup$14 ? _sfc_setup$14(props, ctx) : void 0;
+};
+var Chats_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$14, [["__scopeId", "data-v-acb4c5a1"]]);
+//#endregion
+//#region resources/js/Pages/Disputes/Index.vue
+var Index_exports$1 = /* @__PURE__ */ __exportAll({ default: () => Index_default$1 });
+var _sfc_main$13 = {
+	__name: "Index",
+	__ssrInlineRender: true,
+	props: { disputes: {
+		type: Object,
+		default: () => ({
+			data: [],
+			current_page: 1,
+			last_page: 1
+		})
+	} },
+	setup(__props) {
+		useDarkMode();
+		const processing = ref(null);
+		const resolveModal = ref({
+			show: false,
+			disputeId: null,
+			resolution: ""
+		});
+		const getStatusLabel = (status) => {
+			return {
+				"open": "Открыт",
+				"resolved": "Решён",
+				"cancelled": "Отменён"
+			}[status] || status;
+		};
+		const formatDate = (dateString) => {
+			return new Date(dateString).toLocaleDateString("ru-RU", {
+				day: "numeric",
+				month: "long",
+				year: "numeric",
+				hour: "2-digit",
+				minute: "2-digit"
+			});
+		};
+		const takeDispute = (disputeId) => {
+			processing.value = disputeId;
+			router.post(`/admin/disputes/${disputeId}/take`, {}, {
+				preserveScroll: true,
+				onFinish: () => {
+					processing.value = null;
+				}
+			});
+		};
+		const showResolveModal = (dispute) => {
+			resolveModal.value = {
+				show: true,
+				disputeId: dispute.id,
+				resolution: ""
+			};
+		};
+		const closeResolveModal = () => {
+			resolveModal.value = {
+				show: false,
+				disputeId: null,
+				resolution: ""
+			};
+		};
+		const submitResolution = () => {
+			if (resolveModal.value.resolution.length < 10) return;
+			router.post(`/admin/disputes/${resolveModal.value.disputeId}/resolve`, { resolution: resolveModal.value.resolution }, {
+				preserveScroll: true,
+				onSuccess: () => {
+					closeResolveModal();
+				}
+			});
+		};
+		const viewChat = (chatId) => {
+			if (chatId) router.visit(`/chats/${chatId}`);
+		};
+		const goToPage = (page) => {
+			router.visit(`/admin/disputes?page=${page}`);
+		};
+		return (_ctx, _push, _parent, _attrs) => {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) {
+						_push(ssrRenderComponent(unref(Head), { title: "Управление спорами" }, null, _parent, _scopeId));
+						_push(`<div class="disputes-page" data-v-2a942cd1${_scopeId}><div class="page-header" data-v-2a942cd1${_scopeId}><h1 data-v-2a942cd1${_scopeId}>Управление спорами</h1></div>`);
+						if (__props.disputes && __props.disputes.data && __props.disputes.data.length > 0) {
+							_push(`<div class="disputes-list" data-v-2a942cd1${_scopeId}><!--[-->`);
+							ssrRenderList(__props.disputes.data, (dispute) => {
+								_push(`<div class="dispute-card" data-v-2a942cd1${_scopeId}><div class="dispute-header" data-v-2a942cd1${_scopeId}><div class="${ssrRenderClass([dispute.status, "dispute-status"])}" data-v-2a942cd1${_scopeId}>${ssrInterpolate(getStatusLabel(dispute.status))}</div><div class="dispute-date" data-v-2a942cd1${_scopeId}>${ssrInterpolate(formatDate(dispute.created_at))}</div></div><div class="dispute-body" data-v-2a942cd1${_scopeId}><div class="dispute-initiator" data-v-2a942cd1${_scopeId}><strong data-v-2a942cd1${_scopeId}>Инициатор:</strong> ${ssrInterpolate(dispute.initiator?.name || "Неизвестно")}</div>`);
+								if (dispute.application) _push(`<div class="dispute-application" data-v-2a942cd1${_scopeId}><strong data-v-2a942cd1${_scopeId}>Вакансия:</strong> ${ssrInterpolate(dispute.application.vacancy?.position || "Неизвестно")}</div>`);
+								else _push(`<!---->`);
+								_push(`<div class="dispute-reason" data-v-2a942cd1${_scopeId}><strong data-v-2a942cd1${_scopeId}>Причина:</strong><p data-v-2a942cd1${_scopeId}>${ssrInterpolate(dispute.reason)}</p></div>`);
+								if (dispute.admin) _push(`<div class="dispute-admin" data-v-2a942cd1${_scopeId}><strong data-v-2a942cd1${_scopeId}>Администратор:</strong> ${ssrInterpolate(dispute.admin.name)}</div>`);
+								else _push(`<!---->`);
+								if (dispute.resolution) _push(`<div class="dispute-resolution" data-v-2a942cd1${_scopeId}><strong data-v-2a942cd1${_scopeId}>Решение:</strong><p data-v-2a942cd1${_scopeId}>${ssrInterpolate(dispute.resolution)}</p></div>`);
+								else _push(`<!---->`);
+								_push(`</div><div class="dispute-actions" data-v-2a942cd1${_scopeId}>`);
+								if (dispute.status === "open") {
+									_push(`<!--[-->`);
+									if (!dispute.admin_id) _push(`<button class="btn-take"${ssrIncludeBooleanAttr(processing.value === dispute.id) ? " disabled" : ""} data-v-2a942cd1${_scopeId}>${ssrInterpolate(processing.value === dispute.id ? "Принимаем..." : "Взять в работу")}</button>`);
+									else _push(`<button class="btn-resolve" data-v-2a942cd1${_scopeId}> Вынести решение </button>`);
+									_push(`<!--]-->`);
+								} else _push(`<!---->`);
+								_push(`<button class="btn-chat" data-v-2a942cd1${_scopeId}> Перейти в чат </button></div></div>`);
+							});
+							_push(`<!--]--></div>`);
+						} else _push(`<div class="no-disputes" data-v-2a942cd1${_scopeId}><p data-v-2a942cd1${_scopeId}>Нет открытых споров</p></div>`);
+						if (__props.disputes && __props.disputes.last_page > 1) {
+							_push(`<div class="pagination" data-v-2a942cd1${_scopeId}>`);
+							if (__props.disputes.current_page > 1) _push(`<button class="pagination-btn" data-v-2a942cd1${_scopeId}> ← Назад </button>`);
+							else _push(`<!---->`);
+							_push(`<span class="pagination-info" data-v-2a942cd1${_scopeId}> Страница ${ssrInterpolate(__props.disputes.current_page)} из ${ssrInterpolate(__props.disputes.last_page)}</span>`);
+							if (__props.disputes.current_page < __props.disputes.last_page) _push(`<button class="pagination-btn" data-v-2a942cd1${_scopeId}> Вперёд → </button>`);
+							else _push(`<!---->`);
+							_push(`</div>`);
+						} else _push(`<!---->`);
+						if (resolveModal.value.show) _push(`<div class="modal-overlay" data-v-2a942cd1${_scopeId}><div class="resolve-modal" data-v-2a942cd1${_scopeId}><div class="modal-header" data-v-2a942cd1${_scopeId}><h3 data-v-2a942cd1${_scopeId}>Вынести решение по спору</h3><button class="modal-close" data-v-2a942cd1${_scopeId}>×</button></div><form data-v-2a942cd1${_scopeId}><div class="modal-body" data-v-2a942cd1${_scopeId}><label for="resolution" data-v-2a942cd1${_scopeId}>Решение:</label><textarea id="resolution" rows="5" minlength="10" required placeholder="Опишите ваше решение (минимум 10 символов)" data-v-2a942cd1${_scopeId}>${ssrInterpolate(resolveModal.value.resolution)}</textarea></div><div class="modal-footer" data-v-2a942cd1${_scopeId}><button type="button" class="btn-cancel" data-v-2a942cd1${_scopeId}>Отмена</button><button type="submit" class="btn-submit" data-v-2a942cd1${_scopeId}>Отправить решение</button></div></form></div></div>`);
+						else _push(`<!---->`);
+						_push(`</div>`);
+					} else return [createVNode(unref(Head), { title: "Управление спорами" }), createVNode("div", { class: "disputes-page" }, [
+						createVNode("div", { class: "page-header" }, [createVNode("h1", null, "Управление спорами")]),
+						__props.disputes && __props.disputes.data && __props.disputes.data.length > 0 ? (openBlock(), createBlock("div", {
+							key: 0,
+							class: "disputes-list"
+						}, [(openBlock(true), createBlock(Fragment, null, renderList(__props.disputes.data, (dispute) => {
+							return openBlock(), createBlock("div", {
+								key: dispute.id,
+								class: "dispute-card"
+							}, [
+								createVNode("div", { class: "dispute-header" }, [createVNode("div", { class: ["dispute-status", dispute.status] }, toDisplayString(getStatusLabel(dispute.status)), 3), createVNode("div", { class: "dispute-date" }, toDisplayString(formatDate(dispute.created_at)), 1)]),
+								createVNode("div", { class: "dispute-body" }, [
+									createVNode("div", { class: "dispute-initiator" }, [createVNode("strong", null, "Инициатор:"), createTextVNode(" " + toDisplayString(dispute.initiator?.name || "Неизвестно"), 1)]),
+									dispute.application ? (openBlock(), createBlock("div", {
+										key: 0,
+										class: "dispute-application"
+									}, [createVNode("strong", null, "Вакансия:"), createTextVNode(" " + toDisplayString(dispute.application.vacancy?.position || "Неизвестно"), 1)])) : createCommentVNode("", true),
+									createVNode("div", { class: "dispute-reason" }, [createVNode("strong", null, "Причина:"), createVNode("p", null, toDisplayString(dispute.reason), 1)]),
+									dispute.admin ? (openBlock(), createBlock("div", {
+										key: 1,
+										class: "dispute-admin"
+									}, [createVNode("strong", null, "Администратор:"), createTextVNode(" " + toDisplayString(dispute.admin.name), 1)])) : createCommentVNode("", true),
+									dispute.resolution ? (openBlock(), createBlock("div", {
+										key: 2,
+										class: "dispute-resolution"
+									}, [createVNode("strong", null, "Решение:"), createVNode("p", null, toDisplayString(dispute.resolution), 1)])) : createCommentVNode("", true)
+								]),
+								createVNode("div", { class: "dispute-actions" }, [dispute.status === "open" ? (openBlock(), createBlock(Fragment, { key: 0 }, [!dispute.admin_id ? (openBlock(), createBlock("button", {
+									key: 0,
+									onClick: ($event) => takeDispute(dispute.id),
+									class: "btn-take",
+									disabled: processing.value === dispute.id
+								}, toDisplayString(processing.value === dispute.id ? "Принимаем..." : "Взять в работу"), 9, ["onClick", "disabled"])) : (openBlock(), createBlock("button", {
+									key: 1,
+									onClick: ($event) => showResolveModal(dispute),
+									class: "btn-resolve"
+								}, " Вынести решение ", 8, ["onClick"]))], 64)) : createCommentVNode("", true), createVNode("button", {
+									onClick: ($event) => viewChat(dispute.chat_id),
+									class: "btn-chat"
+								}, " Перейти в чат ", 8, ["onClick"])])
+							]);
+						}), 128))])) : (openBlock(), createBlock("div", {
+							key: 1,
+							class: "no-disputes"
+						}, [createVNode("p", null, "Нет открытых споров")])),
+						__props.disputes && __props.disputes.last_page > 1 ? (openBlock(), createBlock("div", {
+							key: 2,
+							class: "pagination"
+						}, [
+							__props.disputes.current_page > 1 ? (openBlock(), createBlock("button", {
+								key: 0,
+								onClick: ($event) => goToPage(__props.disputes.current_page - 1),
+								class: "pagination-btn"
+							}, " ← Назад ", 8, ["onClick"])) : createCommentVNode("", true),
+							createVNode("span", { class: "pagination-info" }, " Страница " + toDisplayString(__props.disputes.current_page) + " из " + toDisplayString(__props.disputes.last_page), 1),
+							__props.disputes.current_page < __props.disputes.last_page ? (openBlock(), createBlock("button", {
+								key: 1,
+								onClick: ($event) => goToPage(__props.disputes.current_page + 1),
+								class: "pagination-btn"
+							}, " Вперёд → ", 8, ["onClick"])) : createCommentVNode("", true)
+						])) : createCommentVNode("", true),
+						resolveModal.value.show ? (openBlock(), createBlock("div", {
+							key: 3,
+							class: "modal-overlay",
+							onClick: withModifiers(closeResolveModal, ["self"])
+						}, [createVNode("div", { class: "resolve-modal" }, [createVNode("div", { class: "modal-header" }, [createVNode("h3", null, "Вынести решение по спору"), createVNode("button", {
+							onClick: closeResolveModal,
+							class: "modal-close"
+						}, "×")]), createVNode("form", { onSubmit: withModifiers(submitResolution, ["prevent"]) }, [createVNode("div", { class: "modal-body" }, [createVNode("label", { for: "resolution" }, "Решение:"), withDirectives(createVNode("textarea", {
+							id: "resolution",
+							"onUpdate:modelValue": ($event) => resolveModal.value.resolution = $event,
+							rows: "5",
+							minlength: "10",
+							required: "",
+							placeholder: "Опишите ваше решение (минимум 10 символов)"
+						}, null, 8, ["onUpdate:modelValue"]), [[vModelText, resolveModal.value.resolution]])]), createVNode("div", { class: "modal-footer" }, [createVNode("button", {
+							type: "button",
+							onClick: closeResolveModal,
+							class: "btn-cancel"
+						}, "Отмена"), createVNode("button", {
+							type: "submit",
+							class: "btn-submit"
+						}, "Отправить решение")])], 32)])])) : createCommentVNode("", true)
+					])];
 				}),
 				_: 1
 			}, _parent));
@@ -3937,10 +4533,10 @@ var _sfc_main$13 = {
 var _sfc_setup$13 = _sfc_main$13.setup;
 _sfc_main$13.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
-	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Chat/Chats.vue");
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Disputes/Index.vue");
 	return _sfc_setup$13 ? _sfc_setup$13(props, ctx) : void 0;
 };
-var Chats_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$13, [["__scopeId", "data-v-3f8c28c2"]]);
+var Index_default$1 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$13, [["__scopeId", "data-v-2a942cd1"]]);
 //#endregion
 //#region resources/js/Components/Post.vue
 var _sfc_main$12 = {
@@ -3949,6 +4545,7 @@ var _sfc_main$12 = {
 	props: { post: Object },
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		const localLikes = ref(props.post.likes_count ?? 0);
 		const isLiked = ref(props.post.is_liked ?? false);
 		watch(() => props.post.likes_count, (newVal) => {
@@ -3958,12 +4555,17 @@ var _sfc_main$12 = {
 			isLiked.value = newVal;
 		});
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(`<div${ssrRenderAttrs(mergeProps({ class: "post" }, _attrs))} data-v-fb52325a>`);
-			if (__props.post.is_vacancy) _push(`<div class="vacancy-badge" data-v-fb52325a>Вакансия</div>`);
+			_push(`<div${ssrRenderAttrs(mergeProps({ class: "post" }, _attrs))} data-v-490b2f95><div class="badges" data-v-490b2f95>`);
+			if (__props.post.is_vacancy) _push(`<div class="vacancy-badge" data-v-490b2f95>Вакансия</div>`);
 			else _push(`<!---->`);
+			if (__props.post.active === false && __props.post.status !== "closed") _push(`<div class="hidden-badge" title="Этот пост видите только вы" data-v-490b2f95><img src="/images/blind.svg" alt="Скрыто" data-v-490b2f95></div>`);
+			else _push(`<!---->`);
+			if (__props.post.status === "closed") _push(`<div class="closed-badge" data-v-490b2f95>Завершено</div>`);
+			else _push(`<!---->`);
+			_push(`</div>`);
 			_push(ssrRenderComponent(unref(Link), { href: __props.post.show_url }, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
-					if (_push) if (__props.post.image_url) _push(`<img${ssrRenderAttr("src", __props.post.image_url)}${ssrRenderAttr("alt", __props.post.title)} data-v-fb52325a${_scopeId}>`);
+					if (_push) if (__props.post.image_url) _push(`<img${ssrRenderAttr("src", __props.post.image_url)}${ssrRenderAttr("alt", __props.post.title)} data-v-490b2f95${_scopeId}>`);
 					else _push(`<!---->`);
 					else return [__props.post.image_url ? (openBlock(), createBlock("img", {
 						key: 0,
@@ -3973,15 +4575,15 @@ var _sfc_main$12 = {
 				}),
 				_: 1
 			}, _parent));
-			_push(`<div class="post-content" data-v-fb52325a><div data-v-fb52325a>`);
+			_push(`<div class="post-content" data-v-490b2f95><div data-v-490b2f95>`);
 			_push(ssrRenderComponent(unref(Link), { href: __props.post.show_url }, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
-					if (_push) _push(`<h3 class="title" data-v-fb52325a${_scopeId}>${ssrInterpolate(__props.post.title)}</h3>`);
+					if (_push) _push(`<h3 class="title" data-v-490b2f95${_scopeId}>${ssrInterpolate(__props.post.title)}</h3>`);
 					else return [createVNode("h3", { class: "title" }, toDisplayString(__props.post.title), 1)];
 				}),
 				_: 1
 			}, _parent));
-			_push(`<p class="description" data-v-fb52325a>${ssrInterpolate(__props.post.description)}</p></div><small data-v-fb52325a> Автор: `);
+			_push(`<p class="description" data-v-490b2f95>${ssrInterpolate(__props.post.description)}</p></div><small data-v-490b2f95> Автор: `);
 			_push(ssrRenderComponent(unref(Link), {
 				href: __props.post.user.profile_url,
 				class: "username"
@@ -3992,7 +4594,7 @@ var _sfc_main$12 = {
 				}),
 				_: 1
 			}, _parent));
-			_push(`</small><div class="post-actions" data-v-fb52325a><button type="button" class="${ssrRenderClass({ liked: isLiked.value })}" id="like" data-v-fb52325a>${ssrInterpolate(isLiked.value ? "❤️" : "🤍")} ${ssrInterpolate(localLikes.value)}</button></div></div></div>`);
+			_push(`</small><div class="post-actions" data-v-490b2f95><button type="button" class="${ssrRenderClass({ liked: isLiked.value })}" id="like" data-v-490b2f95>${ssrInterpolate(isLiked.value ? "❤️" : "🤍")} ${ssrInterpolate(localLikes.value)}</button></div></div></div>`);
 		};
 	}
 };
@@ -4002,11 +4604,11 @@ _sfc_main$12.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/Post.vue");
 	return _sfc_setup$12 ? _sfc_setup$12(props, ctx) : void 0;
 };
-var Post_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$12, [["__scopeId", "data-v-fb52325a"]]);
+var Post_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$12, [["__scopeId", "data-v-490b2f95"]]);
 //#endregion
 //#region resources/js/Pages/Home.vue
 var Home_exports = /* @__PURE__ */ __exportAll({ default: () => Home_default });
-var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
+var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$22 }, {
 	__name: "Home",
 	__ssrInlineRender: true,
 	props: {
@@ -4031,6 +4633,7 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 		const props = __props;
 		const posts = computed(() => props.posts || []);
 		const authUser = computed(() => props.auth?.user || null);
+		useDarkMode();
 		const heroImage = "/images/Photoroom.png";
 		const query = ref("");
 		const typeFilter = ref("");
@@ -4092,7 +4695,7 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: "Главная" }, null, _parent));
-			_push(`<div class="block1" data-v-7f74233e><h1 data-v-7f74233e>Место, где работа находит работника<br data-v-7f74233e>и наоборот.</h1><img${ssrRenderAttr("src", heroImage)} alt="bruh" data-v-7f74233e></div><div class="block2" data-v-7f74233e><button class="filter-toggle" data-v-7f74233e> Фильтры <span data-v-7f74233e>${ssrInterpolate(filtersVisible.value ? "▼" : "▶")}</span></button><div class="search-container" data-v-7f74233e><input class="searchbar"${ssrRenderAttr("value", query.value)} type="text" placeholder="Поиск по постам" data-v-7f74233e><div class="view-mode-toggle" data-v-7f74233e><button class="${ssrRenderClass([{ active: viewMode.value === "grid" }, "view-mode-btn"])}" type="button" data-v-7f74233e><img src="/images/grid-view.svg" alt="Сетка" data-v-7f74233e></button><button class="${ssrRenderClass([{ active: viewMode.value === "list" }, "view-mode-btn"])}" type="button" data-v-7f74233e><img src="/images/list-view.svg" alt="Список" data-v-7f74233e></button></div></div></div><div class="${ssrRenderClass([{ filtersOpen: filtersVisible.value }, "content-wrapper"])}" data-v-7f74233e><div class="filterscontainer" data-v-7f74233e><div class="filters" data-v-7f74233e><div class="filter-group" data-v-7f74233e><label data-v-7f74233e>Тип:</label><div class="type-selector" data-v-7f74233e><button class="${ssrRenderClass({ active: typeFilter.value === "" })}" data-v-7f74233e> Все </button><button class="${ssrRenderClass({ active: typeFilter.value === "vacancy" })}" data-v-7f74233e> Вакансии </button><button class="${ssrRenderClass({ active: typeFilter.value === "post" })}" data-v-7f74233e> Посты </button></div></div><div class="filter-group" data-v-7f74233e><label data-v-7f74233e>Навыки:</label>`);
+			_push(`<div class="block1" data-v-0a01ea74><h1 data-v-0a01ea74>Место, где работа находит работника<br data-v-0a01ea74>и наоборот.</h1><img${ssrRenderAttr("src", heroImage)} alt="bruh" data-v-0a01ea74></div><div class="block2" data-v-0a01ea74><button class="filter-toggle" data-v-0a01ea74> Фильтры <span data-v-0a01ea74>${ssrInterpolate(filtersVisible.value ? "▼" : "▶")}</span></button><div class="search-container" data-v-0a01ea74><input class="searchbar"${ssrRenderAttr("value", query.value)} type="text" placeholder="Поиск по постам" data-v-0a01ea74><div class="view-mode-toggle" data-v-0a01ea74><button class="${ssrRenderClass([{ active: viewMode.value === "grid" }, "view-mode-btn"])}" type="button" data-v-0a01ea74><img src="/images/grid-view.svg" alt="Сетка" data-v-0a01ea74></button><button class="${ssrRenderClass([{ active: viewMode.value === "list" }, "view-mode-btn"])}" type="button" data-v-0a01ea74><img src="/images/list-view.svg" alt="Список" data-v-0a01ea74></button></div></div></div><div class="${ssrRenderClass([{ filtersOpen: filtersVisible.value }, "content-wrapper"])}" data-v-0a01ea74><div class="filterscontainer" data-v-0a01ea74><div class="filters" data-v-0a01ea74><div class="filter-group" data-v-0a01ea74><label data-v-0a01ea74>Тип:</label><div class="type-selector" data-v-0a01ea74><button class="${ssrRenderClass({ active: typeFilter.value === "" })}" data-v-0a01ea74> Все </button><button class="${ssrRenderClass({ active: typeFilter.value === "vacancy" })}" data-v-0a01ea74> Вакансии </button><button class="${ssrRenderClass({ active: typeFilter.value === "post" })}" data-v-0a01ea74> Посты </button></div></div><div class="filter-group" data-v-0a01ea74><label data-v-0a01ea74>Навыки:</label>`);
 			_push(ssrRenderComponent(SkillsSelector_default, {
 				modelValue: selectedSkills.value,
 				"onUpdate:modelValue": ($event) => selectedSkills.value = $event,
@@ -4100,13 +4703,13 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 			}, null, _parent));
 			_push(`</div>`);
 			if (selectedSkills.value.length > 0) {
-				_push(`<div class="selected-skills" data-v-7f74233e><!--[-->`);
+				_push(`<div class="selected-skills" data-v-0a01ea74><!--[-->`);
 				ssrRenderList(selectedSkills.value, (skill) => {
-					_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-7f74233e><span class="skill-name" data-v-7f74233e>${ssrInterpolate(skill.name)}</span><div class="skill-level" data-v-7f74233e><label data-v-7f74233e>Уровень:</label><select data-v-7f74233e><option${ssrRenderAttr("value", 1)} data-v-7f74233e${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 1) : ssrLooseEqual(skill.level, 1)) ? " selected" : ""}>1</option><option${ssrRenderAttr("value", 2)} data-v-7f74233e${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 2) : ssrLooseEqual(skill.level, 2)) ? " selected" : ""}>2</option><option${ssrRenderAttr("value", 3)} data-v-7f74233e${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 3) : ssrLooseEqual(skill.level, 3)) ? " selected" : ""}>3</option><option${ssrRenderAttr("value", 4)} data-v-7f74233e${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 4) : ssrLooseEqual(skill.level, 4)) ? " selected" : ""}>4</option><option${ssrRenderAttr("value", 5)} data-v-7f74233e${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 5) : ssrLooseEqual(skill.level, 5)) ? " selected" : ""}>5</option></select></div><button type="button" class="remove-skill" data-v-7f74233e>×</button></div>`);
+					_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-0a01ea74><span class="skill-name" data-v-0a01ea74>${ssrInterpolate(skill.name)}</span><div class="skill-level" data-v-0a01ea74><label data-v-0a01ea74>Уровень:</label><select data-v-0a01ea74><option${ssrRenderAttr("value", 1)} data-v-0a01ea74${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 1) : ssrLooseEqual(skill.level, 1)) ? " selected" : ""}>1</option><option${ssrRenderAttr("value", 2)} data-v-0a01ea74${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 2) : ssrLooseEqual(skill.level, 2)) ? " selected" : ""}>2</option><option${ssrRenderAttr("value", 3)} data-v-0a01ea74${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 3) : ssrLooseEqual(skill.level, 3)) ? " selected" : ""}>3</option><option${ssrRenderAttr("value", 4)} data-v-0a01ea74${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 4) : ssrLooseEqual(skill.level, 4)) ? " selected" : ""}>4</option><option${ssrRenderAttr("value", 5)} data-v-0a01ea74${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 5) : ssrLooseEqual(skill.level, 5)) ? " selected" : ""}>5</option></select></div><button type="button" class="remove-skill" data-v-0a01ea74>×</button></div>`);
 				});
 				_push(`<!--]--></div>`);
 			} else _push(`<!---->`);
-			_push(`</div></div><div class="main-wrapper" data-v-7f74233e><div class="tabs" data-v-7f74233e><button class="${ssrRenderClass({ active: activeTab.value === "all" })}" data-v-7f74233e> Все посты </button><button class="${ssrRenderClass({ active: activeTab.value === "foryou" })}" data-v-7f74233e> Для вас </button></div><div class="${ssrRenderClass([{ "list-mode": viewMode.value === "list" }, "posts"])}" data-v-7f74233e>`);
+			_push(`</div></div><div class="main-wrapper" data-v-0a01ea74><div class="tabs" data-v-0a01ea74><button class="${ssrRenderClass({ active: activeTab.value === "all" })}" data-v-0a01ea74> Все посты </button><button class="${ssrRenderClass({ active: activeTab.value === "foryou" })}" data-v-0a01ea74> Для вас </button></div><div class="${ssrRenderClass([{ "list-mode": viewMode.value === "list" }, "posts"])}" data-v-0a01ea74>`);
 			if (displayedPosts.value.length > 0) {
 				_push(`<!--[-->`);
 				ssrRenderList(displayedPosts.value, (post) => {
@@ -4119,7 +4722,7 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 			} else {
 				_push(`<!--[-->`);
 				if (activeTab.value === "foryou" && !authUser.value) {
-					_push(`<p class="empty-message" data-v-7f74233e> Чтобы подобрать для вас лучшую работу — `);
+					_push(`<p class="empty-message" data-v-0a01ea74> Чтобы подобрать для вас лучшую работу — `);
 					_push(ssrRenderComponent(unref(Link), { href: "/login/" }, {
 						default: withCtx((_, _push, _parent, _scopeId) => {
 							if (_push) _push(`авторизуйтесь`);
@@ -4128,7 +4731,7 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 						_: 1
 					}, _parent));
 					_push(`</p>`);
-				} else _push(`<p class="empty-message" data-v-7f74233e>Пока ничего нет</p>`);
+				} else _push(`<p class="empty-message" data-v-0a01ea74>Пока ничего нет</p>`);
 				_push(`<!--]-->`);
 			}
 			_push(`</div></div></div><!--]-->`);
@@ -4141,7 +4744,7 @@ _sfc_main$11.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Home.vue");
 	return _sfc_setup$11 ? _sfc_setup$11(props, ctx) : void 0;
 };
-var Home_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$11, [["__scopeId", "data-v-7f74233e"]]);
+var Home_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$11, [["__scopeId", "data-v-0a01ea74"]]);
 //#endregion
 //#region resources/js/Pages/Posts/Create.vue
 var Create_exports = /* @__PURE__ */ __exportAll({ default: () => Create_default });
@@ -4153,6 +4756,7 @@ var _sfc_main$10 = {
 		default: () => []
 	} },
 	setup(__props) {
+		useDarkMode();
 		const fileInputRef = ref(null);
 		const imagePreviewRef = ref(null);
 		const imagePreview = ref(null);
@@ -4213,28 +4817,28 @@ var _sfc_main$10 = {
 			});
 		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Создать новый пост" }, null, _parent, _scopeId));
-						_push(`<div class="create-post-page" data-v-dc7d5ab0${_scopeId}><form data-v-dc7d5ab0${_scopeId}><div class="post-type-toggle" data-v-dc7d5ab0${_scopeId}><button type="button" class="${ssrRenderClass({ active: postType.value === "regular" })}" data-v-dc7d5ab0${_scopeId}> Обычный пост </button><button type="button" class="${ssrRenderClass({ active: postType.value === "vacancy" })}" data-v-dc7d5ab0${_scopeId}> Вакансия </button></div><div class="block" data-v-dc7d5ab0${_scopeId}><div class="${ssrRenderClass([{ "has-image": imagePreview.value }, "image-container"])}" data-v-dc7d5ab0${_scopeId}><input type="file" accept="image/*" style="${ssrRenderStyle({ "display": "none" })}" data-v-dc7d5ab0${_scopeId}>`);
-						if (!imagePreview.value) _push(`<div class="${ssrRenderClass([{ dragging: isDragging.value }, "upload-area"])}" data-v-dc7d5ab0${_scopeId}><div class="upload-instructions" data-v-dc7d5ab0${_scopeId}><p data-v-dc7d5ab0${_scopeId}>Перетащите изображение сюда или кликните для выбора</p><button type="button" class="upload-button" data-v-dc7d5ab0${_scopeId}>+</button></div></div>`);
-						else _push(`<img${ssrRenderAttr("src", imagePreview.value)} class="post-image" data-v-dc7d5ab0${_scopeId}>`);
-						if (imagePreview.value) _push(`<div class="image-overlay" data-v-dc7d5ab0${_scopeId}><button type="button" class="change-image-btn" data-v-dc7d5ab0${_scopeId}> Изменить фото </button></div>`);
+						_push(`<div class="create-post-page" data-v-4d04f5d7${_scopeId}><form data-v-4d04f5d7${_scopeId}><div class="post-type-toggle" data-v-4d04f5d7${_scopeId}><button type="button" class="${ssrRenderClass({ active: postType.value === "regular" })}" data-v-4d04f5d7${_scopeId}> Обычный пост </button><button type="button" class="${ssrRenderClass({ active: postType.value === "vacancy" })}" data-v-4d04f5d7${_scopeId}> Вакансия </button></div><div class="block" data-v-4d04f5d7${_scopeId}><div class="${ssrRenderClass([{ "has-image": imagePreview.value }, "image-container"])}" data-v-4d04f5d7${_scopeId}><input type="file" accept="image/*" style="${ssrRenderStyle({ "display": "none" })}" data-v-4d04f5d7${_scopeId}>`);
+						if (!imagePreview.value) _push(`<div class="${ssrRenderClass([{ dragging: isDragging.value }, "upload-area"])}" data-v-4d04f5d7${_scopeId}><div class="upload-instructions" data-v-4d04f5d7${_scopeId}><p data-v-4d04f5d7${_scopeId}>Перетащите изображение сюда или кликните для выбора</p><button type="button" class="upload-button" data-v-4d04f5d7${_scopeId}>+</button></div></div>`);
+						else _push(`<img${ssrRenderAttr("src", imagePreview.value)} class="post-image" data-v-4d04f5d7${_scopeId}>`);
+						if (imagePreview.value) _push(`<div class="image-overlay" data-v-4d04f5d7${_scopeId}><button type="button" class="change-image-btn" data-v-4d04f5d7${_scopeId}> Изменить фото </button></div>`);
 						else _push(`<!---->`);
-						_push(`</div><div class="content-wrapper" data-v-dc7d5ab0${_scopeId}><div class="desc" data-v-dc7d5ab0${_scopeId}>`);
-						if (postType.value === "regular") _push(`<!--[--><input type="text"${ssrRenderAttr("value", unref(form).title)} placeholder="Заголовок поста" required class="title-input" data-v-dc7d5ab0${_scopeId}><textarea placeholder="Описание поста" required class="description-textarea" data-v-dc7d5ab0${_scopeId}>${ssrInterpolate(unref(form).description)}</textarea><!--]-->`);
+						_push(`</div><div class="content-wrapper" data-v-4d04f5d7${_scopeId}><div class="desc" data-v-4d04f5d7${_scopeId}>`);
+						if (postType.value === "regular") _push(`<!--[--><input type="text"${ssrRenderAttr("value", unref(form).title)} placeholder="Заголовок поста" required class="title-input" data-v-4d04f5d7${_scopeId}><textarea placeholder="Описание поста" required class="description-textarea" data-v-4d04f5d7${_scopeId}>${ssrInterpolate(unref(form).description)}</textarea><!--]-->`);
 						else _push(`<!---->`);
 						if (postType.value === "vacancy") {
-							_push(`<div class="vacancy-fields" data-v-dc7d5ab0${_scopeId}><div class="form-row" data-v-dc7d5ab0${_scopeId}><div class="form-group" data-v-dc7d5ab0${_scopeId}><label for="position" data-v-dc7d5ab0${_scopeId}>Должность</label><input type="text"${ssrRenderAttr("value", unref(form).position)} id="position" placeholder="Например: PHP разработчик" data-v-dc7d5ab0${_scopeId}></div></div><div class="form-row two-cols" data-v-dc7d5ab0${_scopeId}><div class="form-group" data-v-dc7d5ab0${_scopeId}><label for="budget_min" data-v-dc7d5ab0${_scopeId}>Бюджет от</label><input type="number"${ssrRenderAttr("value", unref(form).budget_min)} id="budget_min" placeholder="1000" data-v-dc7d5ab0${_scopeId}></div><div class="form-group" data-v-dc7d5ab0${_scopeId}><label for="budget_max" data-v-dc7d5ab0${_scopeId}>Бюджет до</label><input type="number"${ssrRenderAttr("value", unref(form).budget_max)} id="budget_max" placeholder="5000" data-v-dc7d5ab0${_scopeId}></div></div><div class="form-row" data-v-dc7d5ab0${_scopeId}><div class="form-group" data-v-dc7d5ab0${_scopeId}><label for="deadline" data-v-dc7d5ab0${_scopeId}>Срок выполнения</label><input type="date"${ssrRenderAttr("value", unref(form).deadline)} id="deadline" data-v-dc7d5ab0${_scopeId}></div></div><div class="form-row" data-v-dc7d5ab0${_scopeId}><div class="form-group" data-v-dc7d5ab0${_scopeId}><label data-v-dc7d5ab0${_scopeId}>Требуемые навыки</label>`);
+							_push(`<div class="vacancy-fields" data-v-4d04f5d7${_scopeId}><div class="form-row" data-v-4d04f5d7${_scopeId}><div class="form-group" data-v-4d04f5d7${_scopeId}><label for="position" data-v-4d04f5d7${_scopeId}>Должность</label><input type="text"${ssrRenderAttr("value", unref(form).position)} id="position" placeholder="Например: PHP разработчик" data-v-4d04f5d7${_scopeId}></div></div><div class="form-row two-cols" data-v-4d04f5d7${_scopeId}><div class="form-group" data-v-4d04f5d7${_scopeId}><label for="budget_min" data-v-4d04f5d7${_scopeId}>Бюджет от</label><input type="number"${ssrRenderAttr("value", unref(form).budget_min)} id="budget_min" placeholder="1000" data-v-4d04f5d7${_scopeId}></div><div class="form-group" data-v-4d04f5d7${_scopeId}><label for="budget_max" data-v-4d04f5d7${_scopeId}>Бюджет до</label><input type="number"${ssrRenderAttr("value", unref(form).budget_max)} id="budget_max" placeholder="5000" data-v-4d04f5d7${_scopeId}></div></div><div class="form-row" data-v-4d04f5d7${_scopeId}><div class="form-group" data-v-4d04f5d7${_scopeId}><label for="deadline" data-v-4d04f5d7${_scopeId}>Срок выполнения</label><input type="date"${ssrRenderAttr("value", unref(form).deadline)} id="deadline" data-v-4d04f5d7${_scopeId}></div></div><div class="form-row" data-v-4d04f5d7${_scopeId}><div class="form-group" data-v-4d04f5d7${_scopeId}><label data-v-4d04f5d7${_scopeId}>Требуемые навыки</label>`);
 							_push(ssrRenderComponent(SkillsSelector_default, {
 								skills: __props.skills,
 								modelValue: unref(form).skills,
 								"onUpdate:modelValue": ($event) => unref(form).skills = $event
 							}, null, _parent, _scopeId));
-							_push(`</div></div><div class="form-row" data-v-dc7d5ab0${_scopeId}><div class="form-group" data-v-dc7d5ab0${_scopeId}><label for="requirements" data-v-dc7d5ab0${_scopeId}>Требования</label><textarea id="requirements" placeholder="Опишите требования к исполнителю..." class="requirements-textarea" data-v-dc7d5ab0${_scopeId}>${ssrInterpolate(unref(form).requirements)}</textarea></div></div></div>`);
+							_push(`</div></div><div class="form-row" data-v-4d04f5d7${_scopeId}><div class="form-group" data-v-4d04f5d7${_scopeId}><label for="requirements" data-v-4d04f5d7${_scopeId}>Требования</label><textarea id="requirements" placeholder="Опишите требования к исполнителю..." class="requirements-textarea" data-v-4d04f5d7${_scopeId}>${ssrInterpolate(unref(form).requirements)}</textarea></div></div></div>`);
 						} else _push(`<!---->`);
-						_push(`<div class="form-actions" data-v-dc7d5ab0${_scopeId}><button type="submit" class="submit-button"${ssrIncludeBooleanAttr(unref(form).processing || !unref(form).image) ? " disabled" : ""} data-v-dc7d5ab0${_scopeId}>${ssrInterpolate(unref(form).processing ? "Публикация..." : postType.value === "vacancy" ? "Опубликовать вакансию" : "Опубликовать")}</button></div></div></div></div></form></div>`);
+						_push(`<div class="form-actions" data-v-4d04f5d7${_scopeId}><button type="submit" class="submit-button"${ssrIncludeBooleanAttr(unref(form).processing || !unref(form).image) ? " disabled" : ""} data-v-4d04f5d7${_scopeId}>${ssrInterpolate(unref(form).processing ? "Публикация..." : postType.value === "vacancy" ? "Опубликовать вакансию" : "Опубликовать")}</button></div></div></div></div></form></div>`);
 					} else return [createVNode(unref(Head), { title: "Создать новый пост" }), createVNode("div", { class: "create-post-page" }, [createVNode("form", { onSubmit: withModifiers(submit, ["prevent"]) }, [createVNode("div", { class: "post-type-toggle" }, [createVNode("button", {
 						type: "button",
 						class: { active: postType.value === "regular" },
@@ -4354,7 +4958,7 @@ _sfc_main$10.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Posts/Create.vue");
 	return _sfc_setup$10 ? _sfc_setup$10(props, ctx) : void 0;
 };
-var Create_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$10, [["__scopeId", "data-v-dc7d5ab0"]]);
+var Create_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$10, [["__scopeId", "data-v-4d04f5d7"]]);
 //#endregion
 //#region resources/js/Pages/Posts/Edit.vue
 var Edit_exports$1 = /* @__PURE__ */ __exportAll({ default: () => Edit_default$1 });
@@ -4370,6 +4974,7 @@ var _sfc_main$9 = {
 	},
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		const fileInputRef = ref(null);
 		const imagePreview = ref(props.post.image_url);
 		const isDragging = ref(false);
@@ -4447,19 +5052,19 @@ var _sfc_main$9 = {
 			});
 		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Редактировать пост" }, null, _parent, _scopeId));
-						_push(`<div class="edit-post-page" data-v-86a6c64c${_scopeId}><form data-v-86a6c64c${_scopeId}><div class="block" data-v-86a6c64c${_scopeId}><div class="image-container" data-v-86a6c64c${_scopeId}><input type="file" accept="image/*" style="${ssrRenderStyle({ "display": "none" })}" data-v-86a6c64c${_scopeId}>`);
-						if (imagePreview.value) _push(`<img${ssrRenderAttr("src", imagePreview.value)} class="post-image" data-v-86a6c64c${_scopeId}>`);
-						else _push(`<div class="no-image" data-v-86a6c64c${_scopeId}><span data-v-86a6c64c${_scopeId}>Изображение отсутствует</span></div>`);
-						if (imagePreview.value) _push(`<div class="image-overlay" data-v-86a6c64c${_scopeId}><button type="button" class="change-image-btn" data-v-86a6c64c${_scopeId}> Изменить фото </button></div>`);
+						_push(`<div class="edit-post-page" data-v-a61a8725${_scopeId}><form data-v-a61a8725${_scopeId}><div class="block" data-v-a61a8725${_scopeId}><div class="image-container" data-v-a61a8725${_scopeId}><input type="file" accept="image/*" style="${ssrRenderStyle({ "display": "none" })}" data-v-a61a8725${_scopeId}>`);
+						if (imagePreview.value) _push(`<img${ssrRenderAttr("src", imagePreview.value)} class="post-image" data-v-a61a8725${_scopeId}>`);
+						else _push(`<div class="no-image" data-v-a61a8725${_scopeId}><span data-v-a61a8725${_scopeId}>Изображение отсутствует</span></div>`);
+						if (imagePreview.value) _push(`<div class="image-overlay" data-v-a61a8725${_scopeId}><button type="button" class="change-image-btn" data-v-a61a8725${_scopeId}> Изменить фото </button></div>`);
 						else _push(`<!---->`);
-						_push(`</div><div class="content-wrapper" data-v-86a6c64c${_scopeId}><div class="desc" data-v-86a6c64c${_scopeId}>`);
-						if (!isVacancy.value) _push(`<!--[--><input type="text"${ssrRenderAttr("value", unref(form).title)} placeholder="Заголовок поста" required class="title-input" data-v-86a6c64c${_scopeId}><textarea placeholder="Описание поста" required class="description-textarea" data-v-86a6c64c${_scopeId}>${ssrInterpolate(unref(form).description)}</textarea><!--]-->`);
+						_push(`</div><div class="content-wrapper" data-v-a61a8725${_scopeId}><div class="desc" data-v-a61a8725${_scopeId}>`);
+						if (!isVacancy.value) _push(`<!--[--><input type="text"${ssrRenderAttr("value", unref(form).title)} placeholder="Заголовок поста" required class="title-input" data-v-a61a8725${_scopeId}><textarea placeholder="Описание поста" required class="description-textarea" data-v-a61a8725${_scopeId}>${ssrInterpolate(unref(form).description)}</textarea><!--]-->`);
 						else {
-							_push(`<div class="vacancy-fields" data-v-86a6c64c${_scopeId}><div class="form-row" data-v-86a6c64c${_scopeId}><div class="form-group" data-v-86a6c64c${_scopeId}><label for="position" data-v-86a6c64c${_scopeId}>Должность</label><input type="text"${ssrRenderAttr("value", unref(form).position)} id="position" placeholder="Например: PHP разработчик" data-v-86a6c64c${_scopeId}></div></div><div class="form-row two-cols" data-v-86a6c64c${_scopeId}><div class="form-group" data-v-86a6c64c${_scopeId}><label for="budget_min" data-v-86a6c64c${_scopeId}>Бюджет от</label><input type="number"${ssrRenderAttr("value", unref(form).budget_min)} id="budget_min" placeholder="1000" data-v-86a6c64c${_scopeId}></div><div class="form-group" data-v-86a6c64c${_scopeId}><label for="budget_max" data-v-86a6c64c${_scopeId}>Бюджет до</label><input type="number"${ssrRenderAttr("value", unref(form).budget_max)} id="budget_max" placeholder="5000" data-v-86a6c64c${_scopeId}></div></div><div class="form-row" data-v-86a6c64c${_scopeId}><div class="form-group" data-v-86a6c64c${_scopeId}><label for="deadline" data-v-86a6c64c${_scopeId}>Срок выполнения</label><input type="date"${ssrRenderAttr("value", unref(form).deadline)} id="deadline" data-v-86a6c64c${_scopeId}></div></div><div class="form-row" data-v-86a6c64c${_scopeId}><div class="form-group" data-v-86a6c64c${_scopeId}><label for="requirements" data-v-86a6c64c${_scopeId}>Требования</label><textarea id="requirements" placeholder="Опишите требования к исполнителю..." rows="4" data-v-86a6c64c${_scopeId}>${ssrInterpolate(unref(form).requirements)}</textarea></div></div><div class="form-row" data-v-86a6c64c${_scopeId}><div class="form-group" data-v-86a6c64c${_scopeId}><label data-v-86a6c64c${_scopeId}>Требуемые навыки</label>`);
+							_push(`<div class="vacancy-fields" data-v-a61a8725${_scopeId}><div class="form-row" data-v-a61a8725${_scopeId}><div class="form-group" data-v-a61a8725${_scopeId}><label for="position" data-v-a61a8725${_scopeId}>Должность</label><input type="text"${ssrRenderAttr("value", unref(form).position)} id="position" placeholder="Например: PHP разработчик" data-v-a61a8725${_scopeId}></div></div><div class="form-row two-cols" data-v-a61a8725${_scopeId}><div class="form-group" data-v-a61a8725${_scopeId}><label for="budget_min" data-v-a61a8725${_scopeId}>Бюджет от</label><input type="number"${ssrRenderAttr("value", unref(form).budget_min)} id="budget_min" placeholder="1000" data-v-a61a8725${_scopeId}></div><div class="form-group" data-v-a61a8725${_scopeId}><label for="budget_max" data-v-a61a8725${_scopeId}>Бюджет до</label><input type="number"${ssrRenderAttr("value", unref(form).budget_max)} id="budget_max" placeholder="5000" data-v-a61a8725${_scopeId}></div></div><div class="form-row" data-v-a61a8725${_scopeId}><div class="form-group" data-v-a61a8725${_scopeId}><label for="deadline" data-v-a61a8725${_scopeId}>Срок выполнения</label><input type="date"${ssrRenderAttr("value", unref(form).deadline)} id="deadline" data-v-a61a8725${_scopeId}></div></div><div class="form-row" data-v-a61a8725${_scopeId}><div class="form-group" data-v-a61a8725${_scopeId}><label for="requirements" data-v-a61a8725${_scopeId}>Требования</label><textarea id="requirements" placeholder="Опишите требования к исполнителю..." rows="4" data-v-a61a8725${_scopeId}>${ssrInterpolate(unref(form).requirements)}</textarea></div></div><div class="form-row" data-v-a61a8725${_scopeId}><div class="form-group" data-v-a61a8725${_scopeId}><label data-v-a61a8725${_scopeId}>Требуемые навыки</label>`);
 							_push(ssrRenderComponent(SkillsSelector_default, {
 								skills: __props.skills,
 								modelValue: unref(form).skills,
@@ -4467,13 +5072,13 @@ var _sfc_main$9 = {
 							}, null, _parent, _scopeId));
 							_push(`</div></div></div>`);
 						}
-						if (unref(form).errors.title) _push(`<div class="error" data-v-86a6c64c${_scopeId}>${ssrInterpolate(unref(form).errors.title)}</div>`);
+						if (unref(form).errors.title) _push(`<div class="error" data-v-a61a8725${_scopeId}>${ssrInterpolate(unref(form).errors.title)}</div>`);
 						else _push(`<!---->`);
-						if (unref(form).errors.description) _push(`<div class="error" data-v-86a6c64c${_scopeId}>${ssrInterpolate(unref(form).errors.description)}</div>`);
+						if (unref(form).errors.description) _push(`<div class="error" data-v-a61a8725${_scopeId}>${ssrInterpolate(unref(form).errors.description)}</div>`);
 						else _push(`<!---->`);
-						if (unref(form).errors.image) _push(`<div class="error" data-v-86a6c64c${_scopeId}>${ssrInterpolate(unref(form).errors.image)}</div>`);
+						if (unref(form).errors.image) _push(`<div class="error" data-v-a61a8725${_scopeId}>${ssrInterpolate(unref(form).errors.image)}</div>`);
 						else _push(`<!---->`);
-						_push(`<div class="form-actions" data-v-86a6c64c${_scopeId}>`);
+						_push(`<div class="form-actions" data-v-a61a8725${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: __props.post.show_url,
 							class: "cancel-button"
@@ -4484,7 +5089,7 @@ var _sfc_main$9 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`<button type="submit" class="submit-button"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-86a6c64c${_scopeId}>${ssrInterpolate(unref(form).processing ? "Сохранение..." : "Сохранить")}</button></div></div></div></div></form></div>`);
+						_push(`<button type="submit" class="submit-button"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-a61a8725${_scopeId}>${ssrInterpolate(unref(form).processing ? "Сохранение..." : "Сохранить")}</button></div></div></div></div></form></div>`);
 					} else return [createVNode(unref(Head), { title: "Редактировать пост" }), createVNode("div", { class: "edit-post-page" }, [createVNode("form", { onSubmit: withModifiers(submit, ["prevent"]) }, [createVNode("div", { class: "block" }, [createVNode("div", {
 						class: "image-container",
 						onClick: handleAreaClick,
@@ -4607,11 +5212,11 @@ _sfc_main$9.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Posts/Edit.vue");
 	return _sfc_setup$9 ? _sfc_setup$9(props, ctx) : void 0;
 };
-var Edit_default$1 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$9, [["__scopeId", "data-v-86a6c64c"]]);
+var Edit_default$1 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$9, [["__scopeId", "data-v-a61a8725"]]);
 //#endregion
 //#region resources/js/Pages/Posts/Show.vue
 var Show_exports$1 = /* @__PURE__ */ __exportAll({ default: () => Show_default$1 });
-var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
+var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$22 }, {
 	__name: "Show",
 	__ssrInlineRender: true,
 	props: { post: {
@@ -4637,6 +5242,7 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 			message: ""
 		});
 		const props = __props;
+		useDarkMode();
 		const page = usePage();
 		const commentForm = useForm({ text: "" });
 		const canEdit = computed(() => {
@@ -4705,27 +5311,27 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 			document.removeEventListener("click", closeMenuOnClickOutside);
 		});
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(`<div${ssrRenderAttrs(_attrs)} data-v-7226164f>`);
+			_push(`<div${ssrRenderAttrs(_attrs)} data-v-8a84965d>`);
 			_push(ssrRenderComponent(unref(Head), { title: __props.post.title }, null, _parent));
-			_push(`<div class="block" data-v-7226164f><div class="image-container" data-v-7226164f>`);
-			if (__props.post.image_url) _push(`<img${ssrRenderAttr("src", __props.post.image_url)}${ssrRenderAttr("alt", __props.post.title)} class="post-image" data-v-7226164f>`);
-			else _push(`<div class="no-image" data-v-7226164f><span data-v-7226164f>Изображение отсутствует</span></div>`);
-			_push(`</div><div class="content-wrapper" data-v-7226164f>`);
-			if (__props.post.is_hidden) _push(`<div class="hidden-warning" data-v-7226164f> ⚠️ Этот пост скрыт администрацией и виден только вам </div>`);
+			_push(`<div class="block" data-v-8a84965d><div class="image-container" data-v-8a84965d>`);
+			if (__props.post.image_url) _push(`<img${ssrRenderAttr("src", __props.post.image_url)}${ssrRenderAttr("alt", __props.post.title)} class="post-image" data-v-8a84965d>`);
+			else _push(`<div class="no-image" data-v-8a84965d><span data-v-8a84965d>Изображение отсутствует</span></div>`);
+			_push(`</div><div class="content-wrapper" data-v-8a84965d>`);
+			if (__props.post.is_hidden) _push(`<div class="hidden-warning" data-v-8a84965d> ⚠️ Этот пост скрыт администрацией и виден только вам </div>`);
 			else _push(`<!---->`);
-			_push(`<div class="desc" data-v-7226164f><div class="header-actions" data-v-7226164f>`);
-			if (__props.post.is_vacancy) _push(`<h2 class="title" data-v-7226164f>Вакансия: ${ssrInterpolate(__props.post.vacancy.position)}</h2>`);
-			else _push(`<h2 class="title" data-v-7226164f>${ssrInterpolate(__props.post.title)}</h2>`);
+			_push(`<div class="desc" data-v-8a84965d><div class="header-actions" data-v-8a84965d>`);
+			if (__props.post.is_vacancy) _push(`<h2 class="title" data-v-8a84965d>Вакансия: ${ssrInterpolate(__props.post.vacancy.position)}</h2>`);
+			else _push(`<h2 class="title" data-v-8a84965d>${ssrInterpolate(__props.post.title)}</h2>`);
 			if (canEdit.value || canReport.value) {
-				_push(`<div class="menu-container" data-v-7226164f><button class="menu-btn" type="button" data-v-7226164f><img src="/images/dots.svg" alt="меню" data-v-7226164f></button>`);
+				_push(`<div class="menu-container" data-v-8a84965d><button class="menu-btn" type="button" data-v-8a84965d><img src="/images/dots.svg" alt="меню" data-v-8a84965d></button>`);
 				if (menuOpen.value) {
-					_push(`<div class="post-dropdown-menu" data-v-7226164f><button class="menu-item" data-v-7226164f><img src="/images/share.svg" alt="" data-v-7226164f>Поделиться </button>`);
+					_push(`<div class="post-dropdown-menu" data-v-8a84965d><button class="menu-item" data-v-8a84965d><img src="/images/share.svg" alt="" data-v-8a84965d>Поделиться </button>`);
 					if (__props.post.edit_url) _push(ssrRenderComponent(unref(Link), {
 						href: __props.post.edit_url,
 						class: "menu-item"
 					}, {
 						default: withCtx((_, _push, _parent, _scopeId) => {
-							if (_push) _push(`<img src="/images/edit.svg" alt="" data-v-7226164f${_scopeId}>Редактировать `);
+							if (_push) _push(`<img src="/images/edit.svg" alt="" data-v-8a84965d${_scopeId}>Редактировать `);
 							else return [createVNode("img", {
 								src: "/images/edit.svg",
 								alt: ""
@@ -4734,9 +5340,9 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 						_: 1
 					}, _parent));
 					else _push(`<!---->`);
-					if (__props.post.delete_url) _push(`<button class="menu-item delete" data-v-7226164f><img src="/images/trash.svg" alt="" data-v-7226164f> Удалить </button>`);
+					if (__props.post.delete_url) _push(`<button class="menu-item delete" data-v-8a84965d><img src="/images/trash.svg" alt="" data-v-8a84965d> Удалить </button>`);
 					else _push(`<!---->`);
-					if (canReport.value) _push(`<button class="menu-item" data-v-7226164f><img src="/images/flag.svg" alt="" data-v-7226164f>Пожаловаться </button>`);
+					if (canReport.value) _push(`<button class="menu-item" data-v-8a84965d><img src="/images/flag.svg" alt="" data-v-8a84965d>Пожаловаться </button>`);
 					else _push(`<!---->`);
 					_push(`</div>`);
 				} else _push(`<!---->`);
@@ -4749,8 +5355,8 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 			}, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						if (__props.post.user.avatar_url) _push(`<img${ssrRenderAttr("src", __props.post.user.avatar_url)} class="author-avatar"${ssrRenderAttr("alt", __props.post.user.name)} data-v-7226164f${_scopeId}>`);
-						else _push(`<img src="/images/User-avatar.png" class="author-avatar"${ssrRenderAttr("alt", __props.post.user.name)} data-v-7226164f${_scopeId}>`);
+						if (__props.post.user.avatar_url) _push(`<img${ssrRenderAttr("src", __props.post.user.avatar_url)} class="author-avatar"${ssrRenderAttr("alt", __props.post.user.name)} data-v-8a84965d${_scopeId}>`);
+						else _push(`<img src="/images/User-avatar.png" class="author-avatar"${ssrRenderAttr("alt", __props.post.user.name)} data-v-8a84965d${_scopeId}>`);
 						_push(` ${ssrInterpolate(__props.post.user.name)}`);
 					} else return [__props.post.user.avatar_url ? (openBlock(), createBlock("img", {
 						key: 0,
@@ -4766,47 +5372,47 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 				}),
 				_: 1
 			}, _parent));
-			_push(`<div class="post-actions" data-v-7226164f><button type="button" class="${ssrRenderClass([{ liked: __props.post.is_liked }, "like-btn"])}" data-v-7226164f>${ssrInterpolate(__props.post.is_liked ? "❤️" : "🤍")} ${ssrInterpolate(__props.post.likes_count)}</button></div>`);
+			_push(`<div class="post-actions" data-v-8a84965d><button type="button" class="${ssrRenderClass([{ liked: __props.post.is_liked }, "like-btn"])}" data-v-8a84965d>${ssrInterpolate(__props.post.is_liked ? "❤️" : "🤍")} ${ssrInterpolate(__props.post.likes_count)}</button></div>`);
 			if (__props.post.is_vacancy) {
-				_push(`<!--[--><div class="vacancy-info" data-v-7226164f>`);
-				if (__props.post.vacancy.budget_min || __props.post.vacancy.budget_max) _push(`<div class="vacancy-budget" data-v-7226164f><span class="label" data-v-7226164f>Бюджет:</span><span class="value" data-v-7226164f>${ssrInterpolate(__props.post.vacancy.budget_min ? __props.post.vacancy.budget_min + " ₽" : "")} ${ssrInterpolate(__props.post.vacancy.budget_min && __props.post.vacancy.budget_max ? " - " : "")} ${ssrInterpolate(__props.post.vacancy.budget_max ? __props.post.vacancy.budget_max + " ₽" : "")}</span></div>`);
+				_push(`<!--[--><div class="vacancy-info" data-v-8a84965d>`);
+				if (__props.post.vacancy.budget_min || __props.post.vacancy.budget_max) _push(`<div class="vacancy-budget" data-v-8a84965d><span class="label" data-v-8a84965d>Бюджет:</span><span class="value" data-v-8a84965d>${ssrInterpolate(__props.post.vacancy.budget_min ? __props.post.vacancy.budget_min + " ₽" : "")} ${ssrInterpolate(__props.post.vacancy.budget_min && __props.post.vacancy.budget_max ? " - " : "")} ${ssrInterpolate(__props.post.vacancy.budget_max ? __props.post.vacancy.budget_max + " ₽" : "")}</span></div>`);
 				else _push(`<!---->`);
-				if (__props.post.vacancy.deadline) _push(`<div class="vacancy-deadline" data-v-7226164f><span class="label" data-v-7226164f>Срок:</span><span class="value" data-v-7226164f>${ssrInterpolate(formatDeadline(__props.post.vacancy.deadline))}</span></div>`);
+				if (__props.post.vacancy.deadline) _push(`<div class="vacancy-deadline" data-v-8a84965d><span class="label" data-v-8a84965d>Срок:</span><span class="value" data-v-8a84965d>${ssrInterpolate(formatDeadline(__props.post.vacancy.deadline))}</span></div>`);
 				else _push(`<!---->`);
 				if (__props.post.vacancy.skills && __props.post.vacancy.skills.length > 0) {
-					_push(`<div class="vacancy-skills" data-v-7226164f><span class="label" data-v-7226164f>Требуемые навыки:</span><div class="skills-list" data-v-7226164f><!--[-->`);
+					_push(`<div class="vacancy-skills" data-v-8a84965d><span class="label" data-v-8a84965d>Требуемые навыки:</span><div class="skills-list" data-v-8a84965d><!--[-->`);
 					ssrRenderList(__props.post.vacancy.skills, (skill) => {
-						_push(`<span class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-7226164f>${ssrInterpolate(skill.name)} <span class="skill-level" data-v-7226164f>★ ${ssrInterpolate(skill.level)}</span></span>`);
+						_push(`<span class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-8a84965d>${ssrInterpolate(skill.name)} <span class="skill-level" data-v-8a84965d>★ ${ssrInterpolate(skill.level)}</span></span>`);
 					});
 					_push(`<!--]--></div>`);
-					if (__props.post.vacancy.requirements) _push(`<div class="vacancy-requirements" data-v-7226164f><span class="label" data-v-7226164f>Требования:</span><p class="requirements-text" data-v-7226164f>${ssrInterpolate(__props.post.vacancy.requirements)}</p></div>`);
+					if (__props.post.vacancy.requirements) _push(`<div class="vacancy-requirements" data-v-8a84965d><span class="label" data-v-8a84965d>Требования:</span><p class="requirements-text" data-v-8a84965d>${ssrInterpolate(__props.post.vacancy.requirements)}</p></div>`);
 					else _push(`<!---->`);
 					_push(`</div>`);
 				} else _push(`<!---->`);
 				_push(`</div>`);
 				if (__props.post.vacancy && __props.post.vacancy.status === "open") {
-					_push(`<div class="vacancy-actions" data-v-7226164f>`);
-					if (__props.post.vacancy.applications_count > 0) _push(`<div class="applications-count" data-v-7226164f>${ssrInterpolate(__props.post.vacancy.applications_count)} ${ssrInterpolate(getApplicationsWord(__props.post.vacancy.applications_count))} на эту вакансию </div>`);
+					_push(`<div class="vacancy-actions" data-v-8a84965d>`);
+					if (__props.post.vacancy.applications_count > 0) _push(`<div class="applications-count" data-v-8a84965d>${ssrInterpolate(__props.post.vacancy.applications_count)} ${ssrInterpolate(getApplicationsWord(__props.post.vacancy.applications_count))} на эту вакансию </div>`);
 					else _push(`<!---->`);
-					if (!isAuthor.value && __props.post.respond_url) _push(`<button class="respond-btn"${ssrIncludeBooleanAttr(__props.post.has_application) ? " disabled" : ""} data-v-7226164f>${ssrInterpolate(__props.post.has_application ? "Вы уже откликнулись" : "Откликнуться")}</button>`);
+					if (!isAuthor.value && __props.post.respond_url) _push(`<button class="respond-btn"${ssrIncludeBooleanAttr(__props.post.has_application) ? " disabled" : ""} data-v-8a84965d>${ssrInterpolate(__props.post.has_application ? "Вы уже откликнулись" : "Откликнуться")}</button>`);
 					else _push(`<!---->`);
 					_push(`</div>`);
 				} else _push(`<!---->`);
 				_push(`<!--]-->`);
-			} else _push(`<p class="description" data-v-7226164f>${ssrInterpolate(__props.post.description)}</p>`);
-			_push(`<div class="meta" data-v-7226164f><small data-v-7226164f>${ssrInterpolate(formattedDate.value)}</small></div></div></div></div><div class="comments-section-wrapper" data-v-7226164f>`);
-			if (__props.post.is_vacancy && canEdit.value) _push(`<div class="tabs" data-v-7226164f><button class="${ssrRenderClass([{ active: activeTab.value === "applications" }, "tab"])}" data-v-7226164f> Список откликнувшихся (${ssrInterpolate(__props.post.vacancy.applications?.length || 0)}) </button><button class="${ssrRenderClass([{ active: activeTab.value === "comments" }, "tab"])}" data-v-7226164f> Комментарии (${ssrInterpolate(__props.post.comments.length)}) </button></div>`);
+			} else _push(`<p class="description" data-v-8a84965d>${ssrInterpolate(__props.post.description)}</p>`);
+			_push(`<div class="meta" data-v-8a84965d><small data-v-8a84965d>${ssrInterpolate(formattedDate.value)}</small></div></div></div></div><div class="comments-section-wrapper" data-v-8a84965d>`);
+			if (__props.post.is_vacancy && canEdit.value) _push(`<div class="tabs" data-v-8a84965d><button class="${ssrRenderClass([{ active: activeTab.value === "applications" }, "tab"])}" data-v-8a84965d> Список откликнувшихся (${ssrInterpolate(__props.post.vacancy.applications?.length || 0)}) </button><button class="${ssrRenderClass([{ active: activeTab.value === "comments" }, "tab"])}" data-v-8a84965d> Комментарии (${ssrInterpolate(__props.post.comments.length)}) </button></div>`);
 			else _push(`<!---->`);
-			_push(`<div class="comments-section" data-v-7226164f>`);
+			_push(`<div class="comments-section" data-v-8a84965d>`);
 			if (!__props.post.is_vacancy || !canEdit.value || activeTab.value === "comments") {
 				_push(`<!--[-->`);
 				if (_ctx.$page.props.auth.user) {
-					_push(`<div class="comment-form" data-v-7226164f><form data-v-7226164f>`);
-					if (commentErrors.value.text) _push(`<div class="error" data-v-7226164f>${ssrInterpolate(commentErrors.value.text)}</div>`);
+					_push(`<div class="comment-form" data-v-8a84965d><form data-v-8a84965d>`);
+					if (commentErrors.value.text) _push(`<div class="error" data-v-8a84965d>${ssrInterpolate(commentErrors.value.text)}</div>`);
 					else _push(`<!---->`);
-					_push(`<textarea required placeholder="Напишите комментарий"${ssrIncludeBooleanAttr(unref(commentForm).processing) ? " disabled" : ""} data-v-7226164f>${ssrInterpolate(unref(commentForm).text)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(commentForm).processing) ? " disabled" : ""} data-v-7226164f>${ssrInterpolate(unref(commentForm).processing ? "Отправка..." : "Добавить комментарий")}</button></form></div>`);
+					_push(`<textarea required placeholder="Напишите комментарий"${ssrIncludeBooleanAttr(unref(commentForm).processing) ? " disabled" : ""} data-v-8a84965d>${ssrInterpolate(unref(commentForm).text)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(commentForm).processing) ? " disabled" : ""} data-v-8a84965d>${ssrInterpolate(unref(commentForm).processing ? "Отправка..." : "Добавить комментарий")}</button></form></div>`);
 				} else {
-					_push(`<div class="login-prompt" data-v-7226164f><p data-v-7226164f>Чтобы оставить комментарий, `);
+					_push(`<div class="login-prompt" data-v-8a84965d><p data-v-8a84965d>Чтобы оставить комментарий, `);
 					_push(ssrRenderComponent(unref(Link), { href: "/login" }, {
 						default: withCtx((_, _push, _parent, _scopeId) => {
 							if (_push) _push(`войдите`);
@@ -4824,21 +5430,21 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 					}, _parent));
 					_push(`</p></div>`);
 				}
-				_push(`<h3 data-v-7226164f>Комментарии (${ssrInterpolate(__props.post.comments.length)})</h3>`);
-				if (__props.post.comments.length === 0) _push(`<div class="no-comments" data-v-7226164f><p data-v-7226164f>Комментариев пока нет. Будьте первым!</p></div>`);
+				_push(`<h3 data-v-8a84965d>Комментарии (${ssrInterpolate(__props.post.comments.length)})</h3>`);
+				if (__props.post.comments.length === 0) _push(`<div class="no-comments" data-v-8a84965d><p data-v-8a84965d>Комментариев пока нет. Будьте первым!</p></div>`);
 				else {
-					_push(`<div class="comments" data-v-7226164f><!--[-->`);
+					_push(`<div class="comments" data-v-8a84965d><!--[-->`);
 					ssrRenderList(__props.post.comments, (comment) => {
-						_push(`<div class="comment" data-v-7226164f><div class="comment-header" data-v-7226164f>`);
+						_push(`<div class="comment" data-v-8a84965d><div class="comment-header" data-v-8a84965d>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: comment.user.profile_url,
 							class: "comment-author"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
 								if (_push) {
-									if (comment.user.avatar_url) _push(`<img${ssrRenderAttr("src", comment.user.avatar_url)} class="comment-avatar"${ssrRenderAttr("alt", comment.user.name)} data-v-7226164f${_scopeId}>`);
-									else _push(`<img src="/images/User-avatar.png" class="comment-avatar"${ssrRenderAttr("alt", comment.user.name)} data-v-7226164f${_scopeId}>`);
-									_push(`<span class="comment-author-name" data-v-7226164f${_scopeId}>${ssrInterpolate(comment.user.name)}</span>`);
+									if (comment.user.avatar_url) _push(`<img${ssrRenderAttr("src", comment.user.avatar_url)} class="comment-avatar"${ssrRenderAttr("alt", comment.user.name)} data-v-8a84965d${_scopeId}>`);
+									else _push(`<img src="/images/User-avatar.png" class="comment-avatar"${ssrRenderAttr("alt", comment.user.name)} data-v-8a84965d${_scopeId}>`);
+									_push(`<span class="comment-author-name" data-v-8a84965d${_scopeId}>${ssrInterpolate(comment.user.name)}</span>`);
 								} else return [comment.user.avatar_url ? (openBlock(), createBlock("img", {
 									key: 0,
 									src: comment.user.avatar_url,
@@ -4853,27 +5459,27 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 							}),
 							_: 2
 						}, _parent));
-						_push(`<small class="comment-date" data-v-7226164f>${ssrInterpolate(formatDate(comment.created_at))}</small></div><div class="comment-body" data-v-7226164f><p data-v-7226164f>${ssrInterpolate(comment.text)}</p></div></div>`);
+						_push(`<small class="comment-date" data-v-8a84965d>${ssrInterpolate(formatDate(comment.created_at))}</small></div><div class="comment-body" data-v-8a84965d><p data-v-8a84965d>${ssrInterpolate(comment.text)}</p></div></div>`);
 					});
 					_push(`<!--]--></div>`);
 				}
 				_push(`<!--]-->`);
 			} else if (activeTab.value === "applications") {
-				_push(`<!--[--><h3 data-v-7226164f>Список откликнувшихся (${ssrInterpolate(__props.post.vacancy.applications?.length || 0)})</h3>`);
-				if (!__props.post.vacancy.applications || __props.post.vacancy.applications.length === 0) _push(`<div class="no-comments" data-v-7226164f><p data-v-7226164f>На эту вакансию пока никто не откликнулся.</p></div>`);
+				_push(`<!--[--><h3 data-v-8a84965d>Список откликнувшихся (${ssrInterpolate(__props.post.vacancy.applications?.length || 0)})</h3>`);
+				if (!__props.post.vacancy.applications || __props.post.vacancy.applications.length === 0) _push(`<div class="no-comments" data-v-8a84965d><p data-v-8a84965d>На эту вакансию пока никто не откликнулся.</p></div>`);
 				else {
-					_push(`<div class="comments" data-v-7226164f><!--[-->`);
+					_push(`<div class="comments" data-v-8a84965d><!--[-->`);
 					ssrRenderList(__props.post.vacancy.applications, (application) => {
-						_push(`<div class="comment" data-v-7226164f><div class="comment-header" data-v-7226164f>`);
+						_push(`<div class="comment" data-v-8a84965d><div class="comment-header" data-v-8a84965d>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: application.user.profile_url,
 							class: "comment-author"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
 								if (_push) {
-									if (application.user.avatar_url) _push(`<img${ssrRenderAttr("src", application.user.avatar_url)} class="comment-avatar"${ssrRenderAttr("alt", application.user.name)} data-v-7226164f${_scopeId}>`);
-									else _push(`<img src="/images/User-avatar.png" class="comment-avatar"${ssrRenderAttr("alt", application.user.name)} data-v-7226164f${_scopeId}>`);
-									_push(`<span class="comment-author-name" data-v-7226164f${_scopeId}>${ssrInterpolate(application.user.name)}</span>`);
+									if (application.user.avatar_url) _push(`<img${ssrRenderAttr("src", application.user.avatar_url)} class="comment-avatar"${ssrRenderAttr("alt", application.user.name)} data-v-8a84965d${_scopeId}>`);
+									else _push(`<img src="/images/User-avatar.png" class="comment-avatar"${ssrRenderAttr("alt", application.user.name)} data-v-8a84965d${_scopeId}>`);
+									_push(`<span class="comment-author-name" data-v-8a84965d${_scopeId}>${ssrInterpolate(application.user.name)}</span>`);
 								} else return [application.user.avatar_url ? (openBlock(), createBlock("img", {
 									key: 0,
 									src: application.user.avatar_url,
@@ -4888,10 +5494,10 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 							}),
 							_: 2
 						}, _parent));
-						_push(`<div class="comment-header-right" data-v-7226164f><small class="comment-date" data-v-7226164f>${ssrInterpolate(formatDate(application.created_at))}</small></div></div><div class="comment-body" data-v-7226164f><div data-v-7226164f>`);
-						if (application.cover_letter) _push(`<p data-v-7226164f>${ssrInterpolate(application.cover_letter)}</p>`);
+						_push(`<div class="comment-header-right" data-v-8a84965d><small class="comment-date" data-v-8a84965d>${ssrInterpolate(formatDate(application.created_at))}</small></div></div><div class="comment-body" data-v-8a84965d><div data-v-8a84965d>`);
+						if (application.cover_letter) _push(`<p data-v-8a84965d>${ssrInterpolate(application.cover_letter)}</p>`);
 						else _push(`<!---->`);
-						if (application.proposed_price) _push(`<p class="proposed-price" data-v-7226164f>Предложенная цена: ${ssrInterpolate(application.proposed_price)} ₽</p>`);
+						if (application.proposed_price) _push(`<p class="proposed-price" data-v-8a84965d>Предложенная цена: ${ssrInterpolate(application.proposed_price)} ₽</p>`);
 						else _push(`<!---->`);
 						_push(`</div>`);
 						if (application.chat_url) _push(ssrRenderComponent(unref(Link), {
@@ -4913,36 +5519,36 @@ var _sfc_main$8 = /* @__PURE__ */ Object.assign({ layout: _sfc_main$21 }, {
 			} else _push(`<!---->`);
 			_push(`</div></div>`);
 			if (showRespondModal.value) {
-				_push(`<div class="modal-overlay" data-v-7226164f><div class="modal-content" data-v-7226164f><button class="modal-close" data-v-7226164f>×</button><h2 data-v-7226164f>Отклик на вакансию</h2><form data-v-7226164f><div class="form-group" data-v-7226164f><label for="cover_letter" data-v-7226164f>Сопроводительное письмо *</label><textarea id="cover_letter" required placeholder="Расскажите о себе и почему вы подходите на эту вакансию..." rows="6" data-v-7226164f>${ssrInterpolate(unref(respondForm).cover_letter)}</textarea>`);
-				if (unref(respondForm).errors.cover_letter) _push(`<div class="error" data-v-7226164f>${ssrInterpolate(unref(respondForm).errors.cover_letter)}</div>`);
+				_push(`<div class="modal-overlay" data-v-8a84965d><div class="modal-content" data-v-8a84965d><button class="modal-close" data-v-8a84965d>×</button><h2 data-v-8a84965d>Отклик на вакансию</h2><form data-v-8a84965d><div class="form-group" data-v-8a84965d><label for="cover_letter" data-v-8a84965d>Сопроводительное письмо *</label><textarea id="cover_letter" required placeholder="Расскажите о себе и почему вы подходите на эту вакансию..." rows="6" data-v-8a84965d>${ssrInterpolate(unref(respondForm).cover_letter)}</textarea>`);
+				if (unref(respondForm).errors.cover_letter) _push(`<div class="error" data-v-8a84965d>${ssrInterpolate(unref(respondForm).errors.cover_letter)}</div>`);
 				else _push(`<!---->`);
-				_push(`</div><div class="form-group" data-v-7226164f><label for="proposed_price" data-v-7226164f>Предложенная цена (₽)</label><input type="number" id="proposed_price"${ssrRenderAttr("value", unref(respondForm).proposed_price)} min="1" max="9999999999" placeholder="Ваша цена" data-v-7226164f>`);
-				if (unref(respondForm).errors.proposed_price) _push(`<div class="error" data-v-7226164f>${ssrInterpolate(unref(respondForm).errors.proposed_price)}</div>`);
+				_push(`</div><div class="form-group" data-v-8a84965d><label for="proposed_price" data-v-8a84965d>Предложенная цена (₽)</label><input type="number" id="proposed_price"${ssrRenderAttr("value", unref(respondForm).proposed_price)} min="1" max="9999999999" placeholder="Ваша цена" data-v-8a84965d>`);
+				if (unref(respondForm).errors.proposed_price) _push(`<div class="error" data-v-8a84965d>${ssrInterpolate(unref(respondForm).errors.proposed_price)}</div>`);
 				else _push(`<!---->`);
-				_push(`</div><button type="submit" class="submit-btn"${ssrIncludeBooleanAttr(unref(respondForm).processing) ? " disabled" : ""} data-v-7226164f>${ssrInterpolate(unref(respondForm).processing ? "Отправка..." : "Отправить отклик")}</button></form></div></div>`);
+				_push(`</div><button type="submit" class="submit-btn"${ssrIncludeBooleanAttr(unref(respondForm).processing) ? " disabled" : ""} data-v-8a84965d>${ssrInterpolate(unref(respondForm).processing ? "Отправка..." : "Отправить отклик")}</button></form></div></div>`);
 			} else _push(`<!---->`);
 			if (showReportModal.value) {
-				_push(`<div class="modal-overlay" data-v-7226164f><div class="modal-content" data-v-7226164f><button class="modal-close" data-v-7226164f>×</button><h2 data-v-7226164f>Пожаловаться на пост</h2><form data-v-7226164f><div class="form-group" data-v-7226164f><label for="report_reason" data-v-7226164f>Причина жалобы *</label><textarea id="report_reason" required placeholder="Опишите причину жалобы..." rows="4" data-v-7226164f>${ssrInterpolate(unref(reportForm).reason)}</textarea>`);
-				if (reportErrors.value.reason) _push(`<div class="error" data-v-7226164f>${ssrInterpolate(reportErrors.value.reason)}</div>`);
+				_push(`<div class="modal-overlay" data-v-8a84965d><div class="modal-content" data-v-8a84965d><button class="modal-close" data-v-8a84965d>×</button><h2 data-v-8a84965d>Пожаловаться на пост</h2><form data-v-8a84965d><div class="form-group" data-v-8a84965d><label for="report_reason" data-v-8a84965d>Причина жалобы *</label><textarea id="report_reason" required placeholder="Опишите причину жалобы..." rows="4" data-v-8a84965d>${ssrInterpolate(unref(reportForm).reason)}</textarea>`);
+				if (reportErrors.value.reason) _push(`<div class="error" data-v-8a84965d>${ssrInterpolate(reportErrors.value.reason)}</div>`);
 				else _push(`<!---->`);
-				_push(`</div><button type="submit" class="submit-btn"${ssrIncludeBooleanAttr(unref(reportForm).processing) ? " disabled" : ""} data-v-7226164f>${ssrInterpolate(unref(reportForm).processing ? "Отправка..." : "Отправить жалобу")}</button></form></div></div>`);
+				_push(`</div><button type="submit" class="submit-btn"${ssrIncludeBooleanAttr(unref(reportForm).processing) ? " disabled" : ""} data-v-8a84965d>${ssrInterpolate(unref(reportForm).processing ? "Отправка..." : "Отправить жалобу")}</button></form></div></div>`);
 			} else _push(`<!---->`);
 			if (showShareModal.value) {
-				_push(`<div class="modal-overlay" data-v-7226164f><div class="modal-content" data-v-7226164f><button class="modal-close" data-v-7226164f>×</button><h2 data-v-7226164f>Поделиться постом</h2><form data-v-7226164f><div class="form-group" data-v-7226164f><label data-v-7226164f>Выберите чаты для отправки *</label>`);
-				if (sharedChats.value.length === 0) _push(`<div class="no-chats" data-v-7226164f><p data-v-7226164f>У вас нет чатов для отправки поста.</p></div>`);
+				_push(`<div class="modal-overlay" data-v-8a84965d><div class="modal-content" data-v-8a84965d><button class="modal-close" data-v-8a84965d>×</button><h2 data-v-8a84965d>Поделиться постом</h2><form data-v-8a84965d><div class="form-group" data-v-8a84965d><label data-v-8a84965d>Выберите чаты для отправки *</label>`);
+				if (sharedChats.value.length === 0) _push(`<div class="no-chats" data-v-8a84965d><p data-v-8a84965d>У вас нет чатов для отправки поста.</p></div>`);
 				else {
-					_push(`<div class="chat-list" data-v-7226164f><!--[-->`);
+					_push(`<div class="chat-list" data-v-8a84965d><!--[-->`);
 					ssrRenderList(sharedChats.value, (chat) => {
-						_push(`<div class="chat-item" data-v-7226164f><label class="chat-label" data-v-7226164f><input type="checkbox"${ssrRenderAttr("value", chat.id)}${ssrIncludeBooleanAttr(Array.isArray(unref(shareForm).users) ? ssrLooseContain(unref(shareForm).users, chat.id) : unref(shareForm).users) ? " checked" : ""} data-v-7226164f><span class="chat-info" data-v-7226164f>`);
-						if (chat.other_user && chat.other_user.avatar_url) _push(`<img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar"${ssrRenderAttr("alt", chat.other_user.name)} data-v-7226164f>`);
-						else _push(`<img src="/images/User-avatar.png" class="chat-avatar"${ssrRenderAttr("alt", chat.other_user ? chat.other_user.name : "Неизвестный пользователь")} data-v-7226164f>`);
-						_push(`<span class="chat-name" data-v-7226164f>${ssrInterpolate(chat.other_user ? chat.other_user.name : "Неизвестный пользователь")}</span></span></label></div>`);
+						_push(`<div class="chat-item" data-v-8a84965d><label class="chat-label" data-v-8a84965d><input type="checkbox"${ssrRenderAttr("value", chat.id)}${ssrIncludeBooleanAttr(Array.isArray(unref(shareForm).users) ? ssrLooseContain(unref(shareForm).users, chat.id) : unref(shareForm).users) ? " checked" : ""} data-v-8a84965d><span class="chat-info" data-v-8a84965d>`);
+						if (chat.other_user && chat.other_user.avatar_url) _push(`<img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar"${ssrRenderAttr("alt", chat.other_user.name)} data-v-8a84965d>`);
+						else _push(`<img src="/images/User-avatar.png" class="chat-avatar"${ssrRenderAttr("alt", chat.other_user ? chat.other_user.name : "Неизвестный пользователь")} data-v-8a84965d>`);
+						_push(`<span class="chat-name" data-v-8a84965d>${ssrInterpolate(chat.other_user ? chat.other_user.name : "Неизвестный пользователь")}</span></span></label></div>`);
 					});
 					_push(`<!--]--></div>`);
 				}
-				if (shareErrors.value.users) _push(`<div class="error" data-v-7226164f>${ssrInterpolate(shareErrors.value.users)}</div>`);
+				if (shareErrors.value.users) _push(`<div class="error" data-v-8a84965d>${ssrInterpolate(shareErrors.value.users)}</div>`);
 				else _push(`<!---->`);
-				_push(`</div><div class="form-group" data-v-7226164f><label for="share_message" data-v-7226164f>Текст сообщения</label><textarea id="share_message" placeholder="Напишите сообщение к посту..." rows="4" data-v-7226164f>${ssrInterpolate(unref(shareForm).message)}</textarea></div><button type="submit" class="submit-btn"${ssrIncludeBooleanAttr(unref(shareForm).processing) ? " disabled" : ""} data-v-7226164f>${ssrInterpolate(unref(shareForm).processing ? "Отправка..." : "Отправить")}</button></form></div></div>`);
+				_push(`</div><div class="form-group" data-v-8a84965d><label for="share_message" data-v-8a84965d>Текст сообщения</label><textarea id="share_message" placeholder="Напишите сообщение к посту..." rows="4" data-v-8a84965d>${ssrInterpolate(unref(shareForm).message)}</textarea></div><button type="submit" class="submit-btn"${ssrIncludeBooleanAttr(unref(shareForm).processing) ? " disabled" : ""} data-v-8a84965d>${ssrInterpolate(unref(shareForm).processing ? "Отправка..." : "Отправить")}</button></form></div></div>`);
 			} else _push(`<!---->`);
 			_push(`</div>`);
 		};
@@ -4954,7 +5560,7 @@ _sfc_main$8.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Posts/Show.vue");
 	return _sfc_setup$8 ? _sfc_setup$8(props, ctx) : void 0;
 };
-var Show_default$1 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$8, [["__scopeId", "data-v-7226164f"]]);
+var Show_default$1 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$8, [["__scopeId", "data-v-8a84965d"]]);
 //#endregion
 //#region resources/js/Pages/Profile/Edit.vue
 var Edit_exports = /* @__PURE__ */ __exportAll({ default: () => Edit_default });
@@ -4972,6 +5578,7 @@ var _sfc_main$7 = {
 	},
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		const avatarPreview = ref(null);
 		const form = useForm({
 			name: props.user.name,
@@ -5015,11 +5622,11 @@ var _sfc_main$7 = {
 			});
 		}
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Редактирование профиля " + __props.user.name }, null, _parent, _scopeId));
-						_push(`<div class="editblock" data-v-dd22e348${_scopeId}><div class="edit-container" data-v-dd22e348${_scopeId}><div class="back-link" data-v-dd22e348${_scopeId}>`);
+						_push(`<div class="editblock" data-v-c8bb7bc4${_scopeId}><div class="edit-container" data-v-c8bb7bc4${_scopeId}><div class="back-link" data-v-c8bb7bc4${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), { href: "/profile/" + __props.user.id }, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
 								if (_push) _push(`← Вернуться в профиль`);
@@ -5027,20 +5634,20 @@ var _sfc_main$7 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="edit-content" data-v-dd22e348${_scopeId}><div class="avatar" data-v-dd22e348${_scopeId}><div class="profile-header" data-v-dd22e348${_scopeId}>`);
-						if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)}${ssrRenderAttr("alt", "Аватарка " + unref(form).name)} data-v-dd22e348${_scopeId}>`);
-						else if (__props.user.avatar_url) _push(`<img${ssrRenderAttr("src", __props.user.avatar_url)}${ssrRenderAttr("alt", "Аватарка " + __props.user.name)} data-v-dd22e348${_scopeId}>`);
-						else _push(`<img src="/images/User-avatar.png" alt="Аватарка по умолчанию" data-v-dd22e348${_scopeId}>`);
-						_push(`</div></div><div class="desc" data-v-dd22e348${_scopeId}><form enctype="multipart/form-data" data-v-dd22e348${_scopeId}><div class="form-group" data-v-dd22e348${_scopeId}><label for="name" data-v-dd22e348${_scopeId}>Имя:</label><input type="text" name="name" id="name"${ssrRenderAttr("value", unref(form).name)} required data-v-dd22e348${_scopeId}></div><div class="form-group" data-v-dd22e348${_scopeId}><label for="avatar" data-v-dd22e348${_scopeId}>Аватарка:</label><input type="file" name="avatar" id="avatar" accept="image/*" data-v-dd22e348${_scopeId}></div><div class="form-group" data-v-dd22e348${_scopeId}><label for="aboutme" data-v-dd22e348${_scopeId}>О себе:</label><textarea name="aboutme" id="aboutme"${ssrRenderAttr("maxlength", maxLength$1)} data-v-dd22e348${_scopeId}>${ssrInterpolate(unref(form).aboutme)}</textarea><div class="${ssrRenderClass([{ warning: remainingChars.value <= warningThreshold$1 }, "char-counter"])}" data-v-dd22e348${_scopeId}>`);
-						if (remainingChars.value <= warningThreshold$1) _push(`<span data-v-dd22e348${_scopeId}> Осталось ${ssrInterpolate(remainingChars.value)} ${ssrInterpolate(pluralizeChars(remainingChars.value))}</span>`);
-						else _push(`<span data-v-dd22e348${_scopeId}>${ssrInterpolate(currentLength.value)} / ${ssrInterpolate(maxLength$1)}</span>`);
-						_push(`</div></div><div class="form-group" data-v-dd22e348${_scopeId}><label data-v-dd22e348${_scopeId}>Ваши навыки:</label>`);
+						_push(`</div><div class="edit-content" data-v-c8bb7bc4${_scopeId}><div class="avatar" data-v-c8bb7bc4${_scopeId}><div class="profile-header" data-v-c8bb7bc4${_scopeId}>`);
+						if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)}${ssrRenderAttr("alt", "Аватарка " + unref(form).name)} data-v-c8bb7bc4${_scopeId}>`);
+						else if (__props.user.avatar_url) _push(`<img${ssrRenderAttr("src", __props.user.avatar_url)}${ssrRenderAttr("alt", "Аватарка " + __props.user.name)} data-v-c8bb7bc4${_scopeId}>`);
+						else _push(`<img src="/images/User-avatar.png" alt="Аватарка по умолчанию" data-v-c8bb7bc4${_scopeId}>`);
+						_push(`</div></div><div class="desc" data-v-c8bb7bc4${_scopeId}><form enctype="multipart/form-data" data-v-c8bb7bc4${_scopeId}><div class="form-group" data-v-c8bb7bc4${_scopeId}><label for="name" data-v-c8bb7bc4${_scopeId}>Имя:</label><input type="text" name="name" id="name"${ssrRenderAttr("value", unref(form).name)} required data-v-c8bb7bc4${_scopeId}></div><div class="form-group" data-v-c8bb7bc4${_scopeId}><label for="avatar" data-v-c8bb7bc4${_scopeId}>Аватарка:</label><input type="file" name="avatar" id="avatar" accept="image/*" data-v-c8bb7bc4${_scopeId}></div><div class="form-group" data-v-c8bb7bc4${_scopeId}><label for="aboutme" data-v-c8bb7bc4${_scopeId}>О себе:</label><textarea name="aboutme" id="aboutme"${ssrRenderAttr("maxlength", maxLength$1)} data-v-c8bb7bc4${_scopeId}>${ssrInterpolate(unref(form).aboutme)}</textarea><div class="${ssrRenderClass([{ warning: remainingChars.value <= warningThreshold$1 }, "char-counter"])}" data-v-c8bb7bc4${_scopeId}>`);
+						if (remainingChars.value <= warningThreshold$1) _push(`<span data-v-c8bb7bc4${_scopeId}> Осталось ${ssrInterpolate(remainingChars.value)} ${ssrInterpolate(pluralizeChars(remainingChars.value))}</span>`);
+						else _push(`<span data-v-c8bb7bc4${_scopeId}>${ssrInterpolate(currentLength.value)} / ${ssrInterpolate(maxLength$1)}</span>`);
+						_push(`</div></div><div class="form-group" data-v-c8bb7bc4${_scopeId}><label data-v-c8bb7bc4${_scopeId}>Ваши навыки:</label>`);
 						_push(ssrRenderComponent(SkillsSelector_default, {
 							skills: __props.skills,
 							modelValue: unref(form).skills,
 							"onUpdate:modelValue": ($event) => unref(form).skills = $event
 						}, null, _parent, _scopeId));
-						_push(`</div><div class="form-actions" data-v-dd22e348${_scopeId}><button type="submit" class="btn-save"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-dd22e348${_scopeId}>${ssrInterpolate(unref(form).processing ? "Сохранение..." : "Сохранить изменения")}</button>`);
+						_push(`</div><div class="form-actions" data-v-c8bb7bc4${_scopeId}><button type="submit" class="btn-save"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-c8bb7bc4${_scopeId}>${ssrInterpolate(unref(form).processing ? "Сохранение..." : "Сохранить изменения")}</button>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "/profile/" + __props.user.id,
 							class: "btn-cancel"
@@ -5128,7 +5735,7 @@ _sfc_main$7.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Profile/Edit.vue");
 	return _sfc_setup$7 ? _sfc_setup$7(props, ctx) : void 0;
 };
-var Edit_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$7, [["__scopeId", "data-v-dd22e348"]]);
+var Edit_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$7, [["__scopeId", "data-v-c8bb7bc4"]]);
 //#endregion
 //#region resources/js/Pages/Profile/Followers.vue
 var Followers_exports = /* @__PURE__ */ __exportAll({ default: () => Followers_default });
@@ -5140,6 +5747,7 @@ var _sfc_main$6 = {
 		followers: Object
 	},
 	setup(__props) {
+		useDarkMode();
 		const page = usePage();
 		const auth = computed(() => page.props.auth);
 		const subscribe = (userId) => {
@@ -5149,11 +5757,11 @@ var _sfc_main$6 = {
 			router.delete(route("unsubscribe", userId), { preserveScroll: true });
 		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: `Подписчики ${__props.user.name}` }, null, _parent, _scopeId));
-						_push(`<div class="following" data-v-7e8b00a5${_scopeId}><div class="back" data-v-7e8b00a5${_scopeId}><h1 data-v-7e8b00a5${_scopeId}>Подписчики ${ssrInterpolate(__props.user.name)}</h1>`);
+						_push(`<div class="following" data-v-3c234d08${_scopeId}><div class="back" data-v-3c234d08${_scopeId}><h1 data-v-3c234d08${_scopeId}>Подписчики ${ssrInterpolate(__props.user.name)}</h1>`);
 						_push(ssrRenderComponent(unref(Link), { href: "/profile/" + __props.user.id }, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
 								if (_push) _push(`← Вернуться в профиль`);
@@ -5163,10 +5771,10 @@ var _sfc_main$6 = {
 						}, _parent, _scopeId));
 						_push(`</div><!--[-->`);
 						ssrRenderList(__props.followers.data, (follower) => {
-							_push(`<div class="user" data-v-7e8b00a5${_scopeId}>`);
+							_push(`<div class="user" data-v-3c234d08${_scopeId}>`);
 							_push(ssrRenderComponent(unref(Link), { href: "/profile/" + follower.id }, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<img${ssrRenderAttr("src", follower.avatar ? `/storage/${follower.avatar}` : "/images/User-avatar.png")} class="author-avatar"${ssrRenderAttr("alt", `Аватар ${follower.name}`)} data-v-7e8b00a5${_scopeId}> ${ssrInterpolate(follower.name)}`);
+									if (_push) _push(`<img${ssrRenderAttr("src", follower.avatar ? `/storage/${follower.avatar}` : "/images/User-avatar.png")} class="author-avatar"${ssrRenderAttr("alt", `Аватар ${follower.name}`)} data-v-3c234d08${_scopeId}> ${ssrInterpolate(follower.name)}`);
 									else return [createVNode("img", {
 										src: follower.avatar ? `/storage/${follower.avatar}` : "/images/User-avatar.png",
 										class: "author-avatar",
@@ -5176,10 +5784,10 @@ var _sfc_main$6 = {
 								_: 2
 							}, _parent, _scopeId));
 							if (auth.value.user && follower.id !== auth.value.user.id) {
-								_push(`<div data-v-7e8b00a5${_scopeId}>`);
+								_push(`<div data-v-3c234d08${_scopeId}>`);
 								if (follower.is_mutual) _push(ssrRenderComponent(unref(Link), { href: `/chats/start/${follower.id}` }, {
 									default: withCtx((_, _push, _parent, _scopeId) => {
-										if (_push) _push(`<button type="button" class="btn-message" data-v-7e8b00a5${_scopeId}>Написать сообщение</button>`);
+										if (_push) _push(`<button type="button" class="btn-message" data-v-3c234d08${_scopeId}>Написать сообщение</button>`);
 										else return [createVNode("button", {
 											type: "button",
 											class: "btn-message"
@@ -5187,8 +5795,8 @@ var _sfc_main$6 = {
 									}),
 									_: 2
 								}, _parent, _scopeId));
-								else if (follower.is_subscribed) _push(`<form data-v-7e8b00a5${_scopeId}><button type="submit" class="btn-unsubscribe" data-v-7e8b00a5${_scopeId}>Отписаться</button></form>`);
-								else _push(`<form data-v-7e8b00a5${_scopeId}><button type="submit" class="btn-subscribe" data-v-7e8b00a5${_scopeId}>Подписаться</button></form>`);
+								else if (follower.is_subscribed) _push(`<form data-v-3c234d08${_scopeId}><button type="submit" class="btn-unsubscribe" data-v-3c234d08${_scopeId}>Отписаться</button></form>`);
+								else _push(`<form data-v-3c234d08${_scopeId}><button type="submit" class="btn-subscribe" data-v-3c234d08${_scopeId}>Подписаться</button></form>`);
 								_push(`</div>`);
 							} else _push(`<!---->`);
 							_push(`</div>`);
@@ -5243,7 +5851,7 @@ _sfc_main$6.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Profile/Followers.vue");
 	return _sfc_setup$6 ? _sfc_setup$6(props, ctx) : void 0;
 };
-var Followers_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$6, [["__scopeId", "data-v-7e8b00a5"]]);
+var Followers_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$6, [["__scopeId", "data-v-3c234d08"]]);
 //#endregion
 //#region resources/js/Pages/Profile/Following.vue
 var Following_exports = /* @__PURE__ */ __exportAll({ default: () => Following_default });
@@ -5256,15 +5864,16 @@ var _sfc_main$5 = {
 		subscription: Object
 	},
 	setup(__props) {
+		useDarkMode();
 		const unsubscribe = (userId) => {
 			router.delete(`/profile/${userId}/unsubscribe`, { preserveScroll: true });
 		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: `Подписки ${__props.user.name}` }, null, _parent, _scopeId));
-						_push(`<div class="following" data-v-d1580be8${_scopeId}><div class="back" data-v-d1580be8${_scopeId}><h1 data-v-d1580be8${_scopeId}>Подписки ${ssrInterpolate(__props.user.name)}</h1>`);
+						_push(`<div class="following" data-v-21f4d56d${_scopeId}><div class="back" data-v-21f4d56d${_scopeId}><h1 data-v-21f4d56d${_scopeId}>Подписки ${ssrInterpolate(__props.user.name)}</h1>`);
 						_push(ssrRenderComponent(unref(Link), { href: "/profile/" + __props.user.id }, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
 								if (_push) _push(`← Вернуться в профиль`);
@@ -5274,10 +5883,10 @@ var _sfc_main$5 = {
 						}, _parent, _scopeId));
 						_push(`</div><!--[-->`);
 						ssrRenderList(__props.following.data, (subscription) => {
-							_push(`<div class="user" data-v-d1580be8${_scopeId}>`);
+							_push(`<div class="user" data-v-21f4d56d${_scopeId}>`);
 							_push(ssrRenderComponent(unref(Link), { href: "/profile/" + subscription.id }, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<img${ssrRenderAttr("src", subscription.avatar ? `/storage/${subscription.avatar}` : "/images/User-avatar.png")} class="author-avatar"${ssrRenderAttr("alt", `Аватар ${subscription.name}`)} data-v-d1580be8${_scopeId}> ${ssrInterpolate(subscription.name)}`);
+									if (_push) _push(`<img${ssrRenderAttr("src", subscription.avatar ? `/storage/${subscription.avatar}` : "/images/User-avatar.png")} class="author-avatar"${ssrRenderAttr("alt", `Аватар ${subscription.name}`)} data-v-21f4d56d${_scopeId}> ${ssrInterpolate(subscription.name)}`);
 									else return [createVNode("img", {
 										src: subscription.avatar ? `/storage/${subscription.avatar}` : "/images/User-avatar.png",
 										class: "author-avatar",
@@ -5286,7 +5895,7 @@ var _sfc_main$5 = {
 								}),
 								_: 2
 							}, _parent, _scopeId));
-							_push(`<form data-v-d1580be8${_scopeId}><button type="submit" data-v-d1580be8${_scopeId}>Отписаться</button></form></div>`);
+							_push(`<form data-v-21f4d56d${_scopeId}><button type="submit" data-v-21f4d56d${_scopeId}>Отписаться</button></form></div>`);
 						});
 						_push(`<!--]--></div>`);
 					} else return [createVNode(unref(Head), { title: `Подписки ${__props.user.name}` }, null, 8, ["title"]), createVNode("div", { class: "following" }, [createVNode("div", { class: "back" }, [createVNode("h1", null, "Подписки " + toDisplayString(__props.user.name), 1), createVNode(unref(Link), { href: "/profile/" + __props.user.id }, {
@@ -5317,7 +5926,7 @@ _sfc_main$5.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Profile/Following.vue");
 	return _sfc_setup$5 ? _sfc_setup$5(props, ctx) : void 0;
 };
-var Following_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$5, [["__scopeId", "data-v-d1580be8"]]);
+var Following_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$5, [["__scopeId", "data-v-21f4d56d"]]);
 //#endregion
 //#region resources/js/Pages/Profile/LikedPosts.vue
 var LikedPosts_exports = /* @__PURE__ */ __exportAll({ default: () => LikedPosts_default });
@@ -5329,12 +5938,13 @@ var _sfc_main$4 = {
 		likedPosts: Array
 	},
 	setup(__props) {
+		useDarkMode();
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: `Понравившиеся посты ${__props.user.name}` }, null, _parent, _scopeId));
-						_push(`<div class="likeshead" data-v-e1b4a4f3${_scopeId}><h1 data-v-e1b4a4f3${_scopeId}>Лайки ${ssrInterpolate(__props.user.name)}</h1>`);
+						_push(`<div class="likeshead" data-v-d775320c${_scopeId}><h1 data-v-d775320c${_scopeId}>Лайки ${ssrInterpolate(__props.user.name)}</h1>`);
 						_push(ssrRenderComponent(unref(Link), { href: "/profile/" + __props.user.id }, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
 								if (_push) _push(`← Вернуться в профиль`);
@@ -5343,9 +5953,9 @@ var _sfc_main$4 = {
 							_: 1
 						}, _parent, _scopeId));
 						_push(`</div>`);
-						if (__props.likedPosts.length === 0) _push(`<h1 class="noposts" data-v-e1b4a4f3${_scopeId}> У ${ssrInterpolate(__props.user.name)} пока что нет понравившихся постов... </h1>`);
+						if (__props.likedPosts.length === 0) _push(`<h1 class="noposts" data-v-d775320c${_scopeId}> У ${ssrInterpolate(__props.user.name)} пока что нет понравившихся постов... </h1>`);
 						else {
-							_push(`<div class="posts" data-v-e1b4a4f3${_scopeId}><!--[-->`);
+							_push(`<div class="posts" data-v-d775320c${_scopeId}><!--[-->`);
 							ssrRenderList(__props.likedPosts, (like) => {
 								_push(ssrRenderComponent(Post_default, {
 									key: like.id,
@@ -5387,7 +5997,7 @@ _sfc_main$4.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Profile/LikedPosts.vue");
 	return _sfc_setup$4 ? _sfc_setup$4(props, ctx) : void 0;
 };
-var LikedPosts_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$4, [["__scopeId", "data-v-e1b4a4f3"]]);
+var LikedPosts_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$4, [["__scopeId", "data-v-d775320c"]]);
 //#endregion
 //#region resources/js/Pages/Profile/Ratings.vue
 var Ratings_exports = /* @__PURE__ */ __exportAll({ default: () => Ratings_default });
@@ -5401,12 +6011,13 @@ var _sfc_main$3 = {
 		reviewsCount: Number
 	},
 	setup(__props) {
+		useDarkMode();
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: `Рейтинг ${__props.user.name}` }, null, _parent, _scopeId));
-						_push(`<div class="ratings-page" data-v-2149f990${_scopeId}><div class="back" data-v-2149f990${_scopeId}>`);
+						_push(`<div class="ratings-page" data-v-addca7cf${_scopeId}><div class="back" data-v-addca7cf${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), { href: "/profile/" + __props.user.id }, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
 								if (_push) _push(`← Вернуться в профиль`);
@@ -5414,15 +6025,15 @@ var _sfc_main$3 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</div><div class="rating-header" data-v-2149f990${_scopeId}><img${ssrRenderAttr("src", __props.user.avatar ? "/storage/" + __props.user.avatar : "/images/User-avatar.png")} class="author-avatar"${ssrRenderAttr("alt", `Аватар ${__props.user.name}`)} data-v-2149f990${_scopeId}><div class="rating-info" data-v-2149f990${_scopeId}><h1 data-v-2149f990${_scopeId}>Рейтинг ${ssrInterpolate(__props.user.name)}</h1><div class="average-rating" data-v-2149f990${_scopeId}><span class="stars" data-v-2149f990${_scopeId}>${ssrInterpolate("★".repeat(Math.round(__props.averageRating || 0)))}</span><span class="rating-number" data-v-2149f990${_scopeId}>${ssrInterpolate(__props.averageRating || "0.00")}</span><span class="reviews-count" data-v-2149f990${_scopeId}>(${ssrInterpolate(__props.reviewsCount)} отзывов)</span></div></div></div><div class="reviews-list" data-v-2149f990${_scopeId}><h2 data-v-2149f990${_scopeId}>Отзывы</h2>`);
-						if (__props.reviews.length === 0) _push(`<div class="no-reviews" data-v-2149f990${_scopeId}><p data-v-2149f990${_scopeId}>Пока нет отзывов</p></div>`);
+						_push(`</div><div class="rating-header" data-v-addca7cf${_scopeId}><img${ssrRenderAttr("src", __props.user.avatar ? "/storage/" + __props.user.avatar : "/images/User-avatar.png")} class="author-avatar"${ssrRenderAttr("alt", `Аватар ${__props.user.name}`)} data-v-addca7cf${_scopeId}><div class="rating-info" data-v-addca7cf${_scopeId}><h1 data-v-addca7cf${_scopeId}>Рейтинг ${ssrInterpolate(__props.user.name)}</h1><div class="average-rating" data-v-addca7cf${_scopeId}><span class="stars" data-v-addca7cf${_scopeId}>${ssrInterpolate("★".repeat(Math.round(__props.averageRating || 0)))}</span><span class="rating-number" data-v-addca7cf${_scopeId}>${ssrInterpolate(__props.averageRating || "0.00")}</span><span class="reviews-count" data-v-addca7cf${_scopeId}>(${ssrInterpolate(__props.reviewsCount)} отзывов)</span></div></div></div><div class="reviews-list" data-v-addca7cf${_scopeId}><h2 data-v-addca7cf${_scopeId}>Отзывы</h2>`);
+						if (__props.reviews.length === 0) _push(`<div class="no-reviews" data-v-addca7cf${_scopeId}><p data-v-addca7cf${_scopeId}>Пока нет отзывов</p></div>`);
 						else _push(`<!---->`);
 						_push(`<!--[-->`);
 						ssrRenderList(__props.reviews, (review) => {
-							_push(`<div class="review" data-v-2149f990${_scopeId}><div class="review-header" data-v-2149f990${_scopeId}>`);
+							_push(`<div class="review" data-v-addca7cf${_scopeId}><div class="review-header" data-v-addca7cf${_scopeId}>`);
 							_push(ssrRenderComponent(unref(Link), { href: review.reviewer.profile_url }, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<img${ssrRenderAttr("src", review.reviewer.avatar_url ? review.reviewer.avatar_url : "/images/User-avatar.png")} class="reviewer-avatar"${ssrRenderAttr("alt", `Аватар ${review.reviewer.name}`)} data-v-2149f990${_scopeId}><span class="reviewer-name" data-v-2149f990${_scopeId}>${ssrInterpolate(review.reviewer.name)}</span>`);
+									if (_push) _push(`<img${ssrRenderAttr("src", review.reviewer.avatar_url ? review.reviewer.avatar_url : "/images/User-avatar.png")} class="reviewer-avatar"${ssrRenderAttr("alt", `Аватар ${review.reviewer.name}`)} data-v-addca7cf${_scopeId}><span class="reviewer-name" data-v-addca7cf${_scopeId}>${ssrInterpolate(review.reviewer.name)}</span>`);
 									else return [createVNode("img", {
 										src: review.reviewer.avatar_url ? review.reviewer.avatar_url : "/images/User-avatar.png",
 										class: "reviewer-avatar",
@@ -5431,10 +6042,10 @@ var _sfc_main$3 = {
 								}),
 								_: 2
 							}, _parent, _scopeId));
-							_push(`<span class="review-rating" data-v-2149f990${_scopeId}>${ssrInterpolate("★".repeat(review.rating))}</span></div>`);
-							if (review.comment) _push(`<p class="review-comment" data-v-2149f990${_scopeId}>${ssrInterpolate(review.comment)}</p>`);
+							_push(`<span class="review-rating" data-v-addca7cf${_scopeId}>${ssrInterpolate("★".repeat(review.rating))}</span></div>`);
+							if (review.comment) _push(`<p class="review-comment" data-v-addca7cf${_scopeId}>${ssrInterpolate(review.comment)}</p>`);
 							else _push(`<!---->`);
-							_push(`<span class="review-date" data-v-2149f990${_scopeId}>${ssrInterpolate(new Date(review.created_at).toLocaleDateString("ru-RU"))}</span></div>`);
+							_push(`<span class="review-date" data-v-addca7cf${_scopeId}>${ssrInterpolate(new Date(review.created_at).toLocaleDateString("ru-RU"))}</span></div>`);
 						});
 						_push(`<!--]--></div></div>`);
 					} else return [createVNode(unref(Head), { title: `Рейтинг ${__props.user.name}` }, null, 8, ["title"]), createVNode("div", { class: "ratings-page" }, [
@@ -5491,7 +6102,7 @@ _sfc_main$3.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Profile/Ratings.vue");
 	return _sfc_setup$3 ? _sfc_setup$3(props, ctx) : void 0;
 };
-var Ratings_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$3, [["__scopeId", "data-v-2149f990"]]);
+var Ratings_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$3, [["__scopeId", "data-v-addca7cf"]]);
 //#endregion
 //#region resources/js/Pages/Profile/Show.vue
 var Show_exports = /* @__PURE__ */ __exportAll({ default: () => Show_default });
@@ -5501,10 +6112,19 @@ var _sfc_main$2 = {
 	props: {
 		user: Object,
 		posts: Object,
-		auth: Object
+		auth: Object,
+		closedVacancies: {
+			type: Array,
+			default: () => []
+		},
+		isOwnProfile: {
+			type: Boolean,
+			default: false
+		}
 	},
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		const page = usePage();
 		const auth = computed(() => page.props.auth);
 		const isOwnProfile = computed(() => auth.value.user && auth.value.user.id === props.user.id);
@@ -5557,34 +6177,34 @@ var _sfc_main$2 = {
 			});
 		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Профиль " + __props.user.name }, null, _parent, _scopeId));
-						_push(`<div class="Profileblock" data-v-db7cc223${_scopeId}><div class="container" data-v-db7cc223${_scopeId}><div class="avatar" data-v-db7cc223${_scopeId}><div class="profile-header" data-v-db7cc223${_scopeId}>`);
-						if (__props.user.avatar_url) _push(`<img${ssrRenderAttr("src", __props.user.avatar_url)}${ssrRenderAttr("alt", "Аватарка " + __props.user.name)} data-v-db7cc223${_scopeId}>`);
-						else _push(`<img src="/images/User-avatar.png"${ssrRenderAttr("alt", "Аватарка " + __props.user.name)} data-v-db7cc223${_scopeId}>`);
-						_push(`</div><div class="desc" data-v-db7cc223${_scopeId}><h1 data-v-db7cc223${_scopeId}>${ssrInterpolate(__props.user.name)}</h1>`);
-						if (__props.user.is_verified === "verified") _push(`<img src="/images/verified.svg" alt="Аккаунт верифицирован" data-v-db7cc223${_scopeId}>`);
+						_push(`<div class="Profileblock" data-v-86e0fdbd${_scopeId}><div class="container" data-v-86e0fdbd${_scopeId}><div class="avatar" data-v-86e0fdbd${_scopeId}><div class="profile-header" data-v-86e0fdbd${_scopeId}>`);
+						if (__props.user.avatar_url) _push(`<img${ssrRenderAttr("src", __props.user.avatar_url)}${ssrRenderAttr("alt", "Аватарка " + __props.user.name)} data-v-86e0fdbd${_scopeId}>`);
+						else _push(`<img src="/images/User-avatar.png"${ssrRenderAttr("alt", "Аватарка " + __props.user.name)} data-v-86e0fdbd${_scopeId}>`);
+						_push(`</div><div class="desc" data-v-86e0fdbd${_scopeId}><h1 data-v-86e0fdbd${_scopeId}>${ssrInterpolate(__props.user.name)}</h1>`);
+						if (__props.user.is_verified === "verified") _push(`<img src="/images/verified.svg" alt="Аккаунт верифицирован" data-v-86e0fdbd${_scopeId}>`);
 						else _push(`<!---->`);
 						_push(`</div>`);
 						if (__props.user.rating) {
-							_push(`<div class="rating-display" data-v-db7cc223${_scopeId}>`);
+							_push(`<div class="rating-display" data-v-86e0fdbd${_scopeId}>`);
 							_push(ssrRenderComponent(unref(Link), {
 								href: "/ratings/" + __props.user.id,
 								class: "rating-link"
 							}, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
 									if (_push) {
-										_push(`<div class="stars" data-v-db7cc223${_scopeId}><!--[-->`);
+										_push(`<div class="stars" data-v-86e0fdbd${_scopeId}><!--[-->`);
 										ssrRenderList(5, (i) => {
 											_push(`<!--[-->`);
-											if (i <= Math.floor(__props.user.rating)) _push(`<img src="/images/star.svg" alt="star" class="star-icon" data-v-db7cc223${_scopeId}>`);
-											else if (i - 1 < __props.user.rating && __props.user.rating % 1 >= .5) _push(`<img src="/images/star.svg" alt="half-star" class="star-icon half" data-v-db7cc223${_scopeId}>`);
-											else _push(`<img src="/images/star-empty.svg" alt="star-empty" class="star-icon empty" data-v-db7cc223${_scopeId}>`);
+											if (i <= Math.floor(__props.user.rating)) _push(`<img src="/images/star.svg" alt="star" class="star-icon" data-v-86e0fdbd${_scopeId}>`);
+											else if (i - 1 < __props.user.rating && __props.user.rating % 1 >= .5) _push(`<img src="/images/star.svg" alt="half-star" class="star-icon half" data-v-86e0fdbd${_scopeId}>`);
+											else _push(`<img src="/images/star-empty.svg" alt="star-empty" class="star-icon empty" data-v-86e0fdbd${_scopeId}>`);
 											_push(`<!--]-->`);
 										});
-										_push(`<!--]--></div><span class="rating-value" data-v-db7cc223${_scopeId}>${ssrInterpolate(__props.user.rating)}</span>`);
+										_push(`<!--]--></div><span class="rating-value" data-v-86e0fdbd${_scopeId}>${ssrInterpolate(__props.user.rating)}</span>`);
 									} else return [createVNode("div", { class: "stars" }, [(openBlock(), createBlock(Fragment, null, renderList(5, (i) => {
 										return openBlock(), createBlock(Fragment, { key: i }, [i <= Math.floor(__props.user.rating) ? (openBlock(), createBlock("img", {
 											key: 0,
@@ -5608,12 +6228,12 @@ var _sfc_main$2 = {
 							}, _parent, _scopeId));
 							_push(`</div>`);
 						} else _push(`<!---->`);
-						if (__props.user.created_at) _push(`<p class="created-at" data-v-db7cc223${_scopeId}>Аккаунт создан ${ssrInterpolate(__props.user.created_at)}</p>`);
+						if (__props.user.created_at) _push(`<p class="created-at" data-v-86e0fdbd${_scopeId}>Аккаунт создан ${ssrInterpolate(__props.user.created_at)}</p>`);
 						else _push(`<!---->`);
-						_push(`</div></div><div class="aboutme" data-v-db7cc223${_scopeId}><div class="aboutme-header" data-v-db7cc223${_scopeId}><h1 data-v-db7cc223${_scopeId}>Обо мне</h1>`);
+						_push(`</div></div><div class="aboutme" data-v-86e0fdbd${_scopeId}><div class="aboutme-header" data-v-86e0fdbd${_scopeId}><h1 data-v-86e0fdbd${_scopeId}>Обо мне</h1>`);
 						_push(ssrRenderComponent(unref(Link), { href: "/profile/" + __props.user.id + "/following" }, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(` Подписки<br data-v-db7cc223${_scopeId}> ${ssrInterpolate(__props.user.following_count)}`);
+								if (_push) _push(` Подписки<br data-v-86e0fdbd${_scopeId}> ${ssrInterpolate(__props.user.following_count)}`);
 								else return [
 									createTextVNode(" Подписки"),
 									createVNode("br"),
@@ -5624,7 +6244,7 @@ var _sfc_main$2 = {
 						}, _parent, _scopeId));
 						_push(ssrRenderComponent(unref(Link), { href: "/profile/" + __props.user.id + "/followers" }, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(` Подписчики<br data-v-db7cc223${_scopeId}> ${ssrInterpolate(__props.user.followers_count)}`);
+								if (_push) _push(` Подписчики<br data-v-86e0fdbd${_scopeId}> ${ssrInterpolate(__props.user.followers_count)}`);
 								else return [
 									createTextVNode(" Подписчики"),
 									createVNode("br"),
@@ -5645,7 +6265,7 @@ var _sfc_main$2 = {
 							class: "btn-edit"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(`<img src="/images/settings.png" alt="Редактировать профиль" data-v-db7cc223${_scopeId}>`);
+								if (_push) _push(`<img src="/images/settings.png" alt="Редактировать профиль" data-v-86e0fdbd${_scopeId}>`);
 								else return [createVNode("img", {
 									src: "/images/settings.png",
 									alt: "Редактировать профиль"
@@ -5656,42 +6276,42 @@ var _sfc_main$2 = {
 						else _push(`<!---->`);
 						_push(`</div>`);
 						if (isOwnProfile.value) {
-							_push(`<div data-v-db7cc223${_scopeId}>`);
-							if (!__props.user.aboutme) _push(`<div class="aboutme-form" data-v-db7cc223${_scopeId}><p data-v-db7cc223${_scopeId}>Расскажите о себе</p><form data-v-db7cc223${_scopeId}><textarea draggable="false" placeholder="Напишите что-нибудь о себе..." data-v-db7cc223${_scopeId}>${ssrInterpolate(unref(aboutMeForm).aboutme)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(aboutMeForm).processing) ? " disabled" : ""} data-v-db7cc223${_scopeId}>Сохранить</button></form></div>`);
-							else _push(`<div class="${ssrRenderClass([{ expanded: isExpanded.value }, "aboutme-content"])}" style="${ssrRenderStyle({ maxHeight: expandedHeight.value })}" data-v-db7cc223${_scopeId}><p data-v-db7cc223${_scopeId}>${ssrInterpolate(__props.user.aboutme)}</p></div>`);
+							_push(`<div data-v-86e0fdbd${_scopeId}>`);
+							if (!__props.user.aboutme) _push(`<div class="aboutme-form" data-v-86e0fdbd${_scopeId}><p data-v-86e0fdbd${_scopeId}>Расскажите о себе</p><form data-v-86e0fdbd${_scopeId}><textarea draggable="false" placeholder="Напишите что-нибудь о себе..." data-v-86e0fdbd${_scopeId}>${ssrInterpolate(unref(aboutMeForm).aboutme)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(aboutMeForm).processing) ? " disabled" : ""} data-v-86e0fdbd${_scopeId}>Сохранить</button></form></div>`);
+							else _push(`<div class="${ssrRenderClass([{ expanded: isExpanded.value }, "aboutme-content"])}" style="${ssrRenderStyle({ maxHeight: expandedHeight.value })}" data-v-86e0fdbd${_scopeId}><p data-v-86e0fdbd${_scopeId}>${ssrInterpolate(__props.user.aboutme)}</p></div>`);
 							_push(`</div>`);
-						} else _push(`<div class="aboutme-body" data-v-db7cc223${_scopeId}><div class="${ssrRenderClass([{ expanded: isExpanded.value }, "aboutme-content"])}" style="${ssrRenderStyle({ maxHeight: expandedHeight.value })}" data-v-db7cc223${_scopeId}><p class="truncated-text" data-v-db7cc223${_scopeId}>${ssrInterpolate(__props.user.aboutme || "Пользователь пока не добавил информацию о себе.")}</p></div></div>`);
-						if (showExpandButton.value) _push(`<div class="expand" data-v-db7cc223${_scopeId}>${ssrInterpolate(isExpanded.value ? "Свернуть" : "Развернуть")}</div>`);
+						} else _push(`<div class="aboutme-body" data-v-86e0fdbd${_scopeId}><div class="${ssrRenderClass([{ expanded: isExpanded.value }, "aboutme-content"])}" style="${ssrRenderStyle({ maxHeight: expandedHeight.value })}" data-v-86e0fdbd${_scopeId}><p class="truncated-text" data-v-86e0fdbd${_scopeId}>${ssrInterpolate(__props.user.aboutme || "Пользователь пока не добавил информацию о себе.")}</p></div></div>`);
+						if (showExpandButton.value) _push(`<div class="expand" data-v-86e0fdbd${_scopeId}>${ssrInterpolate(isExpanded.value ? "Свернуть" : "Развернуть")}</div>`);
 						else _push(`<!---->`);
 						if (__props.user.skills && __props.user.skills.length > 0) {
-							_push(`<div class="user-skills" data-v-db7cc223${_scopeId}><h3 data-v-db7cc223${_scopeId}>Навыки</h3><div class="skills-list" data-v-db7cc223${_scopeId}><!--[-->`);
+							_push(`<div class="user-skills" data-v-86e0fdbd${_scopeId}><h3 data-v-86e0fdbd${_scopeId}>Навыки</h3><div class="skills-list" data-v-86e0fdbd${_scopeId}><!--[-->`);
 							ssrRenderList(__props.user.skills, (skill) => {
-								_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-db7cc223${_scopeId}><span class="skill-name" data-v-db7cc223${_scopeId}>${ssrInterpolate(skill.name)}</span><span class="skill-level" data-v-db7cc223${_scopeId}>★ ${ssrInterpolate(skill.level)}</span></div>`);
+								_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-86e0fdbd${_scopeId}><span class="skill-name" data-v-86e0fdbd${_scopeId}>${ssrInterpolate(skill.name)}</span><span class="skill-level" data-v-86e0fdbd${_scopeId}>★ ${ssrInterpolate(skill.level)}</span></div>`);
 							});
 							_push(`<!--]--></div></div>`);
 						} else _push(`<!---->`);
 						if (!isOwnProfile.value && auth.value.user) {
-							_push(`<div class="profile-actions" data-v-db7cc223${_scopeId}><form data-v-db7cc223${_scopeId}><button type="submit" data-v-db7cc223${_scopeId}>${ssrInterpolate(__props.user.is_subscribed ? "Отписаться" : "Подписаться")}</button></form>`);
+							_push(`<div class="profile-actions" data-v-86e0fdbd${_scopeId}><form data-v-86e0fdbd${_scopeId}><button type="submit" data-v-86e0fdbd${_scopeId}>${ssrInterpolate(__props.user.is_subscribed ? "Отписаться" : "Подписаться")}</button></form>`);
 							_push(ssrRenderComponent(unref(Link), { href: "/chats/start/" + __props.user.id }, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<button data-v-db7cc223${_scopeId}>Написать сообщение</button>`);
+									if (_push) _push(`<button data-v-86e0fdbd${_scopeId}>Написать сообщение</button>`);
 									else return [createVNode("button", null, "Написать сообщение")];
 								}),
 								_: 1
 							}, _parent, _scopeId));
 							_push(`</div>`);
 						} else _push(`<!---->`);
-						_push(`</div></div><h2 data-v-db7cc223${_scopeId}>Посты ${ssrInterpolate(__props.user.name)}</h2>`);
+						_push(`</div></div><h2 data-v-86e0fdbd${_scopeId}>Посты ${ssrInterpolate(__props.user.name)}</h2>`);
 						if (__props.posts.length > 0 || isOwnProfile.value) {
-							_push(`<div class="posts" data-v-db7cc223${_scopeId}>`);
+							_push(`<div class="posts" data-v-86e0fdbd${_scopeId}>`);
 							if (isOwnProfile.value) {
-								_push(`<div class="post add-post-block" data-v-db7cc223${_scopeId}>`);
+								_push(`<div class="post add-post-block" data-v-86e0fdbd${_scopeId}>`);
 								_push(ssrRenderComponent(unref(Link), {
 									href: "/posts/create",
 									class: "add-post-link"
 								}, {
 									default: withCtx((_, _push, _parent, _scopeId) => {
-										if (_push) _push(`<p data-v-db7cc223${_scopeId}>Добавить новый пост</p><button class="add-post-button" data-v-db7cc223${_scopeId}>+</button>`);
+										if (_push) _push(`<p data-v-86e0fdbd${_scopeId}>Добавить новый пост</p><button class="add-post-button" data-v-86e0fdbd${_scopeId}>+</button>`);
 										else return [createVNode("p", null, "Добавить новый пост"), createVNode("button", { class: "add-post-button" }, "+")];
 									}),
 									_: 1
@@ -5706,7 +6326,17 @@ var _sfc_main$2 = {
 								}, null, _parent, _scopeId));
 							});
 							_push(`<!--]--></div>`);
-						} else _push(`<div class="noposts" data-v-db7cc223${_scopeId}><h1 data-v-db7cc223${_scopeId}>у ${ssrInterpolate(__props.user.name)} пока что нет постов...</h1></div>`);
+						} else _push(`<div class="noposts" data-v-86e0fdbd${_scopeId}><h1 data-v-86e0fdbd${_scopeId}>у ${ssrInterpolate(__props.user.name)} пока что нет постов...</h1></div>`);
+						if (isOwnProfile.value && __props.closedVacancies && __props.closedVacancies.length > 0) {
+							_push(`<div class="closed-vacancies" data-v-86e0fdbd${_scopeId}><h2 data-v-86e0fdbd${_scopeId}>Завершённые вакансии</h2><div class="posts" data-v-86e0fdbd${_scopeId}><!--[-->`);
+							ssrRenderList(__props.closedVacancies, (post) => {
+								_push(ssrRenderComponent(Post_default, {
+									key: post.id,
+									post
+								}, null, _parent, _scopeId));
+							});
+							_push(`<!--]--></div></div>`);
+						} else _push(`<!---->`);
 					} else return [
 						createVNode(unref(Head), { title: "Профиль " + __props.user.name }, null, 8, ["title"]),
 						createVNode("div", { class: "Profileblock" }, [createVNode("div", { class: "container" }, [createVNode("div", { class: "avatar" }, [
@@ -5865,7 +6495,16 @@ var _sfc_main$2 = {
 						}), 128))])) : (openBlock(), createBlock("div", {
 							key: 1,
 							class: "noposts"
-						}, [createVNode("h1", null, "у " + toDisplayString(__props.user.name) + " пока что нет постов...", 1)]))
+						}, [createVNode("h1", null, "у " + toDisplayString(__props.user.name) + " пока что нет постов...", 1)])),
+						isOwnProfile.value && __props.closedVacancies && __props.closedVacancies.length > 0 ? (openBlock(), createBlock("div", {
+							key: 2,
+							class: "closed-vacancies"
+						}, [createVNode("h2", null, "Завершённые вакансии"), createVNode("div", { class: "posts" }, [(openBlock(true), createBlock(Fragment, null, renderList(__props.closedVacancies, (post) => {
+							return openBlock(), createBlock(Post_default, {
+								key: post.id,
+								post
+							}, null, 8, ["post"]);
+						}), 128))])])) : createCommentVNode("", true)
 					];
 				}),
 				_: 1
@@ -5879,7 +6518,7 @@ _sfc_main$2.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Profile/Show.vue");
 	return _sfc_setup$2 ? _sfc_setup$2(props, ctx) : void 0;
 };
-var Show_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$2, [["__scopeId", "data-v-db7cc223"]]);
+var Show_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$2, [["__scopeId", "data-v-86e0fdbd"]]);
 //#endregion
 //#region resources/js/Pages/Settings/Index.vue
 var Index_exports = /* @__PURE__ */ __exportAll({ default: () => Index_default });
@@ -5906,6 +6545,7 @@ var _sfc_main$1 = {
 	},
 	setup(__props) {
 		const props = __props;
+		const { isDark, toggleDarkMode } = useDarkMode();
 		const avatarPreview = ref(null);
 		const fileInputRef = ref(null);
 		const isDragging = ref(false);
@@ -5980,10 +6620,10 @@ var _sfc_main$1 = {
 			});
 		}
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<div class="settings-container" data-v-4c6c7fd3${_scopeId}><div class="settings-header" data-v-4c6c7fd3${_scopeId}><h1 data-v-4c6c7fd3${_scopeId}>Настройки</h1></div><div class="settings-content" data-v-4c6c7fd3${_scopeId}><nav class="settings-nav" data-v-4c6c7fd3${_scopeId}>`);
+						_push(`<div class="settings-container" data-v-2e4b2709${_scopeId}><div class="settings-header" data-v-2e4b2709${_scopeId}><h1 data-v-2e4b2709${_scopeId}>Настройки</h1></div><div class="settings-content" data-v-2e4b2709${_scopeId}><nav class="settings-nav" data-v-2e4b2709${_scopeId}>`);
 						_push(ssrRenderComponent(unref(Link), {
 							href: "/settings/profile",
 							class: ["settings-nav-item", { active: __props.section === "profile" }]
@@ -6014,16 +6654,16 @@ var _sfc_main$1 = {
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</nav><div class="settings-panel" data-v-4c6c7fd3${_scopeId}>`);
+						_push(`</nav><div class="settings-panel" data-v-2e4b2709${_scopeId}>`);
 						if (__props.section === "profile") {
-							_push(`<div class="panel-profile" data-v-4c6c7fd3${_scopeId}><div class="edit-content" data-v-4c6c7fd3${_scopeId}><div class="avatar" data-v-4c6c7fd3${_scopeId}><div class="profile-header avatar-upload" data-v-4c6c7fd3${_scopeId}><input type="file" accept="image/*" style="${ssrRenderStyle({ "display": "none" })}" data-v-4c6c7fd3${_scopeId}>`);
-							if (avatarPreview.value || __props.user.avatar) _push(`<img${ssrRenderAttr("src", avatarPreview.value || "/storage/" + __props.user.avatar)} class="avatar-preview" data-v-4c6c7fd3${_scopeId}>`);
-							else _push(`<div class="no-avatar" data-v-4c6c7fd3${_scopeId}><span data-v-4c6c7fd3${_scopeId}>Нажмите для загрузки</span></div>`);
-							if (avatarPreview.value || __props.user.avatar) _push(`<div class="avatar-overlay" data-v-4c6c7fd3${_scopeId}><button type="button" class="change-avatar-btn" data-v-4c6c7fd3${_scopeId}> Изменить фото </button></div>`);
+							_push(`<div class="panel-profile" data-v-2e4b2709${_scopeId}><div class="edit-content" data-v-2e4b2709${_scopeId}><div class="avatar" data-v-2e4b2709${_scopeId}><div class="profile-header avatar-upload" data-v-2e4b2709${_scopeId}><input type="file" accept="image/*" style="${ssrRenderStyle({ "display": "none" })}" data-v-2e4b2709${_scopeId}>`);
+							if (avatarPreview.value || __props.user.avatar) _push(`<img${ssrRenderAttr("src", avatarPreview.value || "/storage/" + __props.user.avatar)} class="avatar-preview" data-v-2e4b2709${_scopeId}>`);
+							else _push(`<div class="no-avatar" data-v-2e4b2709${_scopeId}><span data-v-2e4b2709${_scopeId}>Нажмите для загрузки</span></div>`);
+							if (avatarPreview.value || __props.user.avatar) _push(`<div class="avatar-overlay" data-v-2e4b2709${_scopeId}><button type="button" class="change-avatar-btn" data-v-2e4b2709${_scopeId}> Изменить фото </button></div>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 							if (!__props.user.is_verified || __props.user.is_verified !== "verified") {
-								_push(`<div class="verification-links" data-v-4c6c7fd3${_scopeId}>`);
+								_push(`<div class="verification-links" data-v-2e4b2709${_scopeId}>`);
 								if (!__props.user.is_verified || __props.user.is_verified === "rejected") _push(ssrRenderComponent(unref(Link), {
 									href: "#",
 									onClick: requestVerification,
@@ -6048,20 +6688,23 @@ var _sfc_main$1 = {
 									_: 1
 								}, _parent, _scopeId));
 								else _push(`<!---->`);
-								if (__props.user.is_verified === "pending") _push(`<p class="verification-status" data-v-4c6c7fd3${_scopeId}> Заявка на верификацию на рассмотрении </p>`);
+								if (__props.user.is_verified === "pending") _push(`<p class="verification-status" data-v-2e4b2709${_scopeId}> Заявка на верификацию на рассмотрении </p>`);
 								else _push(`<!---->`);
 								_push(`</div>`);
 							} else _push(`<!---->`);
-							_push(`</div><div class="desc" data-v-4c6c7fd3${_scopeId}><form enctype="multipart/form-data" data-v-4c6c7fd3${_scopeId}><div class="form-group" data-v-4c6c7fd3${_scopeId}><label for="name" data-v-4c6c7fd3${_scopeId}>Имя:</label><input type="text" name="name" id="name"${ssrRenderAttr("value", unref(form).name)} required data-v-4c6c7fd3${_scopeId}></div><div class="form-group" data-v-4c6c7fd3${_scopeId}><label for="aboutme" data-v-4c6c7fd3${_scopeId}>О себе:</label><textarea name="aboutme" id="aboutme"${ssrRenderAttr("maxlength", maxLength)} data-v-4c6c7fd3${_scopeId}>${ssrInterpolate(unref(form).aboutme)}</textarea><div class="${ssrRenderClass([{ warning: remainingChars.value <= warningThreshold }, "char-counter"])}" data-v-4c6c7fd3${_scopeId}>`);
-							if (remainingChars.value <= warningThreshold) _push(`<span data-v-4c6c7fd3${_scopeId}> Осталось ${ssrInterpolate(remainingChars.value)} ${ssrInterpolate(pluralizeChars(remainingChars.value))}</span>`);
-							else _push(`<span data-v-4c6c7fd3${_scopeId}>${ssrInterpolate(currentLength.value)} / ${ssrInterpolate(maxLength)}</span>`);
-							_push(`</div></div><div class="form-group" data-v-4c6c7fd3${_scopeId}><label data-v-4c6c7fd3${_scopeId}>Ваши навыки:</label>`);
+							_push(`</div><div class="desc" data-v-2e4b2709${_scopeId}><form enctype="multipart/form-data" data-v-2e4b2709${_scopeId}><div class="form-group theme-toggle-group" data-v-2e4b2709${_scopeId}><label data-v-2e4b2709${_scopeId}>Тема оформления:</label><button type="button" class="${ssrRenderClass([{ dark: unref(isDark) }, "theme-toggle-btn"])}" data-v-2e4b2709${_scopeId}><span class="theme-toggle-track" data-v-2e4b2709${_scopeId}><span class="theme-toggle-thumb" data-v-2e4b2709${_scopeId}>`);
+							if (unref(isDark)) _push(`<span data-v-2e4b2709${_scopeId}>🌙</span>`);
+							else _push(`<span data-v-2e4b2709${_scopeId}>☀️</span>`);
+							_push(`</span></span><span class="theme-toggle-label" data-v-2e4b2709${_scopeId}>${ssrInterpolate(unref(isDark) ? "Тёмная" : "Светлая")}</span></button></div><div class="form-group" data-v-2e4b2709${_scopeId}><label for="name" data-v-2e4b2709${_scopeId}>Имя:</label><input type="text" name="name" id="name"${ssrRenderAttr("value", unref(form).name)} required data-v-2e4b2709${_scopeId}></div><div class="form-group" data-v-2e4b2709${_scopeId}><label for="aboutme" data-v-2e4b2709${_scopeId}>О себе:</label><textarea name="aboutme" id="aboutme"${ssrRenderAttr("maxlength", maxLength)} data-v-2e4b2709${_scopeId}>${ssrInterpolate(unref(form).aboutme)}</textarea><div class="${ssrRenderClass([{ warning: remainingChars.value <= warningThreshold }, "char-counter"])}" data-v-2e4b2709${_scopeId}>`);
+							if (remainingChars.value <= warningThreshold) _push(`<span data-v-2e4b2709${_scopeId}> Осталось ${ssrInterpolate(remainingChars.value)} ${ssrInterpolate(pluralizeChars(remainingChars.value))}</span>`);
+							else _push(`<span data-v-2e4b2709${_scopeId}>${ssrInterpolate(currentLength.value)} / ${ssrInterpolate(maxLength)}</span>`);
+							_push(`</div></div><div class="form-group" data-v-2e4b2709${_scopeId}><label data-v-2e4b2709${_scopeId}>Ваши навыки:</label>`);
 							_push(ssrRenderComponent(SkillsSelector_default, {
 								skills: __props.skills,
 								modelValue: unref(form).skills,
 								"onUpdate:modelValue": ($event) => unref(form).skills = $event
 							}, null, _parent, _scopeId));
-							_push(`</div><div class="form-actions" data-v-4c6c7fd3${_scopeId}><button type="submit" class="btn-save"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-4c6c7fd3${_scopeId}>${ssrInterpolate(unref(form).processing ? "Сохранение..." : "Сохранить изменения")}</button>`);
+							_push(`</div><div class="form-actions" data-v-2e4b2709${_scopeId}><button type="submit" class="btn-save"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-2e4b2709${_scopeId}>${ssrInterpolate(unref(form).processing ? "Сохранение..." : "Сохранить изменения")}</button>`);
 							_push(ssrRenderComponent(unref(Link), {
 								href: "/profile/" + __props.user.id,
 								class: "btn-cancel"
@@ -6073,16 +6716,16 @@ var _sfc_main$1 = {
 								_: 1
 							}, _parent, _scopeId));
 							_push(`</div></form></div></div></div>`);
-						} else if (__props.section === "privacy") _push(`<div class="panel-privacy" data-v-4c6c7fd3${_scopeId}><h2 data-v-4c6c7fd3${_scopeId}>Настройки приватности</h2><p class="coming-soon" data-v-4c6c7fd3${_scopeId}>Раздел в разработке</p></div>`);
+						} else if (__props.section === "privacy") _push(`<div class="panel-privacy" data-v-2e4b2709${_scopeId}><h2 data-v-2e4b2709${_scopeId}>Настройки приватности</h2><p class="coming-soon" data-v-2e4b2709${_scopeId}>Раздел в разработке</p></div>`);
 						else if (__props.section === "files") {
-							_push(`<div class="panel-files" data-v-4c6c7fd3${_scopeId}><h2 data-v-4c6c7fd3${_scopeId}>Ваши файлы</h2>`);
+							_push(`<div class="panel-files" data-v-2e4b2709${_scopeId}><h2 data-v-2e4b2709${_scopeId}>Ваши файлы</h2>`);
 							if (__props.userFiles && __props.userFiles.length > 0) {
-								_push(`<div class="files-list" data-v-4c6c7fd3${_scopeId}><!--[-->`);
+								_push(`<div class="files-list" data-v-2e4b2709${_scopeId}><!--[-->`);
 								ssrRenderList(__props.userFiles, (file) => {
-									_push(`<div class="file-item" data-v-4c6c7fd3${_scopeId}><div class="file-info" data-v-4c6c7fd3${_scopeId}><span class="file-icon" data-v-4c6c7fd3${_scopeId}>📄</span><span class="file-name" data-v-4c6c7fd3${_scopeId}>${ssrInterpolate(file.name)}</span></div><div class="file-actions" data-v-4c6c7fd3${_scopeId}><a${ssrRenderAttr("href", file.url)} target="_blank" class="file-view-btn" data-v-4c6c7fd3${_scopeId}>Просмотр</a></div></div>`);
+									_push(`<div class="file-item" data-v-2e4b2709${_scopeId}><div class="file-info" data-v-2e4b2709${_scopeId}><span class="file-icon" data-v-2e4b2709${_scopeId}>📄</span><span class="file-name" data-v-2e4b2709${_scopeId}>${ssrInterpolate(file.name)}</span></div><div class="file-actions" data-v-2e4b2709${_scopeId}><a${ssrRenderAttr("href", file.url)} target="_blank" class="file-view-btn" data-v-2e4b2709${_scopeId}>Просмотр</a></div></div>`);
 								});
 								_push(`<!--]--></div>`);
-							} else _push(`<div class="no-files" data-v-4c6c7fd3${_scopeId}><p data-v-4c6c7fd3${_scopeId}>У вас пока нет загруженных файлов</p><p class="no-files-hint" data-v-4c6c7fd3${_scopeId}>Файлы можно загрузить при регистрации или редактировании профиля</p></div>`);
+							} else _push(`<div class="no-files" data-v-2e4b2709${_scopeId}><p data-v-2e4b2709${_scopeId}>У вас пока нет загруженных файлов</p><p class="no-files-hint" data-v-2e4b2709${_scopeId}>Файлы можно загрузить при регистрации или редактировании профиля</p></div>`);
 							_push(`</div>`);
 						} else _push(`<!---->`);
 						_push(`</div></div></div>`);
@@ -6172,6 +6815,11 @@ var _sfc_main$1 = {
 						onSubmit: withModifiers(submit, ["prevent"]),
 						enctype: "multipart/form-data"
 					}, [
+						createVNode("div", { class: "form-group theme-toggle-group" }, [createVNode("label", null, "Тема оформления:"), createVNode("button", {
+							type: "button",
+							class: ["theme-toggle-btn", { dark: unref(isDark) }],
+							onClick: unref(toggleDarkMode)
+						}, [createVNode("span", { class: "theme-toggle-track" }, [createVNode("span", { class: "theme-toggle-thumb" }, [unref(isDark) ? (openBlock(), createBlock("span", { key: 0 }, "🌙")) : (openBlock(), createBlock("span", { key: 1 }, "☀️"))])]), createVNode("span", { class: "theme-toggle-label" }, toDisplayString(unref(isDark) ? "Тёмная" : "Светлая"), 1)], 10, ["onClick"])]),
 						createVNode("div", { class: "form-group" }, [createVNode("label", { for: "name" }, "Имя:"), withDirectives(createVNode("input", {
 							type: "text",
 							name: "name",
@@ -6243,7 +6891,7 @@ _sfc_main$1.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Settings/Index.vue");
 	return _sfc_setup$1 ? _sfc_setup$1(props, ctx) : void 0;
 };
-var Index_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$1, [["__scopeId", "data-v-4c6c7fd3"]]);
+var Index_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$1, [["__scopeId", "data-v-2e4b2709"]]);
 //#endregion
 //#region resources/js/Pages/Settings/Notifications.vue
 var Notifications_exports = /* @__PURE__ */ __exportAll({ default: () => Notifications_default });
@@ -6262,6 +6910,7 @@ var _sfc_main = {
 	},
 	setup(__props) {
 		const props = __props;
+		useDarkMode();
 		const notifications = ref([...props.notifications]);
 		const unreadCount = ref(props.unreadCount);
 		const handleNotificationClick = async (notification) => {
@@ -6284,24 +6933,24 @@ var _sfc_main = {
 			}
 		};
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(ssrRenderComponent(_sfc_main$21, _attrs, {
+			_push(ssrRenderComponent(_sfc_main$22, _attrs, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<div class="notifications-container" data-v-65a1eb16${_scopeId}><div class="notifications-header" data-v-65a1eb16${_scopeId}><h1 data-v-65a1eb16${_scopeId}>Уведомления</h1>`);
-						if (unreadCount.value > 0) _push(`<button class="mark-all-btn" data-v-65a1eb16${_scopeId}> Отметить все как прочитанные </button>`);
+						_push(`<div class="notifications-container" data-v-39ca3cfe${_scopeId}><div class="notifications-header" data-v-39ca3cfe${_scopeId}><h1 data-v-39ca3cfe${_scopeId}>Уведомления</h1>`);
+						if (unreadCount.value > 0) _push(`<button class="mark-all-btn" data-v-39ca3cfe${_scopeId}> Отметить все как прочитанные </button>`);
 						else _push(`<!---->`);
 						_push(`</div>`);
-						if (notifications.value.length === 0) _push(`<div class="empty-notifications" data-v-65a1eb16${_scopeId}><p data-v-65a1eb16${_scopeId}>У вас пока нет уведомлений</p></div>`);
+						if (notifications.value.length === 0) _push(`<div class="empty-notifications" data-v-39ca3cfe${_scopeId}><p data-v-39ca3cfe${_scopeId}>У вас пока нет уведомлений</p></div>`);
 						else {
-							_push(`<div class="notifications-list" data-v-65a1eb16${_scopeId}><!--[-->`);
+							_push(`<div class="notifications-list" data-v-39ca3cfe${_scopeId}><!--[-->`);
 							ssrRenderList(notifications.value, (notification) => {
-								_push(`<div class="${ssrRenderClass([{ unread: !notification.is_read }, "notification-item"])}" data-v-65a1eb16${_scopeId}><div class="notification-icon" data-v-65a1eb16${_scopeId}>`);
-								if (notification.type === "message") _push(`<span data-v-65a1eb16${_scopeId}>💬</span>`);
-								else if (notification.type === "post_warning") _push(`<span data-v-65a1eb16${_scopeId}>⚠️</span>`);
-								else if (notification.type === "post_hidden") _push(`<span data-v-65a1eb16${_scopeId}>🚫</span>`);
-								else _push(`<span data-v-65a1eb16${_scopeId}>🔔</span>`);
-								_push(`</div><div class="notification-content" data-v-65a1eb16${_scopeId}><div class="notification-title" data-v-65a1eb16${_scopeId}>${ssrInterpolate(notification.title)}</div><div class="notification-text" data-v-65a1eb16${_scopeId}>${ssrInterpolate(notification.content)}</div><div class="notification-time" data-v-65a1eb16${_scopeId}>${ssrInterpolate(notification.created_at)}</div></div>`);
-								if (!notification.is_read) _push(`<div class="unread-dot" data-v-65a1eb16${_scopeId}></div>`);
+								_push(`<div class="${ssrRenderClass([{ unread: !notification.is_read }, "notification-item"])}" data-v-39ca3cfe${_scopeId}><div class="notification-icon" data-v-39ca3cfe${_scopeId}>`);
+								if (notification.type === "message") _push(`<span data-v-39ca3cfe${_scopeId}>💬</span>`);
+								else if (notification.type === "post_warning") _push(`<span data-v-39ca3cfe${_scopeId}>⚠️</span>`);
+								else if (notification.type === "post_hidden") _push(`<span data-v-39ca3cfe${_scopeId}>🚫</span>`);
+								else _push(`<span data-v-39ca3cfe${_scopeId}>🔔</span>`);
+								_push(`</div><div class="notification-content" data-v-39ca3cfe${_scopeId}><div class="notification-title" data-v-39ca3cfe${_scopeId}>${ssrInterpolate(notification.title)}</div><div class="notification-text" data-v-39ca3cfe${_scopeId}>${ssrInterpolate(notification.content)}</div><div class="notification-time" data-v-39ca3cfe${_scopeId}>${ssrInterpolate(notification.created_at)}</div></div>`);
+								if (!notification.is_read) _push(`<div class="unread-dot" data-v-39ca3cfe${_scopeId}></div>`);
 								else _push(`<!---->`);
 								_push(`</div>`);
 							});
@@ -6348,7 +6997,7 @@ _sfc_main.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Settings/Notifications.vue");
 	return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
 };
-var Notifications_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main, [["__scopeId", "data-v-65a1eb16"]]);
+var Notifications_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main, [["__scopeId", "data-v-39ca3cfe"]]);
 //#endregion
 //#region resources/js/ssr.js
 createServer((page) => createInertiaApp({
@@ -6357,12 +7006,13 @@ createServer((page) => createInertiaApp({
 	resolve: (name) => {
 		return (/* @__PURE__ */ Object.assign({
 			"./Pages/Admin/Comments.vue": Comments_exports,
-			"./Pages/Admin/Index.vue": Index_exports$2,
+			"./Pages/Admin/Index.vue": Index_exports$3,
 			"./Pages/Admin/Posts.vue": Posts_exports,
 			"./Pages/Admin/Users.vue": Users_exports,
 			"./Pages/Auth/Auth.vue": Auth_exports,
-			"./Pages/Balance/Index.vue": Index_exports$1,
+			"./Pages/Balance/Index.vue": Index_exports$2,
 			"./Pages/Chat/Chats.vue": Chats_exports,
+			"./Pages/Disputes/Index.vue": Index_exports$1,
 			"./Pages/Home.vue": Home_exports,
 			"./Pages/Posts/Create.vue": Create_exports,
 			"./Pages/Posts/Edit.vue": Edit_exports$1,

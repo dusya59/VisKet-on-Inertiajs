@@ -177,6 +177,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useDarkMode } from '@/composables/useDarkMode';
 
 const props = defineProps({
   mode: {
@@ -185,6 +186,7 @@ const props = defineProps({
   }
 });
 
+useDarkMode();
 let adminLink = null;
 let adminScript = null;
   
@@ -589,6 +591,49 @@ let adminScript = null;
 .modal-actions .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+html.dark .rejections-dropdown {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .rejection-item {
+  border-bottom-color: #334155;
+}
+
+html.dark .rejection-date {
+  color: #94a3b8;
+}
+
+html.dark .rejection-reason {
+  color: #e2e8f0;
+}
+
+html.dark .reporter-info {
+  color: #94a3b8;
+}
+
+html.dark .btn-cancel {
+  background-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .btn-cancel:hover {
+  background-color: #475569 !important;
+}
+
+html.dark .modal {
+  background: #1e293b;
+}
+
+html.dark .modal h3 {
+  color: #f1f5f9;
+}
+
+html.dark .modal textarea {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
 }
 </style>
   

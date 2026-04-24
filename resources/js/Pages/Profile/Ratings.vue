@@ -50,6 +50,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link } from '@inertiajs/vue3'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
     user: Object,
@@ -57,6 +58,8 @@ const props = defineProps({
     averageRating: [Number, String],
     reviewsCount: Number
 })
+
+useDarkMode()
 </script>
 
 <style scoped>
@@ -205,5 +208,63 @@ const props = defineProps({
     .average-rating {
         justify-content: center;
     }
+}
+
+html.dark .ratings-page {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+html.dark .back a {
+    color: #94a3b8;
+}
+
+html.dark .rating-header {
+    background-color: #334155;
+}
+
+html.dark .author-avatar {
+    border-color: #475569;
+}
+
+html.dark .rating-info h1 {
+    color: #f1f5f9;
+}
+
+html.dark .rating-number {
+    color: #f1f5f9;
+}
+
+html.dark .reviews-count {
+    color: #94a3b8;
+}
+
+html.dark .reviews-list h2 {
+    color: #f1f5f9;
+    border-bottom-color: #334155;
+}
+
+html.dark .no-reviews {
+    color: #94a3b8;
+}
+
+html.dark .review {
+    border-bottom-color: #334155;
+}
+
+html.dark .review:hover {
+    background-color: #334155;
+}
+
+html.dark .review-header a {
+    color: #f1f5f9;
+}
+
+html.dark .review-comment {
+    color: #e2e8f0;
+}
+
+html.dark .review-date {
+    color: #94a3b8;
 }
 </style>

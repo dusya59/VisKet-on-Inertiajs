@@ -90,6 +90,24 @@
 
               <div class="desc">
                 <form @submit.prevent="submit" enctype="multipart/form-data">
+                  <div class="form-group theme-toggle-group">
+                    <label>Тема оформления:</label>
+                    <button
+                      type="button"
+                      class="theme-toggle-btn"
+                      :class="{ dark: isDark }"
+                      @click="toggleDarkMode"
+                    >
+                      <span class="theme-toggle-track">
+                        <span class="theme-toggle-thumb">
+                          <span v-if="isDark">🌙</span>
+                          <span v-else>☀️</span>
+                        </span>
+                      </span>
+                      <span class="theme-toggle-label">{{ isDark ? 'Тёмная' : 'Светлая' }}</span>
+                    </button>
+                  </div>
+
                   <div class="form-group">
                     <label for="name">Имя:</label>
                     <input 
@@ -174,6 +192,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   section: String,
@@ -191,6 +210,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+const { isDark, toggleDarkMode } = useDarkMode()
 
 const avatarPreview = ref(null)
 const fileInputRef = ref(null)
@@ -647,6 +668,180 @@ function submit() {
   font-size: 14px !important;
   color: #94a3b8 !important;
   margin-top: 10px;
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.theme-toggle-track {
+  display: block;
+  width: 50px;
+  height: 26px;
+  background: #e2e8f0;
+  border-radius: 13px;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.theme-toggle-btn.dark .theme-toggle-track {
+  background: #334155;
+}
+
+.theme-toggle-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s ease;
+  font-size: 12px;
+}
+
+.theme-toggle-btn.dark .theme-toggle-thumb {
+  transform: translateX(24px);
+  background: #1e293b;
+}
+
+.theme-toggle-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+html.dark .settings-header h1 {
+  color: #f1f5f9;
+}
+
+html.dark .settings-content {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .settings-nav {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+html.dark .settings-nav-item {
+  color: #94a3b8;
+}
+
+html.dark .settings-nav-item:hover {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .settings-nav-item.active {
+  background: #1e293b;
+}
+
+html.dark .settings-panel {
+  color: #f1f5f9;
+}
+
+html.dark .panel-profile .back-link {
+  border-bottom-color: #334155;
+}
+
+html.dark .panel-profile .back-link a {
+  color: #94a3b8;
+}
+
+html.dark .profile-header {
+  border-color: #334155;
+}
+
+html.dark .no-avatar {
+  background: #1e293b;
+  color: #94a3b8;
+}
+
+html.dark .change-avatar-btn {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .change-avatar-btn:hover {
+  background: #334155;
+}
+
+html.dark .verification-link {
+  color: #f1f5f9;
+}
+
+html.dark .desc {
+  color: #f1f5f9;
+}
+
+html.dark .form-group label {
+  color: #e2e8f0;
+}
+
+html.dark .form-group input[type="text"] {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .form-group textarea {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .char-counter {
+  color: #94a3b8;
+}
+
+html.dark .btn-cancel {
+  background: #334155;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+html.dark .btn-cancel:hover {
+  background: #475569;
+}
+
+html.dark .panel-privacy h2 {
+  color: #f1f5f9;
+}
+
+html.dark .coming-soon {
+  color: #94a3b8;
+}
+
+html.dark .panel-files h2 {
+  color: #f1f5f9;
+}
+
+html.dark .file-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .file-name {
+  color: #f1f5f9;
+}
+
+html.dark .no-files {
+  color: #94a3b8;
+}
+
+html.dark .no-files-hint {
+  color: #64748b;
 }
 
 @media(max-width: 1000px) {

@@ -56,6 +56,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useDarkMode } from '@/composables/useDarkMode';
   
   const props = defineProps({
     pendingVerificationCount: {
@@ -81,6 +82,7 @@ import { Link } from '@inertiajs/vue3';
   });
 
   const pendingCount = ref(props.pendingVerificationCount || 0);
+  useDarkMode();
   
   let adminLink = null;
   
@@ -139,5 +141,13 @@ import { Link } from '@inertiajs/vue3';
   font-size: 14px;
   font-weight: 600;
   border-radius: 12px;
+}
+html.dark .banner {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .link {
+  color: #f1f5f9;
 }
 </style>

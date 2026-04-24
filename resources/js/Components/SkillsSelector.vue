@@ -55,6 +55,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { getSkillClass } from '@/composables/useSkills'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   skills: {
@@ -66,6 +67,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+useDarkMode()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -337,5 +340,24 @@ const updateLevel = (skillId, event) => {
 
 .remove-skill:hover {
   opacity: 1;
+}
+
+html.dark .multiselect-trigger {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .multiselect-dropdown {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .multiselect-option:hover {
+  background: #334155;
+}
+
+html.dark .multiselect-option.selected {
+  background: #334155;
 }
 </style>

@@ -36,10 +36,13 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { router, Link } from '@inertiajs/vue3'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   post: Object
 })
+
+useDarkMode()
 
 const localLikes = ref(props.post.likes_count ?? 0)
 const isLiked = ref(props.post.is_liked ?? false)

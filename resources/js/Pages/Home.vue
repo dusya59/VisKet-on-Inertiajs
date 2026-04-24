@@ -130,6 +130,7 @@ import { Head, Link } from '@inertiajs/vue3'
 import Post from '@/Components/Post.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { getSkillClass } from '@/composables/useSkills'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   posts: {
@@ -152,6 +153,7 @@ const props = defineProps({
 
 const posts = computed(() => props.posts || [])
 const authUser = computed(() => props.auth?.user || null)
+useDarkMode()
 
 const heroImage = '/images/Photoroom.png'
 const query = ref('')
@@ -661,5 +663,89 @@ export default {
   max-width: 300px; 
   flex-shrink: 0;
   height: min-content;
+}
+
+html.dark .filter-toggle {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .searchbar {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .view-mode-btn {
+  background: #334155;
+}
+
+html.dark .view-mode-btn:hover {
+  background: #475569;
+}
+
+html.dark .filter-group label {
+  color: #94a3b8;
+}
+
+html.dark .type-selector {
+  border-color: #334155;
+}
+
+html.dark .type-selector button {
+  background: #1e293b;
+  color: #94a3b8;
+}
+
+html.dark .type-selector button:not(:last-child) {
+  border-right-color: #334155;
+}
+
+html.dark .type-selector button:hover {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+html.dark .tabs {
+  border-bottom-color: #334155;
+}
+
+html.dark .tabs button {
+  color: #94a3b8;
+}
+
+html.dark .tabs button:hover {
+  color: #e2e8f0;
+}
+
+html.dark .empty-message {
+  color: #94a3b8;
+}
+
+html.dark .filterscontainer {
+  background: #0f172a;
+  border-right-color: #334155;
+}
+
+html.dark .skill-level select option {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .posts.list-mode :deep(.post-content) {
+  color: #f1f5f9;
+}
+
+html.dark .posts.list-mode :deep(.post a) {
+  color: #f1f5f9;
+}
+
+html.dark .posts.list-mode :deep(.post .title) {
+  color: #f1f5f9;
+}
+
+html.dark .posts.list-mode :deep(#like) {
+  color: #f1f5f9;
 }
 </style>

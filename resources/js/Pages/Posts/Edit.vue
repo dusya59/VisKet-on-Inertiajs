@@ -148,6 +148,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { Head, useForm, Link } from '@inertiajs/vue3'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
@@ -158,6 +159,7 @@ const props = defineProps({
   }
 })
 
+useDarkMode()
 const fileInputRef = ref(null)
 const imagePreview = ref(props.post.image_url)
 const isDragging = ref(false)
@@ -591,5 +593,67 @@ form {
   outline: none;
   border-color: rgb(255, 52, 52);
   box-shadow: 0 0 0 3px rgba(255, 52, 52, 0.1);
+}
+html.dark .block {
+  background: #1e293b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .no-image {
+  color: #94a3b8;
+}
+
+html.dark .change-image-btn {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+html.dark .change-image-btn:hover {
+  background: #334155;
+}
+
+html.dark .desc {
+  background: #1e293b;
+}
+
+html.dark .title-input {
+  color: #f1f5f9;
+  border-bottom-color: #334155;
+}
+
+html.dark .title-input::placeholder {
+  color: #475569;
+}
+
+html.dark .description-textarea {
+  color: #e2e8f0;
+}
+
+html.dark .description-textarea::placeholder {
+  color: #475569;
+}
+
+html.dark .form-actions {
+  border-top-color: #334155;
+}
+
+html.dark .cancel-button {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+html.dark .cancel-button:hover {
+  background: #475569;
+}
+
+html.dark .form-group label {
+  color: #e2e8f0;
+}
+
+html.dark .form-group input,
+html.dark .form-group textarea {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
 }
 </style>

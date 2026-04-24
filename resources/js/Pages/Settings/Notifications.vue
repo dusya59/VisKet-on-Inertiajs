@@ -47,6 +47,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import { Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import axios from 'axios'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   notifications: {
@@ -58,6 +59,8 @@ const props = defineProps({
     default: 0
   }
 })
+
+useDarkMode()
 
 const notifications = ref([...props.notifications])
 const unreadCount = ref(props.unreadCount)
@@ -210,5 +213,41 @@ h1 {
   h1 {
     font-size: 24px;
   }
+}
+
+html.dark h1 {
+  color: #f1f5f9;
+}
+
+html.dark .mark-all-btn {
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .mark-all-btn:hover {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .notification-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .notification-item:hover {
+  border-color: #475569;
+}
+
+html.dark .notification-item.unread {
+  background: #334155;
+  border-color: #475569;
+}
+
+html.dark .notification-title {
+  color: #f1f5f9;
+}
+
+html.dark .notification-text {
+  color: #e2e8f0;
 }
 </style>

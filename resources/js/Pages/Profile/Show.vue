@@ -148,6 +148,7 @@ import { getSkillClass } from '@/composables/useSkills'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted, nextTick } from 'vue';
 import Post from '@/Components/Post.vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   user: Object,
@@ -162,6 +163,8 @@ const props = defineProps({
     default: false
   }
 });
+
+useDarkMode();
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
@@ -703,5 +706,110 @@ h2 {
     font-size: 20px;
     color: #6b7280;
     margin-bottom: 20px;
+}
+
+html.dark .Profileblock {
+    color: #f1f5f9;
+}
+
+html.dark .container {
+    color: #e2e8f0;
+}
+
+html.dark .created-at {
+    color: #94a3b8;
+}
+
+html.dark .rating-value {
+    color: #f1f5f9;
+}
+
+html.dark .aboutme {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+html.dark .aboutme h1 {
+    color: #f1f5f9;
+}
+
+html.dark .aboutme-header {
+    border-color: #334155;
+}
+
+html.dark .aboutme-header a {
+    color: #f1f5f9;
+}
+
+html.dark .aboutme textarea {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+html.dark .form-group label {
+    color: #e2e8f0;
+}
+
+html.dark .form-group input[type="text"],
+html.dark .form-group textarea {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+html.dark .btn-cancel {
+    background-color: #334155;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+html.dark .noposts {
+    color: #f1f5f9;
+}
+
+html.dark .noposts h1 {
+    color: #f1f5f9;
+}
+
+html.dark h2 {
+    color: #f1f5f9;
+}
+
+html.dark .post a {
+    color: #f1f5f9;
+}
+
+html.dark .add-post-block {
+    background-color: #334155;
+}
+
+html.dark .add-post-button {
+    background-color: #475569;
+    color: #f1f5f9;
+}
+
+html.dark .user-skills {
+    border-color: #334155;
+}
+
+html.dark .user-skills h3 {
+    color: #f1f5f9;
+}
+
+html.dark .closed-vacancies {
+    border-color: #334155;
+}
+
+html.dark .closed-vacancies h2 {
+    color: #94a3b8;
+}
+
+html.dark .expand {
+    color: #e2e8f0;
+}
+
+html.dark .sendmes {
+    border-color: #475569;
 }
 </style>

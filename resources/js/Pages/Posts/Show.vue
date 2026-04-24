@@ -371,6 +371,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import { getSkillClass } from '@/composables/useSkills'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const menuOpen = ref(false)
   const activeTab = ref('comments')
@@ -399,6 +400,7 @@ const props = defineProps({
   }
 })
 
+useDarkMode()
 const page = usePage()
 
 const commentForm = useForm({
@@ -1572,6 +1574,236 @@ h3 {
   font-weight: 600;
   color: #0f172a;
   margin-top: 8px;
+}
+html.dark .block {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .no-image {
+  color: #94a3b8;
+}
+
+html.dark .hidden-warning {
+  background: #78350f;
+  color: #fcd34d;
+  border-bottom-color: #f59e0b;
+}
+
+html.dark .title {
+  color: #f1f5f9;
+}
+
+html.dark .menu-btn {
+  background: #334155;
+}
+
+html.dark .menu-btn:hover {
+  background: #475569;
+}
+
+html.dark .menu-btn img {
+  filter: brightness(0) invert(1);
+}
+
+html.dark .post-dropdown-menu {
+  background: #1e293b;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .menu-item {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+html.dark .menu-item:hover {
+  background: #334155;
+}
+
+html.dark .menu-item.delete:hover {
+  background: #7f1d1d;
+}
+
+html.dark .author-link {
+  color: #e2e8f0;
+}
+
+html.dark .author-avatar {
+  border-color: #1e293b;
+}
+
+html.dark .like-btn {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .like-btn:hover {
+  background: #475569;
+}
+
+html.dark .like-btn.liked {
+  background: #7f1d1d;
+}
+
+html.dark .description {
+  color: #e2e8f0;
+}
+
+html.dark .meta {
+  color: #94a3b8;
+}
+
+html.dark .vacancy-info {
+  background: #0f172a;
+}
+
+html.dark .vacancy-budget .label,
+html.dark .vacancy-deadline .label,
+html.dark .vacancy-skills .label,
+html.dark .vacancy-requirements .label {
+  color: #e2e8f0;
+}
+
+html.dark .vacancy-budget .value,
+html.dark .vacancy-deadline .value {
+  color: #f1f5f9;
+}
+
+html.dark .requirements-text {
+  color: #e2e8f0;
+}
+
+html.dark .applications-count {
+  color: #94a3b8;
+}
+
+html.dark .comments-section {
+  background: #1e293b;
+}
+
+html.dark .comment-form textarea {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .comment-form textarea:focus {
+  background: #0f172a;
+}
+
+html.dark .comment-form textarea:disabled {
+  background: #334155;
+}
+
+html.dark .login-prompt {
+  background: #0f172a;
+  color: #94a3b8;
+}
+
+html.dark .login-prompt a {
+  color: #818cf8;
+}
+
+html.dark h3 {
+  color: #f1f5f9;
+}
+
+html.dark .no-comments {
+  background: #0f172a;
+  color: #94a3b8;
+}
+
+html.dark .comment {
+  background: #0f172a;
+}
+
+html.dark .comment:hover {
+  background: #334155;
+}
+
+html.dark .comment-author {
+  color: #f1f5f9;
+}
+
+html.dark .comment-author:hover {
+  color: #818cf8;
+}
+
+html.dark .comment-avatar {
+  border-color: #1e293b;
+}
+
+html.dark .comment-date {
+  color: #94a3b8;
+}
+
+html.dark .comment-body p {
+  color: #e2e8f0;
+}
+
+html.dark .modal-content {
+  background: #1e293b;
+}
+
+html.dark .modal-close {
+  color: #94a3b8;
+}
+
+html.dark .modal-content h2 {
+  color: #f1f5f9;
+}
+
+html.dark .form-group label {
+  color: #e2e8f0;
+}
+
+html.dark .form-group textarea,
+html.dark .form-group input {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .chat-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .chat-item:hover {
+  background: #334155;
+}
+
+html.dark .chat-name {
+  color: #f1f5f9;
+}
+
+html.dark .no-chats {
+  color: #94a3b8;
+}
+
+html.dark .submit-btn:disabled {
+  background: #475569;
+}
+
+html.dark .tabs {
+  background: #1e293b;
+}
+
+html.dark .tab {
+  color: #94a3b8;
+}
+
+html.dark .tab:hover {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+html.dark .proposed-price {
+  color: #f1f5f9;
+}
+
+html.dark .respond-btn:disabled {
+  background: #475569;
 }
 </style>
 

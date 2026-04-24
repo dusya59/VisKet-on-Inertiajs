@@ -24,11 +24,14 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link } from '@inertiajs/vue3'
 import Post from '@/Components/Post.vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 defineProps({
     user: Object,
     likedPosts: Array
 })
+
+useDarkMode()
 </script>
 
 <style scoped>
@@ -50,5 +53,9 @@ defineProps({
 
 .likeshead a:hover {
     color: rgb(255, 52, 52);
+}
+
+html.dark .likeshead a {
+    color: #94a3b8;
 }
 </style>

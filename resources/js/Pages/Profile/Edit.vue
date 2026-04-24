@@ -100,6 +100,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   user: Object,
@@ -108,6 +109,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+useDarkMode()
 
 const avatarPreview = ref(null)
 const maxLength = 1000
@@ -345,5 +348,52 @@ function submit() {
         font-size: 18px;
         padding: 15px 30px;
     }
+}
+
+html.dark .edit-container {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+html.dark .edit-container .back-link {
+    border-bottom-color: #334155;
+}
+
+html.dark .edit-container .back-link a {
+    color: #94a3b8;
+}
+
+html.dark .edit-content .profile-header {
+    border-color: #475569;
+}
+
+html.dark .edit-content .form-group label {
+    color: #f1f5f9;
+}
+
+html.dark .edit-content .form-group input[type="text"],
+html.dark .edit-content .form-group textarea {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+html.dark .char-counter {
+    color: #94a3b8;
+}
+
+html.dark .edit-content .btn-save:disabled {
+    background-color: #475569;
+}
+
+html.dark .edit-content .btn-cancel {
+    background-color: #334155;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+html.dark .edit-content .btn-cancel:hover {
+    background-color: #475569;
 }
 </style>

@@ -118,6 +118,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
   disputes: {
@@ -125,6 +126,8 @@ const props = defineProps({
     default: () => ({ data: [], current_page: 1, last_page: 1 })
   }
 })
+
+useDarkMode()
 
 const processing = ref(null)
 const resolveModal = ref({
@@ -515,6 +518,141 @@ const goToPage = (page) => {
 
 .btn-submit:hover {
   background: #15803d;
+}
+
+html.dark .page-header h1 {
+  color: #f1f5f9;
+}
+
+html.dark .dispute-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .dispute-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .dispute-status.open {
+  background: #450a0a;
+  color: #fca5a5;
+}
+
+html.dark .dispute-status.resolved {
+  background: #052e16;
+  color: #4ade80;
+}
+
+html.dark .dispute-status.cancelled {
+  background: #334155;
+  color: #94a3b8;
+}
+
+html.dark .dispute-date {
+  color: #94a3b8;
+}
+
+html.dark .dispute-initiator strong,
+html.dark .dispute-application strong {
+  color: #f1f5f9;
+}
+
+html.dark .dispute-reason strong {
+  color: #f1f5f9;
+}
+
+html.dark .dispute-reason p {
+  color: #e2e8f0;
+  background: #0f172a;
+}
+
+html.dark .dispute-admin {
+  color: #94a3b8;
+}
+
+html.dark .dispute-resolution {
+  background: #0f172a;
+}
+
+html.dark .dispute-resolution strong {
+  color: #22c55e;
+}
+
+html.dark .dispute-resolution p {
+  color: #f1f5f9;
+}
+
+html.dark .btn-chat {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .btn-chat:hover {
+  background: #475569;
+}
+
+html.dark .no-disputes {
+  background: #1e293b;
+  color: #94a3b8;
+}
+
+html.dark .pagination-btn {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .pagination-btn:hover {
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+html.dark .pagination-info {
+  color: #94a3b8;
+}
+
+html.dark .resolve-modal {
+  background: #1e293b;
+}
+
+html.dark .modal-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .modal-header h3 {
+  color: #f1f5f9;
+}
+
+html.dark .modal-close {
+  color: #94a3b8;
+}
+
+html.dark .modal-body label {
+  color: #e2e8f0;
+}
+
+html.dark .modal-body textarea {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+html.dark .modal-body textarea:focus {
+  border-color: #60a5fa;
+}
+
+html.dark .modal-footer {
+  border-top-color: #334155;
+}
+
+html.dark .btn-cancel {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+html.dark .btn-cancel:hover {
+  background: #334155;
 }
 
 @media(max-width: 1000px) {

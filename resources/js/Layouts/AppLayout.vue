@@ -119,10 +119,13 @@
 <script setup>
 import { Link, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const page = usePage()
 const authUser = computed(() => page.props.auth?.user || page.props.authUser || null)
 const menuTrigger = ref(null)
+
+useDarkMode()
 
 const menuOpen = ref(false)
 const toggleMenu = () => menuOpen.value = !menuOpen.value

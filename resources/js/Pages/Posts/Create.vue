@@ -165,6 +165,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
 import { Head, useForm } from '@inertiajs/vue3'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { ref } from 'vue'
 
 const props = defineProps({
@@ -174,6 +175,7 @@ const props = defineProps({
   }
 })
 
+useDarkMode()
 const fileInputRef = ref(null)
 const imagePreviewRef = ref(null)
 const imagePreview = ref(null)
@@ -652,5 +654,86 @@ form {
     height: 50px;
     font-size: 28px;
   }
+}
+html.dark .post-type-toggle {
+  background: #1e293b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .post-type-toggle button {
+  color: #94a3b8;
+}
+
+html.dark .post-type-toggle button:hover:not(.active) {
+  background: #334155;
+}
+
+html.dark .block {
+  background: #1e293b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .image-container {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+}
+
+html.dark .upload-area.dragging {
+  background: linear-gradient(145deg, #1e3a8a, #1e40af);
+}
+
+html.dark .upload-instructions p {
+  color: #94a3b8;
+}
+
+html.dark .change-image-btn {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+html.dark .change-image-btn:hover {
+  background: #334155;
+}
+
+html.dark .desc {
+  background: #1e293b;
+}
+
+html.dark .vacancy-fields {
+  border-top-color: #334155;
+}
+
+html.dark .form-group label {
+  color: #e2e8f0;
+}
+
+html.dark .form-group input,
+html.dark .form-group textarea {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .title-input {
+  color: #f1f5f9;
+}
+
+html.dark .title-input::placeholder {
+  color: #475569;
+}
+
+html.dark .title-input:focus {
+  border-bottom-color: #334155;
+}
+
+html.dark .description-textarea {
+  color: #e2e8f0;
+}
+
+html.dark .description-textarea::placeholder {
+  color: #475569;
+}
+
+html.dark .form-actions {
+  border-top-color: #334155;
 }
 </style>

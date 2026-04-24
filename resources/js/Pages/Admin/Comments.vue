@@ -126,6 +126,7 @@
     import { ref, computed, onMounted, onUnmounted } from 'vue';
     import { Link } from '@inertiajs/vue3';
     import axios from 'axios';
+import { useDarkMode } from '@/composables/useDarkMode';
 
     const props = defineProps({
       mode: {
@@ -134,6 +135,7 @@
       }
     });
 
+    useDarkMode();
     let adminLink = null;
     let adminScript = null;
 
@@ -409,5 +411,25 @@
 
 .btn-danger:hover {
   background-color: #dc2626 !important;
+}
+html.dark .rejections-dropdown {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .rejection-item {
+  border-bottom-color: #334155;
+}
+
+html.dark .rejection-date {
+  color: #94a3b8;
+}
+
+html.dark .rejection-reason {
+  color: #e2e8f0;
+}
+
+html.dark .reporter-info {
+  color: #94a3b8;
 }
 </style>

@@ -36,11 +36,14 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
     user: Object,
     followers: Object
 })
+
+useDarkMode()
 
 const page = usePage()
 const auth = computed(() => page.props.auth)
@@ -228,5 +231,43 @@ footer div a {
         padding: 15px 30px;
         font-size: 20px;
     }
+}
+
+html.dark .following {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+html.dark .back {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+}
+
+html.dark .back h1 {
+    color: #f1f5f9;
+}
+
+html.dark .back a {
+    color: #94a3b8;
+}
+
+html.dark .user {
+    border-bottom-color: #334155;
+}
+
+html.dark .user:hover {
+    background-color: #334155;
+}
+
+html.dark .user > a {
+    color: #f1f5f9;
+}
+
+html.dark .author-avatar {
+    border-color: #475569;
+}
+
+html.dark footer {
+    background-color: #1e293b;
 }
 </style>

@@ -130,6 +130,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useDarkMode } from '@/composables/useDarkMode';
 
 const props = defineProps({
   mode: {
@@ -138,6 +139,7 @@ const props = defineProps({
   }
 });
 
+useDarkMode();
 let adminLink = null;
 
 const mode = computed(() => props.mode || 'posts');
@@ -412,4 +414,34 @@ onUnmounted(() => {
     text-decoration: underline;
     color: #4f46e5;
   }
-  </style>
+  html.dark .loading,
+html.dark .error,
+html.dark .no-results {
+  color: #94a3b8;
+}
+
+html.dark .rejections-dropdown {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .rejection-item {
+  border-bottom-color: #334155;
+}
+
+html.dark .rejection-date {
+  color: #94a3b8;
+}
+
+html.dark .rejection-reason {
+  color: #e2e8f0;
+}
+
+html.dark .reporter-info {
+  color: #94a3b8;
+}
+
+html.dark .reporter-info:hover {
+  color: #818cf8;
+}
+</style>
