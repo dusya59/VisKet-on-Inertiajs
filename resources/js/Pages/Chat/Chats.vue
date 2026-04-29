@@ -32,7 +32,7 @@
           :class="{ 
             active: activeChat && chat.id === activeChat.id, 
             'has-unread': chat.unread_count > 0,
-            'accepted-chat': chat.application && chat.application.status === 'accepted'
+            'accepted-chat': chat.application && ['accepted', 'in_progress', 'disputed'].includes(chat.application.status)
           }"
           tabindex="0"
           @keydown.enter="router.visit(`/chats/${chat.id}`)"
@@ -183,14 +183,18 @@
                 </button>
               </div>
 
-              <div v-if="activeChat.application.completed_at && !activeChat.application.transaction?.completed_at" class="application-status">
-                <span class="status-badge waiting">⏳ Ожидание зачисления: {{ getDaysRemaining(activeChat.application.completed_at) }} дн.</span>
+                  <div v-if="activeChat.application.status === 'completed'" class="application-status">
+                <span class="status-badge completed">✅ Сделка завершена</span>
               </div>
 
-              <div v-if="activeChat.application.dispute && activeChat.application.dispute.status === 'open'" class="application-status">
+              <div v-if="activeChat.application.status === 'cancelled'" class="application-status">
+                <span class="status-badge cancelled">❌ Сделка отменена</span>
+              </div>
+
+              <div v-if="activeChat.application.status === 'disputed' || (activeChat.application.dispute && activeChat.application.dispute.status === 'open')" class="application-status">
                 <span class="status-badge dispute">⚠️ Открыт спор</span>
               </div>
-              
+
               <div v-if="isVacancyAuthor" class="application-actions">
                 <template v-if="activeChat.application.status === 'pending'">
                   <form @submit.prevent="acceptApplication">
@@ -200,23 +204,47 @@
                     <button type="submit" class="reject-btn">Отклонить</button>
                   </form>
                 </template>
-                <template v-else-if="activeChat.application.status === 'accepted'">
-                  <form @submit.prevent="confirmCompletion" v-if="!activeChat.application.completed_at && !activeChat.application.dispute">
+
+                <template v-else-if="activeChat.application.status === 'in_progress'">
+                  <form v-if="activeChat.application.executor_marked_completed_at" @submit.prevent="confirmCompletion">
                     <button type="submit" class="accept-btn">Подтвердить завершение</button>
                   </form>
-                  <form @submit.prevent="withdrawApplication">
-                    <button type="submit" class="withdraw-btn">Отменить</button>
-                  </form>
-                  <form @submit.prevent="closeVacancy">
-                    <button type="submit" class="close-btn">Закрыть вакансию</button>
-                  </form>
+                  <button v-if="!activeChat.application.executor_marked_completed_at" type="button" class="withdraw-btn" @click="openCancelModal = true">
+                    Отменить
+                  </button>
+                </template>
+
+                <template v-else-if="activeChat.application.status === 'accepted'">
+                  <button type="button" class="withdraw-btn" @click="openCancelModal = true">
+                    Отменить
+                  </button>
                 </template>
               </div>
 
-              <div v-if="!isVacancyAuthor && activeChat.application.status === 'accepted' && !activeChat.application.dispute" class="application-actions">
-                <button type="button" class="dispute-btn" @click="openDisputeModal = true">
-                  Открыть спор
-                </button>
+              <div v-if="!isVacancyAuthor" class="application-actions">
+                <template v-if="activeChat.application.status === 'in_progress' && !activeChat.application.executor_marked_completed_at">
+                  <form @submit.prevent="markCompleted">
+                    <button type="submit" class="accept-btn">Отметить как выполненное</button>
+                  </form>
+                  <button type="button" class="withdraw-btn" @click="openCancelModal = true">
+                    Отменить
+                  </button>
+                </template>
+
+                <template v-if="activeChat.application.status === 'in_progress' && activeChat.application.executor_marked_completed_at">
+                  <button type="button" class="withdraw-btn" @click="openCancelModal = true">
+                    Отменить
+                  </button>
+                  <button type="button" class="dispute-btn" @click="openDisputeModal = true">
+                    Открыть спор
+                  </button>
+                </template>
+
+                <template v-if="activeChat.application.status === 'accepted'">
+                  <button type="button" class="dispute-btn" @click="openDisputeModal = true">
+                    Открыть спор
+                  </button>
+                </template>
               </div>
             </div>
           </div>
@@ -647,6 +675,35 @@
         </form>
       </div>
     </div>
+
+    <div v-if="openCancelModal" class="modal-overlay" style="display: flex" @click.self="openCancelModal = false">
+      <div class="price-modal">
+        <div class="price-modal-header">
+          <h3>Отмена сделки</h3>
+          <button type="button" class="modal-close" @click="openCancelModal = false">
+            <img src="/images/close.svg" alt="Закрыть">
+          </button>
+        </div>
+        <form @submit.prevent="submitCancel">
+          <div class="price-modal-body">
+            <label for="cancel-reason">Причина отмены:</label>
+            <textarea
+              id="cancel-reason"
+              v-model="cancelForm.reason"
+              rows="5"
+              minlength="5"
+              maxlength="5000"
+              placeholder="Опишите причину отмены (минимум 5 символов)"
+              required
+            ></textarea>
+          </div>
+          <div class="price-modal-footer">
+            <button type="button" class="cancel-btn" @click="openCancelModal = false">Назад</button>
+            <button type="submit" class="reject-btn">Подтвердить отмену</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </AppLayout>
 </template>
 
@@ -735,6 +792,10 @@ const priceChangeModal = ref({
 })
 const openDisputeModal = ref(false)
 const disputeForm = ref({
+  reason: ''
+})
+const openCancelModal = ref(false)
+const cancelForm = ref({
   reason: ''
 })
 const modalOpen = ref(false)
@@ -1177,6 +1238,28 @@ const confirmCompletion = () => {
   })
 }
 
+const markCompleted = () => {
+  router.post(`/applications/${props.activeChat.application.id}/mark-completed`, {}, {
+    preserveScroll: true,
+  })
+}
+
+const submitCancel = () => {
+  if (!cancelForm.value.reason || cancelForm.value.reason.length < 5) {
+    return
+  }
+
+  router.post(`/applications/${props.activeChat.application.id}/cancel`, {
+    reason: cancelForm.value.reason
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      openCancelModal.value = false
+      cancelForm.value.reason = ''
+    }
+  })
+}
+
 const submitDispute = () => {
   if (!disputeForm.value.reason || disputeForm.value.reason.length < 10) {
     return
@@ -1266,7 +1349,6 @@ const vacancyPostId = computed(() => {
 const showApplicationBlock = computed(() => {
   if (!props.activeChat) return false
   if (!props.activeChat.application) return false
-  if (!['pending', 'accepted'].includes(props.activeChat.application.status)) return false
   return true
 })
 
@@ -3731,6 +3813,16 @@ watch(() => props.activeChat?.messages, (msgs) => {
   color: #dc2626;
 }
 
+.status-badge.completed {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.cancelled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
 .withdraw-btn,
 .close-btn,
 .dispute-btn {
@@ -4135,5 +4227,15 @@ html.dark .status-badge.waiting {
 html.dark .status-badge.dispute {
   background: #450a0a;
   color: #fca5a5;
+}
+
+html.dark .status-badge.completed {
+  background: #052e16;
+  color: #4ade80;
+}
+
+html.dark .status-badge.cancelled {
+  background: #334155;
+  color: #94a3b8;
 }
 </style>

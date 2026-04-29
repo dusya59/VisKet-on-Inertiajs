@@ -128,6 +128,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/applications/{application}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
     Route::post('/applications/{application}/close-vacancy', [ApplicationController::class, 'closeVacancy'])->name('applications.close-vacancy');
     Route::post('/applications/{application}/confirm-completion', [ApplicationController::class, 'confirmCompletion'])->name('applications.confirm-completion');
+    Route::post('/applications/{application}/mark-completed', [ApplicationController::class, 'markCompleted'])->name('applications.mark-completed');
+    Route::post('/applications/{application}/cancel', [ApplicationController::class, 'cancel'])->name('applications.cancel');
     Route::post('/applications/{application}/propose-price', [ApplicationController::class, 'proposePrice'])->name('applications.propose-price');
     Route::post('/messages/{message}/accept-price', [ApplicationController::class, 'acceptPriceProposal'])->name('messages.accept-price');
     Route::get('/messages/{message}/respond-price', [ApplicationController::class, 'respondToPriceProposal'])->name('messages.respond-price');

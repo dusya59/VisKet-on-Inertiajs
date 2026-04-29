@@ -109,7 +109,15 @@ class ChatController extends Controller
                 : null;
         }
 
-        $activeChat = $chat->load(['messages.user', 'users', 'application.user', 'application.vacancy']);
+        $activeChat = $chat->load([
+            'messages.user',
+            'users',
+            'application.user',
+            'application.vacancy',
+            'application.vacancy.post',
+            'application.transaction',
+            'application.dispute',
+        ]);
 
         $chats = $user->chats()
             ->with(['users' => fn ($q) => $q->where('id', '!=', $user->id)])
@@ -156,6 +164,7 @@ class ChatController extends Controller
                 'proposed_price' => $app->proposed_price,
                 'status' => $app->status,
                 'created_at' => $app->created_at->toISOString(),
+                'executor_marked_completed_at' => $app->executor_marked_completed_at?->toISOString(),
                 'user' => [
                     'id' => $app->user->id,
                     'name' => $app->user->name,
@@ -169,6 +178,19 @@ class ChatController extends Controller
                     'id' => $app->vacancy->id,
                     'position' => $app->vacancy->position,
                     'post_id' => $app->vacancy->post_id,
+                    'user_id' => $app->vacancy->post?->user_id,
+                ] : null,
+                'transaction' => $app->transaction ? [
+                    'id' => $app->transaction->id,
+                    'status' => $app->transaction->status,
+                    'amount' => $app->transaction->amount,
+                    'completed_at' => $app->transaction->completed_at?->toISOString(),
+                ] : null,
+                'dispute' => $app->dispute ? [
+                    'id' => $app->dispute->id,
+                    'status' => $app->dispute->status,
+                    'reason' => $app->dispute->reason,
+                    'resolution' => $app->dispute->resolution,
                 ] : null,
             ];
         }
@@ -194,6 +216,7 @@ class ChatController extends Controller
                     'file_url' => $m->file_path ? asset('storage/'.$m->file_path) : null,
                     'file_name' => $m->file_path ? basename($m->file_path) : null,
                     'file_size' => $m->file_path ? Storage::disk('public')->size($m->file_path) : null,
+                    'is_system' => $m->is_system,
                     'is_price_proposal' => $m->is_price_proposal,
                     'proposed_price' => $m->proposed_price,
                     'price_proposal_status' => $m->price_proposal_status,

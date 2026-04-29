@@ -17,17 +17,3 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* Dark mode base styles */
-html.dark body {
-    background-color: #0f172a;
-    color: #f1f5f9;
-}
-
-html.dark ::selection {
-    background-color: rgb(255, 52, 52);
-    color: white;
-}
-
-html.dark img[src$=".svg"] {
-    filter: brightness(0) invert(1);
-}

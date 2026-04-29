@@ -2,106 +2,97 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AcceptApplicationRequest;
+use App\Http\Requests\CancelApplicationRequest;
+use App\Http\Requests\CompleteByClientRequest;
+use App\Http\Requests\MarkCompletedRequest;
+use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Application;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Notification;
-use App\Models\Transaction;
 use App\Models\Vacancy;
+use App\Services\ApplicationLifecycleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ApplicationController extends Controller
 {
-    public function respond(Request $request, Vacancy $vacancy)
+    public function __construct(
+        private ApplicationLifecycleService $lifecycle
+    ) {}
+
+    public function respond(StoreApplicationRequest $request, Vacancy $vacancy)
     {
-        $validated = $request->validate([
-            'cover_letter' => 'required|string|min:10|max:5000',
-            'proposed_price' => 'nullable|numeric|min:0|max:9999999999',
-        ]);
-
         $user = Auth::user();
-
-        $existingApplication = Application::where('vacancy_id', $vacancy->id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if ($existingApplication) {
-            return back()->with('error', 'Вы уже откликнулись на эту вакансию!');
-        }
 
         if ($vacancy->status !== 'open') {
             return back()->with('error', 'Вакансия закрыта!');
         }
 
-        $application = Application::create([
-            'vacancy_id' => $vacancy->id,
-            'user_id' => $user->id,
-            'cover_letter' => $validated['cover_letter'],
-            'proposed_price' => $validated['proposed_price'] ?? null,
-            'status' => 'pending',
-        ]);
+        if ($vacancy->post->user_id === $user->id) {
+            return back()->with('error', 'Нельзя откликнуться на свою вакансию.');
+        }
 
-        $chat = Chat::create([
-            'application_id' => $application->id,
-        ]);
+        try {
+            $application = $this->lifecycle->create($vacancy, $user, $request->validated());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
-        $chat->users()->attach([
-            $vacancy->post->user_id,
-            $user->id,
-        ]);
-
-        return redirect()->route('chat', $chat->id)->with('success', 'Ваш отклик отправлен!');
+        return redirect()->route('chat', $application->chat_id)->with('success', 'Ваш отклик отправлен!');
     }
 
-    public function accept(Application $application)
+    public function accept(AcceptApplicationRequest $request, Application $application)
     {
-        $user = Auth::user();
+        $this->authorize('accept', $application);
 
-        $vacancy = $application->vacancy;
-        if ($vacancy->post->user_id !== $user->id) {
-            abort(403);
+        try {
+            $this->lifecycle->accept($application, Auth::user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        if ($application->status !== 'pending') {
-            return back()->with('error', 'Невозможно принять этот отклик!');
+        return back()->with('success', 'Отклик принят! Средства заморожены, сделка началась.');
+    }
+
+    public function markCompleted(MarkCompletedRequest $request, Application $application)
+    {
+        $this->authorize('markDone', $application);
+
+        try {
+            $this->lifecycle->markDoneByExecutor($application, Auth::user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        $proposedPrice = $application->proposed_price;
+        return back()->with('success', 'Работа отмечена как выполненная. Ожидайте подтверждения заказчика.');
+    }
 
-        if (! $proposedPrice || $proposedPrice <= 0) {
-            return back()->with('error', 'Укажите корректную сумму для оплаты!');
+    public function confirmCompletion(CompleteByClientRequest $request, Application $application)
+    {
+        $this->authorize('complete', $application);
+
+        try {
+            $this->lifecycle->completeByClient($application, Auth::user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        if ($user->balance < $proposedPrice) {
-            return redirect('/balance')->with('error', 'Недостаточно средств на балансе! Пополните баланс для принятия отклика.');
+        return back()->with('success', 'Сделка завершена! Средства переведены исполнителю.');
+    }
+
+    public function cancel(CancelApplicationRequest $request, Application $application)
+    {
+        $this->authorize('cancel', $application);
+
+        try {
+            $this->lifecycle->requestCancel($application, Auth::user(), $request->input('reason'));
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        $user->balance -= $proposedPrice;
-        $user->save();
-
-        $application->update(['status' => 'accepted']);
-
-        Transaction::create([
-            'from_user_id' => $user->id,
-            'to_user_id' => $application->user_id,
-            'amount' => $proposedPrice,
-            'type' => 'payment',
-            'status' => 'pending',
-            'description' => "Оплата за вакансию: {$vacancy->position}",
-            'application_id' => $application->id,
-        ]);
-
-        Notification::create([
-            'user_id' => $application->user_id,
-            'type' => 'application_accepted',
-            'title' => 'Отклик принят!',
-            'content' => "{$user->name} принял ваш отклик на вакансию \"{$vacancy->position}\". Ожидайте завершения работ.",
-            'link' => "/chats/{$application->chat_id}",
-            'is_read' => false,
-        ]);
-
-        return back()->with('success', 'Отклик принят! Средства зарезервированы.');
+        return back()->with('success', 'Сделка отменена. Средства возвращены.');
     }
 
     public function withdraw(Application $application)
@@ -113,23 +104,15 @@ class ApplicationController extends Controller
             abort(403);
         }
 
-        if ($application->status !== 'accepted') {
+        if (! in_array($application->status, ['accepted', 'in_progress'], true)) {
             return back()->with('error', 'Невозможно отменить этот отклик!');
         }
 
-        $transaction = $application->transaction;
-        if ($transaction && $transaction->status === 'pending') {
-            $author = $transaction->fromUser();
-            $author->balance += $transaction->amount;
-            $author->save();
-
-            $transaction->update(['status' => 'cancelled']);
+        try {
+            $this->lifecycle->requestCancel($application, $user, 'Отменено заказчиком (устаревший метод).');
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $application->update([
-            'status' => 'withdrawn',
-            'withdrawn_at' => now(),
-        ]);
 
         return back()->with('success', 'Отклик отменён. Средства возвращены на ваш баланс.');
     }
@@ -143,7 +126,7 @@ class ApplicationController extends Controller
             abort(403);
         }
 
-        if ($application->status !== 'accepted') {
+        if (! in_array($application->status, ['in_progress', 'accepted'], true)) {
             return back()->with('error', 'Невозможно закрыть вакансию!');
         }
 
@@ -155,39 +138,6 @@ class ApplicationController extends Controller
         return back()->with('success', 'Вакансия закрыта!');
     }
 
-    public function confirmCompletion(Application $application)
-    {
-        $user = Auth::user();
-
-        $vacancy = $application->vacancy;
-        if ($vacancy->post->user_id !== $user->id) {
-            abort(403);
-        }
-
-        if (! $application->canConfirmCompletion()) {
-            return back()->with('error', 'Невозможно подтвердить завершение!');
-        }
-
-        $application->update(['completed_at' => now()]);
-
-        $transaction = $application->transaction;
-        if ($transaction && $transaction->status === 'pending') {
-            $transaction->update(['completed_at' => now()]);
-        }
-
-        $worker = $application->user;
-        Notification::create([
-            'user_id' => $worker->id,
-            'type' => 'work_completed',
-            'title' => 'Работа подтверждена',
-            'content' => "{$user->name} подтвердил выполнение работы по вакансии \"{$vacancy->position}\". Средства поступят на ваш счёт в течение 7 дней.",
-            'link' => "/chats/{$application->chat_id}",
-            'is_read' => false,
-        ]);
-
-        return back()->with('success', 'Подтверждение отправлено! Ожидайте зачисления средств в течение 7 дней.');
-    }
-
     public function reject(Application $application)
     {
         $user = Auth::user();
@@ -195,6 +145,10 @@ class ApplicationController extends Controller
         $vacancy = $application->vacancy;
         if ($vacancy->post->user_id !== $user->id) {
             abort(403);
+        }
+
+        if (! $application->isPending()) {
+            return back()->with('error', 'Невозможно отклонить этот отклик!');
         }
 
         $application->update(['status' => 'rejected']);
@@ -209,18 +163,15 @@ class ApplicationController extends Controller
         ]);
 
         $user = Auth::user();
-        $vacancy = $application->vacancy;
-
         $chat = $application->chat;
 
         if (! $chat) {
-            $chat = Chat::whereHas('application', function ($q) use ($application) {
-                $q->where('id', $application->id);
-            })->first();
+            return back()->with('error', 'Чат не найден');
         }
 
-        if (! $chat) {
-            return back()->with('error', 'Чат не найден');
+        $isParticipant = $chat->users()->where('user_id', $user->id)->exists();
+        if (! $isParticipant) {
+            abort(403);
         }
 
         $otherUser = $chat->users()->where('user_id', '!=', $user->id)->first();
@@ -234,14 +185,16 @@ class ApplicationController extends Controller
             'price_proposal_status' => 'pending',
         ]);
 
-        Notification::create([
-            'user_id' => $otherUser->id,
-            'type' => 'price_proposal',
-            'title' => 'Новое предложение цены',
-            'content' => "{$user->name} предлагает новую цену. Нажмите на это уведомление чтобы перейти в чат",
-            'link' => "/chats/{$chat->id}",
-            'is_read' => false,
-        ]);
+        if ($otherUser) {
+            Notification::create([
+                'user_id' => $otherUser->id,
+                'type' => 'price_proposal',
+                'title' => 'Новое предложение цены',
+                'content' => "{$user->name} предлагает новую цену. Нажмите на это уведомление чтобы перейти в чат",
+                'link' => "/chats/{$chat->id}",
+                'is_read' => false,
+            ]);
+        }
 
         return back()->with('success', 'Предложение отправлено!');
     }

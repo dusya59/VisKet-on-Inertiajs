@@ -11,6 +11,17 @@ class Review extends Model
 
     protected $fillable = ['reviewer_id', 'reviewed_id', 'vacancy_id', 'rating', 'comment'];
 
+    protected static function booted(): void
+    {
+        static::created(function (Review $review) {
+            $reviewed = $review->reviewed;
+            if ($reviewed) {
+                $average = self::where('reviewed_id', $reviewed->id)->avg('rating');
+                $reviewed->update(['rating' => round($average, 2)]);
+            }
+        });
+    }
+
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewer_id');

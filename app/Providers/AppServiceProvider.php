@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Events\ApplicationStatusChanged;
+use App\Listeners\SendApplicationStatusNotification;
+use App\Listeners\SendDisputeResolvedNotification;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -36,5 +40,15 @@ class AppServiceProvider extends ServiceProvider
                 ];
             },
         ]);
+
+        Event::listen(
+            ApplicationStatusChanged::class,
+            SendApplicationStatusNotification::class,
+        );
+
+        Event::listen(
+            ApplicationStatusChanged::class,
+            SendDisputeResolvedNotification::class,
+        );
     }
 }

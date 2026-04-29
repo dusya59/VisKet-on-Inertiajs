@@ -94,14 +94,33 @@
           <form @submit.prevent="submitResolution">
             <div class="modal-body">
               <label for="resolution">Решение:</label>
-              <textarea 
-                id="resolution" 
-                v-model="resolveModal.resolution" 
+              <textarea
+                id="resolution"
+                v-model="resolveModal.resolution"
                 rows="5"
                 minlength="10"
                 required
                 placeholder="Опишите ваше решение (минимум 10 символов)"
               ></textarea>
+
+              <label for="outcome" style="margin-top: 16px; display: block;">Исход:</label>
+              <select id="outcome" v-model="resolveModal.outcome" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="completed">Завершить сделку (перевести средства исполнителю)</option>
+                <option value="cancelled">Отменить сделку (возврат заказчику)</option>
+              </select>
+
+              <div v-if="resolveModal.outcome === 'cancelled'" style="margin-top: 16px;">
+                <label for="refund_amount">Сумма возврата заказчику (оставьте пустым для полного возврата):</label>
+                <input
+                  id="refund_amount"
+                  v-model="resolveModal.refundAmount"
+                  type="number"
+                  min="0"
+                  placeholder="Введите сумму возврата"
+                  style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-top: 8px;"
+                />
+                <small>Остаток будет переведён исполнителю как частичная оплата.</small>
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" @click="closeResolveModal" class="btn-cancel">Отмена</button>
@@ -133,7 +152,9 @@ const processing = ref(null)
 const resolveModal = ref({
   show: false,
   disputeId: null,
-  resolution: ''
+  resolution: '',
+  outcome: 'completed',
+  refundAmount: null
 })
 
 const getStatusLabel = (status) => {
@@ -170,7 +191,9 @@ const showResolveModal = (dispute) => {
   resolveModal.value = {
     show: true,
     disputeId: dispute.id,
-    resolution: ''
+    resolution: '',
+    outcome: 'completed',
+    refundAmount: null
   }
 }
 
@@ -178,7 +201,9 @@ const closeResolveModal = () => {
   resolveModal.value = {
     show: false,
     disputeId: null,
-    resolution: ''
+    resolution: '',
+    outcome: 'completed',
+    refundAmount: null
   }
 }
 
@@ -187,9 +212,16 @@ const submitResolution = () => {
     return
   }
 
-  router.post(`/admin/disputes/${resolveModal.value.disputeId}/resolve`, {
-    resolution: resolveModal.value.resolution
-  }, {
+  const payload = {
+    resolution: resolveModal.value.resolution,
+    outcome: resolveModal.value.outcome
+  }
+
+  if (resolveModal.value.outcome === 'cancelled' && resolveModal.value.refundAmount) {
+    payload.refund_amount = Number(resolveModal.value.refundAmount)
+  }
+
+  router.post(`/admin/disputes/${resolveModal.value.disputeId}/resolve`, payload, {
     preserveScroll: true,
     onSuccess: () => {
       closeResolveModal()
