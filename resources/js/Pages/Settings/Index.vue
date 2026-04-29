@@ -89,9 +89,17 @@
               </div>
 
               <div class="desc">
-                <form @submit.prevent="submit" enctype="multipart/form-data">
-                  <div class="form-group theme-toggle-group">
-                    <label>Тема оформления:</label>
+                <form @submit.prevent="submit" enctype="multipart/form-data">                 
+                  <div class="form-group">
+                    <label for="name">Имя:</label>
+                    <div style="display: flex; gap: 20px;">
+                    <input 
+                      type="text" 
+                      name="name" 
+                      id="name" 
+                      v-model="form.name"
+                      required
+                    >
                     <button
                       type="button"
                       class="theme-toggle-btn"
@@ -106,17 +114,7 @@
                       </span>
                       <span class="theme-toggle-label">{{ isDark ? 'Тёмная' : 'Светлая' }}</span>
                     </button>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="name">Имя:</label>
-                    <input 
-                      type="text" 
-                      name="name" 
-                      id="name" 
-                      v-model="form.name"
-                      required
-                    >
+                    </div>
                   </div>
 
                   <div class="form-group">
@@ -334,7 +332,6 @@ function submit() {
   min-height: 70vh;
   margin: 0 auto;
   display: flex;
-  gap: 30px;
   background: white;
   border-radius: 24px;
   border: 2px solid #e2e8f0;

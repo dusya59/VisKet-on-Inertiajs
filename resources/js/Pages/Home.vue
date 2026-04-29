@@ -1,8 +1,22 @@
 <template>
     <Head title="Главная"/>
     <div class="block1">
-      <h1>Место, где работа находит работника<br/>и наоборот.</h1>
-      <img :src="heroImage" alt="bruh" />
+      <img :src="isDark ? '/images/nightEarth.png' : '/images/Earth.png'" alt="Earth" class="hero-image" />
+      <h1 class="hero-title">
+        <span class="visket-text">
+          V<span
+            class="letter-i"
+            :title="isDark ? 'переключить на светлую тему' : 'переключить на темную тему'"
+            @click="toggleDarkMode"
+          >
+            I
+            <svg class="sun-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="5" fill="currentColor"/>
+              <path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>SKET
+        </span> — место, где работа находит работника<br/>и наоборот.
+      </h1>
     </div>
 
     <div class="block2">
@@ -153,9 +167,8 @@ const props = defineProps({
 
 const posts = computed(() => props.posts || [])
 const authUser = computed(() => props.auth?.user || null)
-useDarkMode()
+const { isDark, toggleDarkMode } = useDarkMode()
 
-const heroImage = '/images/Photoroom.png'
 const query = ref('')
 const typeFilter = ref('')
 const selectedSkills = ref([])
@@ -298,8 +311,7 @@ export default {
   padding: 10px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.2s;
+  font-size: 16px;
 }
 
 .searchbar:focus {
@@ -747,5 +759,71 @@ html.dark .posts.list-mode :deep(.post .title) {
 
 html.dark .posts.list-mode :deep(#like) {
   color: #f1f5f9;
+}
+
+.block1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.hero-image {
+  max-width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.hero-title {
+  position: absolute;
+  margin: 0 0 0 65vw;
+  font-size: 30px;
+  line-height: 1.3;
+  width: 500px;
+  font-weight: 400;
+  color: rgb(255, 52, 52);
+  font-family: 'Unbounded', sans-serif;
+}
+
+.visket-text {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 400;
+}
+
+.letter-i {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 400;
+}
+
+.sun-svg {
+  position: absolute;
+  top: -0.8em;
+  left: -80%;
+  transform: translateX(-50%);
+  width: 0.9em;
+  height: 0.9em;
+  color: #f59e0b;
+  animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .block1 {
+    flex-direction: column;
+    text-align: center;
+  }
+  .hero-image {
+    max-width: 80%;
+  }
+  .hero-title {
+    text-align: center;
+  }
 }
 </style>

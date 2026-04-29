@@ -55,7 +55,7 @@
           </Link>
           <Link :href="'/profile/' + user.id + '/liked-posts'">Лайки</Link>
           <Link v-if="isOwnProfile" href="/settings" class="btn-edit">
-            <img src="/images/settings.png" alt="Редактировать профиль">
+            <img src="/images/settings.svg" alt="Редактировать профиль">
           </Link>
         </div>
 

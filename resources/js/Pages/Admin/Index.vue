@@ -20,7 +20,7 @@
           <span v-if="disputesCount > 0" class="badge">{{ disputesCount }}</span>
         </Link>
       </div>
-      
+        <h2>Заявки</h2>
         <div class="banner">
           <Link href="/admin/verification-requests" class="link">
             Заявки на подтверждение аккаунта

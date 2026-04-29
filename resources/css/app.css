@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+@font-face {
+    font-family: 'Unbounded';
+    src: url('/fonts/Unbounded-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-display: swap;
+}
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -19,4 +26,8 @@ html.dark body {
 html.dark ::selection {
     background-color: rgb(255, 52, 52);
     color: white;
+}
+
+html.dark img[src$=".svg"] {
+    filter: brightness(0) invert(1);
 }

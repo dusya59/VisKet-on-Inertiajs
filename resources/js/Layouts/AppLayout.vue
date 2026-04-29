@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header>
+    <header :class="headerClass">
       <Link class="logo" href="/">
         <p class="l1">vis</p>
         <p class="l2">ket</p>
@@ -178,4 +178,19 @@ const footerClass = computed(() => {
   }
   return ''
 })
+
+const headerClass = computed(() => {
+  return page.component === 'Home' ? 'header-home' : ''
+})
 </script>
+
+<style scoped>
+.header-home {
+  background: transparent !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
+</style>

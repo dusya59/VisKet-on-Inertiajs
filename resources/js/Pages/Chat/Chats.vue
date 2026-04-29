@@ -3968,7 +3968,7 @@ html.dark .application-toggle-btn {
 }
 
 html.dark .application-card {
-  background: #1e293b;
+  background: transparent;
 }
 
 html.dark .application-card h3 {
