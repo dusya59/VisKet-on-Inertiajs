@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Neucha&family=Rubik+Spray+Paint&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=Zalando+Sans+Expanded:ital,wght@0,200..900;1,200..900&display=swap');
 *{
     margin: 0;
     padding: 0;
@@ -14,26 +14,7 @@ body, header, .block1, .block2, footer, .filterscontainer, .searchbar, .filter-t
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-@font-face {
-    font-family: 'cakra';
-    src: url('../Cakra-Normal.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-}
 
-@font-face {
-    font-family: 'Krasnodar';
-    src: url('../fonts/KrasnodarGrotesk.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Coolvetica';
-    src: url('../fonts/coolveticaRg.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
 body{
   overflow-x: hidden;
 }

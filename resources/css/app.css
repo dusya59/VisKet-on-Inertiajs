@@ -1,12 +1,5 @@
 @import 'tailwindcss';
 
-@font-face {
-    font-family: 'Unbounded';
-    src: url('/fonts/Unbounded-Regular.ttf') format('truetype');
-    font-weight: normal;
-    font-display: swap;
-}
-
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';

@@ -2562,6 +2562,7 @@ watch(() => props.activeChat?.messages, (msgs) => {
     resize: none;
     min-height: 45px;
     max-height: 150px;
+    font-size: 1.5em
 }
 
 .message-form button {
@@ -3848,9 +3849,8 @@ watch(() => props.activeChat?.messages, (msgs) => {
 }
 
 .dispute-btn {
-  background: #fee2e2;
+  background: #ff2c2c;
   border-color: #dc2626;
-  color: #dc2626;
 }
 
 .dispute-btn:hover {

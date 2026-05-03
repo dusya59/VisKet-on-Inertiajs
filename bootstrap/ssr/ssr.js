@@ -1860,75 +1860,75 @@ var _sfc_main$16 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: mode.value === "login" ? "Вход" : "Регистрация" }, null, _parent));
-			_push(`<div class="${ssrRenderClass([{ "register-mode": mode.value === "register" }, "Authblock"])}" data-v-08cb4a53><div class="form-wrapper" data-v-08cb4a53>`);
+			_push(`<div class="${ssrRenderClass([{ "register-mode": mode.value === "register" }, "Authblock"])}" data-v-9c901957><div class="form-wrapper" data-v-9c901957>`);
 			if (mode.value === "login") {
-				_push(`<form data-v-08cb4a53><h1 data-v-08cb4a53>Вход</h1>`);
-				if (_ctx.$page.props.errors.error) _push(`<div class="error-message global-error" data-v-08cb4a53>${ssrInterpolate(_ctx.$page.props.errors.error)}</div>`);
+				_push(`<form data-v-9c901957><h1 data-v-9c901957>Вход</h1>`);
+				if (_ctx.$page.props.errors.error) _push(`<div class="error-message global-error" data-v-9c901957>${ssrInterpolate(_ctx.$page.props.errors.error)}</div>`);
 				else _push(`<!---->`);
-				_push(`<div class="login-content" data-v-08cb4a53><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Email</label><input type="email"${ssrRenderAttr("value", unref(loginForm).email)} placeholder="Введите email" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Пароль</label><input type="password"${ssrRenderAttr("value", unref(loginForm).password)} placeholder="Введите пароль" required data-v-08cb4a53>`);
-				if (loginError.value) _push(`<div class="field-error" data-v-08cb4a53>${ssrInterpolate(loginError.value)}</div>`);
+				_push(`<div class="login-content" data-v-9c901957><div class="input-group" data-v-9c901957><label data-v-9c901957>Email</label><input type="email"${ssrRenderAttr("value", unref(loginForm).email)} placeholder="Введите email" required data-v-9c901957></div><div class="input-group" data-v-9c901957><label data-v-9c901957>Пароль</label><input type="password"${ssrRenderAttr("value", unref(loginForm).password)} placeholder="Введите пароль" required data-v-9c901957>`);
+				if (loginError.value) _push(`<div class="field-error" data-v-9c901957>${ssrInterpolate(loginError.value)}</div>`);
 				else _push(`<!---->`);
-				_push(`</div></div><button type="submit"${ssrIncludeBooleanAttr(unref(loginForm).processing) ? " disabled" : ""} data-v-08cb4a53>${ssrInterpolate(unref(loginForm).processing ? "Вход..." : "Войти")}</button><button type="button" class="switch-mode" data-v-08cb4a53> Нет аккаунта? Зарегистрироваться </button><div class="oauth-divider" data-v-08cb4a53><span data-v-08cb4a53>Или</span></div><div class="oauth-buttons" data-v-08cb4a53><a href="/auth/google/redirect" class="oauth-btn oauth-google" data-inertia="false" data-v-08cb4a53><img src="/images/google.svg" alt="" data-v-08cb4a53> Войти через Google </a><a href="/auth/github/redirect" class="oauth-btn oauth-github" data-inertia="false" data-v-08cb4a53><img src="/images/github.svg" alt="" data-v-08cb4a53> Войти через GitHub </a></div></form>`);
+				_push(`</div></div><button type="submit"${ssrIncludeBooleanAttr(unref(loginForm).processing) ? " disabled" : ""} data-v-9c901957>${ssrInterpolate(unref(loginForm).processing ? "Вход..." : "Войти")}</button><button type="button" class="switch-mode" data-v-9c901957> Нет аккаунта? Зарегистрироваться </button><div class="oauth-divider" data-v-9c901957><span data-v-9c901957>Или</span></div><div class="oauth-buttons" data-v-9c901957><a href="/auth/google/redirect" class="oauth-btn oauth-google" data-inertia="false" data-v-9c901957><img src="/images/google.svg" alt="" data-v-9c901957> Войти через Google </a><a href="/auth/github/redirect" class="oauth-btn oauth-github" data-inertia="false" data-v-9c901957><img src="/images/github.svg" alt="" data-v-9c901957> Войти через GitHub </a></div></form>`);
 			} else {
-				_push(`<form class="register-form" data-v-08cb4a53><h1 data-v-08cb4a53>Регистрация</h1><div class="step-indicator" data-v-08cb4a53><!--[-->`);
+				_push(`<form class="register-form" data-v-9c901957><h1 data-v-9c901957>Регистрация</h1><div class="step-indicator" data-v-9c901957><!--[-->`);
 				ssrRenderList(3, (step) => {
 					_push(`<div class="${ssrRenderClass([{
 						active: currentStep.value === step,
 						completed: currentStep.value > step
-					}, "step-dot"])}" data-v-08cb4a53></div>`);
+					}, "step-dot"])}" data-v-9c901957></div>`);
 				});
-				_push(`<!--]--></div><div class="step-content" data-v-08cb4a53>`);
+				_push(`<!--]--></div><div class="step-content" data-v-9c901957>`);
 				if (currentStep.value === 1) {
-					_push(`<div class="step step-1" data-v-08cb4a53><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Имя</label><input type="text"${ssrRenderAttr("value", registerData.name)} placeholder="Введите имя" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Email</label><input type="email"${ssrRenderAttr("value", registerData.email)} placeholder="Введите email" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Пароль</label><input type="password"${ssrRenderAttr("value", registerData.password)} placeholder="Минимум 8 символов" required data-v-08cb4a53></div><div class="input-group" data-v-08cb4a53><label data-v-08cb4a53>Подтверждение пароля</label><input type="password"${ssrRenderAttr("value", registerData.password_confirmation)} placeholder="Повторите пароль" required data-v-08cb4a53></div>`);
-					if (validationErrors.step1) _push(`<div class="error-message" data-v-08cb4a53>${ssrInterpolate(validationErrors.step1)}</div>`);
+					_push(`<div class="step step-1" data-v-9c901957><div class="input-group" data-v-9c901957><label data-v-9c901957>Имя</label><input type="text"${ssrRenderAttr("value", registerData.name)} placeholder="Введите имя" required data-v-9c901957></div><div class="input-group" data-v-9c901957><label data-v-9c901957>Email</label><input type="email"${ssrRenderAttr("value", registerData.email)} placeholder="Введите email" required data-v-9c901957></div><div class="input-group" data-v-9c901957><label data-v-9c901957>Пароль</label><input type="password"${ssrRenderAttr("value", registerData.password)} placeholder="Минимум 8 символов" required data-v-9c901957></div><div class="input-group" data-v-9c901957><label data-v-9c901957>Подтверждение пароля</label><input type="password"${ssrRenderAttr("value", registerData.password_confirmation)} placeholder="Повторите пароль" required data-v-9c901957></div>`);
+					if (validationErrors.step1) _push(`<div class="error-message" data-v-9c901957>${ssrInterpolate(validationErrors.step1)}</div>`);
 					else _push(`<!---->`);
 					if (registerErrors.value.length > 0) {
-						_push(`<div class="error-message" data-v-08cb4a53><!--[-->`);
+						_push(`<div class="error-message" data-v-9c901957><!--[-->`);
 						ssrRenderList(registerErrors.value, (err) => {
-							_push(`<div data-v-08cb4a53>${ssrInterpolate(err)}</div>`);
+							_push(`<div data-v-9c901957>${ssrInterpolate(err)}</div>`);
 						});
 						_push(`<!--]--></div>`);
 					} else _push(`<!---->`);
 					_push(`</div>`);
 				} else if (currentStep.value === 2) {
-					_push(`<div class="step step-2" data-v-08cb4a53><p class="optional-notice" data-v-08cb4a53>Опционально — вы сможете поменять данные в настройках личного кабинета</p><div class="avatar-upload" data-v-08cb4a53><label data-v-08cb4a53>Аватар</label><div class="avatar-preview" data-v-08cb4a53>`);
-					if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)} alt="Avatar preview" data-v-08cb4a53>`);
-					else _push(`<span class="avatar-placeholder" data-v-08cb4a53>Нажмите для загрузки</span>`);
-					_push(`</div><input type="file" accept="image/*" hidden data-v-08cb4a53>`);
-					if (avatarPreview.value) _push(`<button type="button" class="remove-avatar" data-v-08cb4a53>Удалить</button>`);
+					_push(`<div class="step step-2" data-v-9c901957><p class="optional-notice" data-v-9c901957>Опционально — вы сможете поменять данные в настройках личного кабинета</p><div class="avatar-upload" data-v-9c901957><label data-v-9c901957>Аватар</label><div class="avatar-preview" data-v-9c901957>`);
+					if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)} alt="Avatar preview" data-v-9c901957>`);
+					else _push(`<span class="avatar-placeholder" data-v-9c901957>Нажмите для загрузки</span>`);
+					_push(`</div><input type="file" accept="image/*" hidden data-v-9c901957>`);
+					if (avatarPreview.value) _push(`<button type="button" class="remove-avatar" data-v-9c901957>Удалить</button>`);
 					else _push(`<!---->`);
-					_push(`</div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>О себе</label><textarea placeholder="Расскажите о себе..." rows="4" data-v-08cb4a53>${ssrInterpolate(registerData.bio)}</textarea></div><div class="form-group" data-v-08cb4a53><div class="label-with-tooltip" data-v-08cb4a53><label data-v-08cb4a53>Навыки</label><div class="tooltip-trigger" data-v-08cb4a53><span class="help-icon" data-v-08cb4a53>?</span><div class="tooltip-content" data-v-08cb4a53> Выберите навыки, которыми вы владеете. Это поможет работодателям найти вас по соответствующим вакансиям. </div></div></div>`);
+					_push(`</div><div class="form-group" data-v-9c901957><label data-v-9c901957>О себе</label><textarea placeholder="Расскажите о себе..." rows="4" data-v-9c901957>${ssrInterpolate(registerData.bio)}</textarea></div><div class="form-group" data-v-9c901957><div class="label-with-tooltip" data-v-9c901957><label data-v-9c901957>Навыки</label><div class="tooltip-trigger" data-v-9c901957><span class="help-icon" data-v-9c901957>?</span><div class="tooltip-content" data-v-9c901957> Выберите навыки, которыми вы владеете. Это поможет работодателям найти вас по соответствующим вакансиям. </div></div></div>`);
 					_push(ssrRenderComponent(SkillsSelector_default, {
 						modelValue: registerData.skills,
 						"onUpdate:modelValue": ($event) => registerData.skills = $event,
 						skills: __props.skills
 					}, null, _parent));
 					if (registerData.skills.length > 0) {
-						_push(`<div class="selected-skills" data-v-08cb4a53><!--[-->`);
+						_push(`<div class="selected-skills" data-v-9c901957><!--[-->`);
 						ssrRenderList(registerData.skills, (skill) => {
-							_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-08cb4a53><span class="skill-name" data-v-08cb4a53>${ssrInterpolate(skill.name)}</span><button type="button" class="remove-skill" data-v-08cb4a53>×</button></div>`);
+							_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-9c901957><span class="skill-name" data-v-9c901957>${ssrInterpolate(skill.name)}</span><button type="button" class="remove-skill" data-v-9c901957>×</button></div>`);
 						});
 						_push(`<!--]--></div>`);
 					} else _push(`<!---->`);
 					_push(`</div></div>`);
 				} else if (currentStep.value === 3) {
-					_push(`<div class="step step-3" data-v-08cb4a53><p class="optional-notice" data-v-08cb4a53>Опционально — повысьте шансы на трудоустройство</p><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Телефон</label><div class="phone-input-wrapper" data-v-08cb4a53><input type="tel"${ssrRenderAttr("value", registerData.phone)} placeholder="+7 (___) ___-__-__" data-v-08cb4a53><span class="phone-hint" data-v-08cb4a53>Пригодится для двухфакторной аутентификации</span></div></div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Резюме</label><div class="file-upload" data-v-08cb4a53>`);
-					if (registerData.resume) _push(`<span data-v-08cb4a53>${ssrInterpolate(registerData.resume.name)}</span>`);
-					else _push(`<span data-v-08cb4a53>Нажмите для загрузки PDF, DOC, DOCX</span>`);
-					_push(`</div><input type="file" accept=".pdf,.doc,.docx" hidden data-v-08cb4a53></div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Паспорт</label><div class="file-upload" data-v-08cb4a53>`);
-					if (registerData.passport) _push(`<span data-v-08cb4a53>${ssrInterpolate(registerData.passport.name)}</span>`);
-					else _push(`<span data-v-08cb4a53>Загрузите скан паспорта или сфоткайте разворот</span>`);
-					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-08cb4a53></div><div class="form-group" data-v-08cb4a53><label data-v-08cb4a53>Диплом/Сертификаты</label><div class="file-upload" data-v-08cb4a53>`);
-					if (registerData.certificates) _push(`<span data-v-08cb4a53>${ssrInterpolate(registerData.certificates.name)}</span>`);
-					else _push(`<span data-v-08cb4a53>Загрузите документы об образовании</span>`);
-					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-08cb4a53><span class="phone-hint" data-v-08cb4a53>(Вы сможете найти их в настройках в вкладке Мои файлы) </span></div><div class="checkbox-group" data-v-08cb4a53><label class="checkbox-label" data-v-08cb4a53><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.email_confirmed) ? ssrLooseContain(registerData.email_confirmed, null) : registerData.email_confirmed) ? " checked" : ""} data-v-08cb4a53><span data-v-08cb4a53>Подтвердить email</span></label></div><div class="checkbox-group" data-v-08cb4a53><label class="checkbox-label verification-label" data-v-08cb4a53><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.request_verification) ? ssrLooseContain(registerData.request_verification, null) : registerData.request_verification) ? " checked" : ""} data-v-08cb4a53><span data-v-08cb4a53>Запросить верификацию аккаунта</span><div class="tooltip-trigger" data-v-08cb4a53><span class="help-icon" data-v-08cb4a53>?</span><div class="tooltip-content" data-v-08cb4a53> Верификация добавит галочку <img src="/images/verified.svg" alt="" data-v-08cb4a53> рядом с вашим именем, что повысит доверие работодателей. </div></div></label></div></div>`);
+					_push(`<div class="step step-3" data-v-9c901957><p class="optional-notice" data-v-9c901957>Опционально — повысьте шансы на трудоустройство</p><div class="form-group" data-v-9c901957><label data-v-9c901957>Телефон</label><div class="phone-input-wrapper" data-v-9c901957><input type="tel"${ssrRenderAttr("value", registerData.phone)} placeholder="+7 (___) ___-__-__" data-v-9c901957><span class="phone-hint" data-v-9c901957>Пригодится для двухфакторной аутентификации</span></div></div><div class="form-group" data-v-9c901957><label data-v-9c901957>Резюме</label><div class="file-upload" data-v-9c901957>`);
+					if (registerData.resume) _push(`<span data-v-9c901957>${ssrInterpolate(registerData.resume.name)}</span>`);
+					else _push(`<span data-v-9c901957>Нажмите для загрузки PDF, DOC, DOCX</span>`);
+					_push(`</div><input type="file" accept=".pdf,.doc,.docx" hidden data-v-9c901957></div><div class="form-group" data-v-9c901957><label data-v-9c901957>Паспорт</label><div class="file-upload" data-v-9c901957>`);
+					if (registerData.passport) _push(`<span data-v-9c901957>${ssrInterpolate(registerData.passport.name)}</span>`);
+					else _push(`<span data-v-9c901957>Загрузите скан паспорта или сфоткайте разворот</span>`);
+					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-9c901957></div><div class="form-group" data-v-9c901957><label data-v-9c901957>Диплом/Сертификаты</label><div class="file-upload" data-v-9c901957>`);
+					if (registerData.certificates) _push(`<span data-v-9c901957>${ssrInterpolate(registerData.certificates.name)}</span>`);
+					else _push(`<span data-v-9c901957>Загрузите документы об образовании</span>`);
+					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-9c901957><span class="phone-hint" data-v-9c901957>(Вы сможете найти их в настройках в вкладке Мои файлы) </span></div><div class="checkbox-group" data-v-9c901957><label class="checkbox-label" data-v-9c901957><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.email_confirmed) ? ssrLooseContain(registerData.email_confirmed, null) : registerData.email_confirmed) ? " checked" : ""} data-v-9c901957><span data-v-9c901957>Подтвердить email</span></label></div><div class="checkbox-group" data-v-9c901957><label class="checkbox-label verification-label" data-v-9c901957><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.request_verification) ? ssrLooseContain(registerData.request_verification, null) : registerData.request_verification) ? " checked" : ""} data-v-9c901957><span data-v-9c901957>Запросить верификацию аккаунта</span><div class="tooltip-trigger" data-v-9c901957><span class="help-icon" data-v-9c901957>?</span><div class="tooltip-content" data-v-9c901957> Верификация добавит галочку <img src="/images/verified.svg" alt="" data-v-9c901957> рядом с вашим именем, что повысит доверие работодателей. </div></div></label></div></div>`);
 				} else _push(`<!---->`);
-				_push(`</div><div class="form-actions" data-v-08cb4a53>`);
-				if (currentStep.value > 1) _push(`<button type="button" class="btn-back" data-v-08cb4a53> Назад </button>`);
+				_push(`</div><div class="form-actions" data-v-9c901957>`);
+				if (currentStep.value > 1) _push(`<button type="button" class="btn-back" data-v-9c901957> Назад </button>`);
 				else _push(`<!---->`);
-				if (currentStep.value < 3) _push(`<button type="button" class="btn-next" data-v-08cb4a53> Далее </button>`);
-				else _push(`<button type="submit"${ssrIncludeBooleanAttr(unref(registerForm).processing) ? " disabled" : ""} class="btn-submit" data-v-08cb4a53>${ssrInterpolate(unref(registerForm).processing ? "Регистрация..." : "Зарегистрироваться")}</button>`);
-				_push(`</div><button type="button" class="switch-mode" data-v-08cb4a53> Уже есть аккаунт? Войти </button></form>`);
+				if (currentStep.value < 3) _push(`<button type="button" class="btn-next" data-v-9c901957> Далее </button>`);
+				else _push(`<button type="submit"${ssrIncludeBooleanAttr(unref(registerForm).processing) ? " disabled" : ""} class="btn-submit" data-v-9c901957>${ssrInterpolate(unref(registerForm).processing ? "Регистрация..." : "Зарегистрироваться")}</button>`);
+				_push(`</div><button type="button" class="switch-mode" data-v-9c901957> Уже есть аккаунт? Войти </button></form>`);
 			}
 			_push(`</div></div><!--]-->`);
 		};
@@ -1940,7 +1940,7 @@ _sfc_main$16.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Auth/Auth.vue");
 	return _sfc_setup$16 ? _sfc_setup$16(props, ctx) : void 0;
 };
-var Auth_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$16, [["__scopeId", "data-v-08cb4a53"]]);
+var Auth_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$16, [["__scopeId", "data-v-9c901957"]]);
 //#endregion
 //#region resources/js/Pages/Balance/Index.vue
 var Index_exports$2 = /* @__PURE__ */ __exportAll({ default: () => Index_default$2 });
@@ -3270,9 +3270,9 @@ var _sfc_main$14 = {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Чаты" }, null, _parent, _scopeId));
-						_push(`<div class="chat-container" data-v-372cda44${_scopeId}><div class="chat-list" data-v-372cda44${_scopeId}>`);
-						if (!isSearching.value) _push(`<div class="chat-list-header" data-v-372cda44${_scopeId}><h2 data-v-372cda44${_scopeId}>Чаты</h2><button type="button" class="search-btn" data-v-372cda44${_scopeId}><img src="/images/search.svg" alt="Поиск" data-v-372cda44${_scopeId}></button></div>`);
-						else _push(`<div class="search-header" data-v-372cda44${_scopeId}><input${ssrRenderAttr("value", searchQuery.value)} type="text"${ssrRenderAttr("placeholder", isGlobalSearch.value ? "Поиск чатов и сообщений..." : "Поиск в чате...")} class="search-input" data-v-372cda44${_scopeId}><button type="button" class="search-close" data-v-372cda44${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-372cda44${_scopeId}></button></div>`);
+						_push(`<div class="chat-container" data-v-08923f12${_scopeId}><div class="chat-list" data-v-08923f12${_scopeId}>`);
+						if (!isSearching.value) _push(`<div class="chat-list-header" data-v-08923f12${_scopeId}><h2 data-v-08923f12${_scopeId}>Чаты</h2><button type="button" class="search-btn" data-v-08923f12${_scopeId}><img src="/images/search.svg" alt="Поиск" data-v-08923f12${_scopeId}></button></div>`);
+						else _push(`<div class="search-header" data-v-08923f12${_scopeId}><input${ssrRenderAttr("value", searchQuery.value)} type="text"${ssrRenderAttr("placeholder", isGlobalSearch.value ? "Поиск чатов и сообщений..." : "Поиск в чате...")} class="search-input" data-v-08923f12${_scopeId}><button type="button" class="search-close" data-v-08923f12${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-08923f12${_scopeId}></button></div>`);
 						if (!isSearching.value) {
 							_push(`<!--[-->`);
 							ssrRenderList(__props.chats, (chat) => {
@@ -3284,32 +3284,32 @@ var _sfc_main$14 = {
 										"in_progress",
 										"disputed"
 									].includes(chat.application.status)
-								}, "chat-item"])}" tabindex="0" data-v-372cda44${_scopeId}>`);
+								}, "chat-item"])}" tabindex="0" data-v-08923f12${_scopeId}>`);
 								if (chat.other_user) {
-									_push(`<div class="chat-user-info" data-v-372cda44${_scopeId}><div class="avatar-wrapper" data-v-372cda44${_scopeId}><img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar" data-v-372cda44${_scopeId}>`);
-									if (isUserOnline(chat.other_user.id)) _push(`<span class="online-indicator" data-v-372cda44${_scopeId}></span>`);
+									_push(`<div class="chat-user-info" data-v-08923f12${_scopeId}><div class="avatar-wrapper" data-v-08923f12${_scopeId}><img${ssrRenderAttr("src", chat.other_user.avatar_url)} class="chat-avatar" data-v-08923f12${_scopeId}>`);
+									if (isUserOnline(chat.other_user.id)) _push(`<span class="online-indicator" data-v-08923f12${_scopeId}></span>`);
 									else _push(`<!---->`);
-									_push(`</div><div data-v-372cda44${_scopeId}><h3 data-v-372cda44${_scopeId}>${ssrInterpolate(chat.other_user.name)}</h3>`);
-									if (chat.latest_message) _push(`<p class="${ssrRenderClass([{ unread: chat.unread_count > 0 }, "chat-preview"])}" data-v-372cda44${_scopeId}>${ssrInterpolate(getChatPreview(chat.latest_message))}</p>`);
+									_push(`</div><div data-v-08923f12${_scopeId}><h3 data-v-08923f12${_scopeId}>${ssrInterpolate(chat.other_user.name)}</h3>`);
+									if (chat.latest_message) _push(`<p class="${ssrRenderClass([{ unread: chat.unread_count > 0 }, "chat-preview"])}" data-v-08923f12${_scopeId}>${ssrInterpolate(getChatPreview(chat.latest_message))}</p>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								} else _push(`<!---->`);
-								_push(`<div class="chat-meta" data-v-372cda44${_scopeId}>`);
-								if (chat.unread_count > 0) _push(`<span class="unread-badge" data-v-372cda44${_scopeId}>${ssrInterpolate(chat.unread_count > 99 ? "99+" : chat.unread_count)}</span>`);
+								_push(`<div class="chat-meta" data-v-08923f12${_scopeId}>`);
+								if (chat.unread_count > 0) _push(`<span class="unread-badge" data-v-08923f12${_scopeId}>${ssrInterpolate(chat.unread_count > 99 ? "99+" : chat.unread_count)}</span>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							});
 							_push(`<!--]-->`);
 						} else _push(`<!---->`);
 						if (isSearching.value) {
-							_push(`<div class="search-results" data-v-372cda44${_scopeId}>`);
-							if (searchResults.value.length === 0) _push(`<div class="search-no-results" data-v-372cda44${_scopeId}> Ничего не найдено </div>`);
+							_push(`<div class="search-results" data-v-08923f12${_scopeId}>`);
+							if (searchResults.value.length === 0) _push(`<div class="search-no-results" data-v-08923f12${_scopeId}> Ничего не найдено </div>`);
 							else _push(`<!---->`);
 							_push(`<!--[-->`);
 							ssrRenderList(searchResults.value, (result) => {
-								_push(`<div class="search-result-item" data-v-372cda44${_scopeId}><img${ssrRenderAttr("src", result.user.avatar_url)} class="chat-avatar" data-v-372cda44${_scopeId}><div class="search-result-content" data-v-372cda44${_scopeId}><div class="search-result-name" data-v-372cda44${_scopeId}>${ssrInterpolate(result.user.name)}</div>`);
-								if (result.type === "chat") _push(`<div class="search-result-type" data-v-372cda44${_scopeId}>Чат</div>`);
-								else _push(`<div class="search-result-text" data-v-372cda44${_scopeId}>${highlight(result.content) ?? ""}</div>`);
+								_push(`<div class="search-result-item" data-v-08923f12${_scopeId}><img${ssrRenderAttr("src", result.user.avatar_url)} class="chat-avatar" data-v-08923f12${_scopeId}><div class="search-result-content" data-v-08923f12${_scopeId}><div class="search-result-name" data-v-08923f12${_scopeId}>${ssrInterpolate(result.user.name)}</div>`);
+								if (result.type === "chat") _push(`<div class="search-result-type" data-v-08923f12${_scopeId}>Чат</div>`);
+								else _push(`<div class="search-result-text" data-v-08923f12${_scopeId}>${highlight(result.content) ?? ""}</div>`);
 								_push(`</div></div>`);
 							});
 							_push(`<!--]--></div>`);
@@ -3317,19 +3317,19 @@ var _sfc_main$14 = {
 						_push(`</div><div class="${ssrRenderClass([{
 							active: !!__props.activeChat,
 							sliding: isSliding.value
-						}, "chat-area"])}" style="${ssrRenderStyle(slideOffset.value > 0 ? { transform: `translateX(${slideOffset.value}px)` } : {})}" data-v-372cda44${_scopeId}>`);
+						}, "chat-area"])}" style="${ssrRenderStyle(slideOffset.value > 0 ? { transform: `translateX(${slideOffset.value}px)` } : {})}" data-v-08923f12${_scopeId}>`);
 						if (__props.activeChat) {
-							_push(`<!--[--><div class="chat-header" data-v-372cda44${_scopeId}><button type="button" class="back" data-v-372cda44${_scopeId}><img src="/images/arrow-left.svg" alt="назад" data-v-372cda44${_scopeId}></button><div class="chat-header-mid" data-v-372cda44${_scopeId}>`);
+							_push(`<!--[--><div class="chat-header" data-v-08923f12${_scopeId}><button type="button" class="back" data-v-08923f12${_scopeId}><img src="/images/arrow-left.svg" alt="назад" data-v-08923f12${_scopeId}></button><div class="chat-header-mid" data-v-08923f12${_scopeId}>`);
 							if (otherUsers.value.length > 0) _push(ssrRenderComponent(unref(Link), {
 								href: `/profile/${otherUsers.value[0].id}`,
 								class: "chat-header-user"
 							}, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
 									if (_push) {
-										_push(`<div class="avatar-wrapper" data-v-372cda44${_scopeId}><img${ssrRenderAttr("src", otherUsers.value[0].avatar_url)} class="chat-avatar" data-v-372cda44${_scopeId}>`);
-										if (isUserOnline(otherUsers.value[0].id)) _push(`<span class="online-indicator" data-v-372cda44${_scopeId}></span>`);
-										else _push(`<span class="offline-indicator" data-v-372cda44${_scopeId}></span>`);
-										_push(`</div><h2 data-v-372cda44${_scopeId}>${ssrInterpolate(otherUsers.value[0].name)}</h2>`);
+										_push(`<div class="avatar-wrapper" data-v-08923f12${_scopeId}><img${ssrRenderAttr("src", otherUsers.value[0].avatar_url)} class="chat-avatar" data-v-08923f12${_scopeId}>`);
+										if (isUserOnline(otherUsers.value[0].id)) _push(`<span class="online-indicator" data-v-08923f12${_scopeId}></span>`);
+										else _push(`<span class="offline-indicator" data-v-08923f12${_scopeId}></span>`);
+										_push(`</div><h2 data-v-08923f12${_scopeId}>${ssrInterpolate(otherUsers.value[0].name)}</h2>`);
 									} else return [createVNode("div", { class: "avatar-wrapper" }, [createVNode("img", {
 										src: otherUsers.value[0].avatar_url,
 										class: "chat-avatar"
@@ -3344,118 +3344,118 @@ var _sfc_main$14 = {
 								_: 1
 							}, _parent, _scopeId));
 							else _push(`<!---->`);
-							if (vacancyPostId.value) _push(`<span class="vacancy-link" data-v-372cda44${_scopeId}>${ssrInterpolate(isVacancyAuthor.value ? "откликнулся на" : "автор вакансии")}</span>`);
+							if (vacancyPostId.value) _push(`<span class="vacancy-link" data-v-08923f12${_scopeId}>${ssrInterpolate(isVacancyAuthor.value ? "откликнулся на" : "автор вакансии")}</span>`);
 							else _push(`<!---->`);
 							_push(ssrRenderComponent(unref(Link), { href: `/posts/${vacancyPostId.value}` }, {
 								default: withCtx((_, _push, _parent, _scopeId) => {
-									if (_push) _push(`<h2 data-v-372cda44${_scopeId}>${ssrInterpolate(vacancyPosition.value)}</h2>`);
+									if (_push) _push(`<h2 data-v-08923f12${_scopeId}>${ssrInterpolate(vacancyPosition.value)}</h2>`);
 									else return [createVNode("h2", null, toDisplayString(vacancyPosition.value), 1)];
 								}),
 								_: 1
 							}, _parent, _scopeId));
-							_push(`</div><img class="chat-options" src="/images/dots.svg" alt="опции" data-v-372cda44${_scopeId}></div>`);
-							if (isSearching.value && !isGlobalSearch.value && __props.activeChat) _push(`<div class="search-navigation" data-v-372cda44${_scopeId}><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value <= 0) ? " disabled" : ""} data-v-372cda44${_scopeId}><img src="/images/arrow-up.svg" alt="вверх" data-v-372cda44${_scopeId}></button><span class="search-nav-counter" data-v-372cda44${_scopeId}>${ssrInterpolate(searchResults.value.length > 0 ? currentMatchIndex.value + 1 : 0)} / ${ssrInterpolate(searchResults.value.length)}</span><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value >= searchResults.value.length - 1) ? " disabled" : ""} data-v-372cda44${_scopeId}><img src="/images/arrow-up.svg" alt="вниз" style="${ssrRenderStyle({ "transform": "rotate(180deg)" })}" data-v-372cda44${_scopeId}></button></div>`);
+							_push(`</div><img class="chat-options" src="/images/dots.svg" alt="опции" data-v-08923f12${_scopeId}></div>`);
+							if (isSearching.value && !isGlobalSearch.value && __props.activeChat) _push(`<div class="search-navigation" data-v-08923f12${_scopeId}><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value <= 0) ? " disabled" : ""} data-v-08923f12${_scopeId}><img src="/images/arrow-up.svg" alt="вверх" data-v-08923f12${_scopeId}></button><span class="search-nav-counter" data-v-08923f12${_scopeId}>${ssrInterpolate(searchResults.value.length > 0 ? currentMatchIndex.value + 1 : 0)} / ${ssrInterpolate(searchResults.value.length)}</span><button type="button" class="search-nav-btn"${ssrIncludeBooleanAttr(currentMatchIndex.value >= searchResults.value.length - 1) ? " disabled" : ""} data-v-08923f12${_scopeId}><img src="/images/arrow-up.svg" alt="вниз" style="${ssrRenderStyle({ "transform": "rotate(180deg)" })}" data-v-08923f12${_scopeId}></button></div>`);
 							else _push(`<!---->`);
 							if (optionsMenu.value.show) _push(`<div class="options-menu" style="${ssrRenderStyle({
 								right: optionsMenu.value.x + "px",
 								top: optionsMenu.value.y + 70 + "px"
-							})}" data-v-372cda44${_scopeId}><div class="options-menu-item" data-v-372cda44${_scopeId}>Файлы чата</div><div class="options-menu-item" data-v-372cda44${_scopeId}>Добавить участника в чат</div><div class="options-menu-item" data-v-372cda44${_scopeId}>Поиск по чату</div><div class="options-menu-item delete" data-v-372cda44${_scopeId}>Удалить чат</div></div>`);
+							})}" data-v-08923f12${_scopeId}><div class="options-menu-item" data-v-08923f12${_scopeId}>Файлы чата</div><div class="options-menu-item" data-v-08923f12${_scopeId}>Добавить участника в чат</div><div class="options-menu-item" data-v-08923f12${_scopeId}>Поиск по чату</div><div class="options-menu-item delete" data-v-08923f12${_scopeId}>Удалить чат</div></div>`);
 							else _push(`<!---->`);
 							if (showApplicationBlock.value) {
-								_push(`<div class="${ssrRenderClass([{ closed: isApplicationBlockClosed.value }, "application-block"])}" data-v-372cda44${_scopeId}><div class="application-toggle" data-v-372cda44${_scopeId}><button type="button" class="application-toggle-btn" data-v-372cda44${_scopeId}><img src="/images/arrow-up.svg" alt="Toggle" class="${ssrRenderClass([{ flipped: isApplicationBlockClosed.value }, "toggle-arrow"])}" data-v-372cda44${_scopeId}></button></div><div class="application-card" style="${ssrRenderStyle(!isApplicationBlockClosed.value ? null : { display: "none" })}" data-v-372cda44${_scopeId}><img${ssrRenderAttr("src", __props.activeChat.application.user.avatar_url)} class="application-avatar" data-v-372cda44${_scopeId}><div class="name" data-v-372cda44${_scopeId}><h3 data-v-372cda44${_scopeId}>${ssrInterpolate(__props.activeChat.application.user.name)}</h3><span class="${ssrRenderClass([{ online: isUserOnline(otherUsers.value[0].id) }, "user-status"])}" data-v-372cda44${_scopeId}>${ssrInterpolate(isUserOnline(otherUsers.value[0].id) ? "онлайн" : "оффлайн")}</span></div><p class="account-age" data-v-372cda44${_scopeId}>Аккаунт создан ${ssrInterpolate(formatAccountAge(__props.activeChat.application.user.created_at))}</p>`);
-								if (__props.activeChat.application.user.rating) _push(`<div class="application-rating" data-v-372cda44${_scopeId}><span data-v-372cda44${_scopeId}>Рейтинг: ${ssrInterpolate(__props.activeChat.application.user.rating)}</span></div>`);
+								_push(`<div class="${ssrRenderClass([{ closed: isApplicationBlockClosed.value }, "application-block"])}" data-v-08923f12${_scopeId}><div class="application-toggle" data-v-08923f12${_scopeId}><button type="button" class="application-toggle-btn" data-v-08923f12${_scopeId}><img src="/images/arrow-up.svg" alt="Toggle" class="${ssrRenderClass([{ flipped: isApplicationBlockClosed.value }, "toggle-arrow"])}" data-v-08923f12${_scopeId}></button></div><div class="application-card" style="${ssrRenderStyle(!isApplicationBlockClosed.value ? null : { display: "none" })}" data-v-08923f12${_scopeId}><img${ssrRenderAttr("src", __props.activeChat.application.user.avatar_url)} class="application-avatar" data-v-08923f12${_scopeId}><div class="name" data-v-08923f12${_scopeId}><h3 data-v-08923f12${_scopeId}>${ssrInterpolate(__props.activeChat.application.user.name)}</h3><span class="${ssrRenderClass([{ online: isUserOnline(otherUsers.value[0].id) }, "user-status"])}" data-v-08923f12${_scopeId}>${ssrInterpolate(isUserOnline(otherUsers.value[0].id) ? "онлайн" : "оффлайн")}</span></div><p class="account-age" data-v-08923f12${_scopeId}>Аккаунт создан ${ssrInterpolate(formatAccountAge(__props.activeChat.application.user.created_at))}</p>`);
+								if (__props.activeChat.application.user.rating) _push(`<div class="application-rating" data-v-08923f12${_scopeId}><span data-v-08923f12${_scopeId}>Рейтинг: ${ssrInterpolate(__props.activeChat.application.user.rating)}</span></div>`);
 								else _push(`<!---->`);
-								_push(`<div class="application-cover-letter" data-v-372cda44${_scopeId}><h4 data-v-372cda44${_scopeId}>Сопроводительное письмо:</h4><p data-v-372cda44${_scopeId}>${ssrInterpolate(__props.activeChat.application.cover_letter)}</p></div>`);
+								_push(`<div class="application-cover-letter" data-v-08923f12${_scopeId}><h4 data-v-08923f12${_scopeId}>Сопроводительное письмо:</h4><p data-v-08923f12${_scopeId}>${ssrInterpolate(__props.activeChat.application.cover_letter)}</p></div>`);
 								if (__props.activeChat.application.proposed_price) {
-									_push(`<div class="application-price-row" data-v-372cda44${_scopeId}><div class="application-price" data-v-372cda44${_scopeId}><span class="label" data-v-372cda44${_scopeId}>Предложенная цена:</span><span class="value" data-v-372cda44${_scopeId}>${ssrInterpolate(__props.activeChat.application.proposed_price)} ₽</span></div>`);
-									if (isVacancyAuthor.value && __props.activeChat.application.status === "pending") _push(`<button type="button" class="price-edit-btn" data-v-372cda44${_scopeId}><img src="/images/edit.svg" alt="Изменить цену" data-v-372cda44${_scopeId}></button>`);
+									_push(`<div class="application-price-row" data-v-08923f12${_scopeId}><div class="application-price" data-v-08923f12${_scopeId}><span class="label" data-v-08923f12${_scopeId}>Предложенная цена:</span><span class="value" data-v-08923f12${_scopeId}>${ssrInterpolate(__props.activeChat.application.proposed_price)} ₽</span></div>`);
+									if (isVacancyAuthor.value && __props.activeChat.application.status === "pending") _push(`<button type="button" class="price-edit-btn" data-v-08923f12${_scopeId}><img src="/images/edit.svg" alt="Изменить цену" data-v-08923f12${_scopeId}></button>`);
 									else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
-								if (__props.activeChat.application.status === "completed") _push(`<div class="application-status" data-v-372cda44${_scopeId}><span class="status-badge completed" data-v-372cda44${_scopeId}>✅ Сделка завершена</span></div>`);
+								if (__props.activeChat.application.status === "completed") _push(`<div class="application-status" data-v-08923f12${_scopeId}><span class="status-badge completed" data-v-08923f12${_scopeId}>✅ Сделка завершена</span></div>`);
 								else _push(`<!---->`);
-								if (__props.activeChat.application.status === "cancelled") _push(`<div class="application-status" data-v-372cda44${_scopeId}><span class="status-badge cancelled" data-v-372cda44${_scopeId}>❌ Сделка отменена</span></div>`);
+								if (__props.activeChat.application.status === "cancelled") _push(`<div class="application-status" data-v-08923f12${_scopeId}><span class="status-badge cancelled" data-v-08923f12${_scopeId}>❌ Сделка отменена</span></div>`);
 								else _push(`<!---->`);
-								if (__props.activeChat.application.status === "disputed" || __props.activeChat.application.dispute && __props.activeChat.application.dispute.status === "open") _push(`<div class="application-status" data-v-372cda44${_scopeId}><span class="status-badge dispute" data-v-372cda44${_scopeId}>⚠️ Открыт спор</span></div>`);
+								if (__props.activeChat.application.status === "disputed" || __props.activeChat.application.dispute && __props.activeChat.application.dispute.status === "open") _push(`<div class="application-status" data-v-08923f12${_scopeId}><span class="status-badge dispute" data-v-08923f12${_scopeId}>⚠️ Открыт спор</span></div>`);
 								else _push(`<!---->`);
 								if (isVacancyAuthor.value) {
-									_push(`<div class="application-actions" data-v-372cda44${_scopeId}>`);
-									if (__props.activeChat.application.status === "pending") _push(`<!--[--><form data-v-372cda44${_scopeId}><button type="submit" class="accept-btn" data-v-372cda44${_scopeId}>Принять отклик</button></form><form data-v-372cda44${_scopeId}><button type="submit" class="reject-btn" data-v-372cda44${_scopeId}>Отклонить</button></form><!--]-->`);
+									_push(`<div class="application-actions" data-v-08923f12${_scopeId}>`);
+									if (__props.activeChat.application.status === "pending") _push(`<!--[--><form data-v-08923f12${_scopeId}><button type="submit" class="accept-btn" data-v-08923f12${_scopeId}>Принять отклик</button></form><form data-v-08923f12${_scopeId}><button type="submit" class="reject-btn" data-v-08923f12${_scopeId}>Отклонить</button></form><!--]-->`);
 									else if (__props.activeChat.application.status === "in_progress") {
 										_push(`<!--[-->`);
-										if (__props.activeChat.application.executor_marked_completed_at) _push(`<form data-v-372cda44${_scopeId}><button type="submit" class="accept-btn" data-v-372cda44${_scopeId}>Подтвердить завершение</button></form>`);
+										if (__props.activeChat.application.executor_marked_completed_at) _push(`<form data-v-08923f12${_scopeId}><button type="submit" class="accept-btn" data-v-08923f12${_scopeId}>Подтвердить завершение</button></form>`);
 										else _push(`<!---->`);
-										if (!__props.activeChat.application.executor_marked_completed_at) _push(`<button type="button" class="withdraw-btn" data-v-372cda44${_scopeId}> Отменить </button>`);
+										if (!__props.activeChat.application.executor_marked_completed_at) _push(`<button type="button" class="withdraw-btn" data-v-08923f12${_scopeId}> Отменить </button>`);
 										else _push(`<!---->`);
 										_push(`<!--]-->`);
-									} else if (__props.activeChat.application.status === "accepted") _push(`<button type="button" class="withdraw-btn" data-v-372cda44${_scopeId}> Отменить </button>`);
+									} else if (__props.activeChat.application.status === "accepted") _push(`<button type="button" class="withdraw-btn" data-v-08923f12${_scopeId}> Отменить </button>`);
 									else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
 								if (!isVacancyAuthor.value) {
-									_push(`<div class="application-actions" data-v-372cda44${_scopeId}>`);
-									if (__props.activeChat.application.status === "in_progress" && !__props.activeChat.application.executor_marked_completed_at) _push(`<!--[--><form data-v-372cda44${_scopeId}><button type="submit" class="accept-btn" data-v-372cda44${_scopeId}>Отметить как выполненное</button></form><button type="button" class="withdraw-btn" data-v-372cda44${_scopeId}> Отменить </button><!--]-->`);
+									_push(`<div class="application-actions" data-v-08923f12${_scopeId}>`);
+									if (__props.activeChat.application.status === "in_progress" && !__props.activeChat.application.executor_marked_completed_at) _push(`<!--[--><form data-v-08923f12${_scopeId}><button type="submit" class="accept-btn" data-v-08923f12${_scopeId}>Отметить как выполненное</button></form><button type="button" class="withdraw-btn" data-v-08923f12${_scopeId}> Отменить </button><!--]-->`);
 									else _push(`<!---->`);
-									if (__props.activeChat.application.status === "in_progress" && __props.activeChat.application.executor_marked_completed_at) _push(`<!--[--><button type="button" class="withdraw-btn" data-v-372cda44${_scopeId}> Отменить </button><button type="button" class="dispute-btn" data-v-372cda44${_scopeId}> Открыть спор </button><!--]-->`);
+									if (__props.activeChat.application.status === "in_progress" && __props.activeChat.application.executor_marked_completed_at) _push(`<!--[--><button type="button" class="withdraw-btn" data-v-08923f12${_scopeId}> Отменить </button><button type="button" class="dispute-btn" data-v-08923f12${_scopeId}> Открыть спор </button><!--]-->`);
 									else _push(`<!---->`);
-									if (__props.activeChat.application.status === "accepted") _push(`<button type="button" class="dispute-btn" data-v-372cda44${_scopeId}> Открыть спор </button>`);
+									if (__props.activeChat.application.status === "accepted") _push(`<button type="button" class="dispute-btn" data-v-08923f12${_scopeId}> Открыть спор </button>`);
 									else _push(`<!---->`);
 									_push(`</div>`);
 								} else _push(`<!---->`);
 								_push(`</div></div>`);
 							} else _push(`<!---->`);
-							_push(`<div class="chat-messages" data-v-372cda44${_scopeId}><div class="chat-messages-inner" data-v-372cda44${_scopeId}><div${ssrRenderAttrs({
+							_push(`<div class="chat-messages" data-v-08923f12${_scopeId}><div class="chat-messages-inner" data-v-08923f12${_scopeId}><div${ssrRenderAttrs({
 								name: "messages",
 								class: "chat-messages-content"
-							})} data-v-372cda44>`);
+							})} data-v-08923f12>`);
 							ssrRenderList(localMessages.value, (message, index) => {
 								_push(`<div${ssrRenderAttr("data-message-id", message.id)} class="${ssrRenderClass([{
 									"right-clicked": rightClickedMessage.value && rightClickedMessage.value.id === message.id,
 									"selected": selectedMessages.value.some((m) => m.id === message.id),
 									"search-highlighted": isSearching.value && searchResults.value[currentMatchIndex.value]?.id === message.id
-								}, "message-container"])}" data-v-372cda44${_scopeId}><img${ssrRenderAttr("src", message.user.avatar_url)} class="chat-avatar" data-v-372cda44${_scopeId}><div class="${ssrRenderClass([{
+								}, "message-container"])}" data-v-08923f12${_scopeId}><img${ssrRenderAttr("src", message.user.avatar_url)} class="chat-avatar" data-v-08923f12${_scopeId}><div class="${ssrRenderClass([{
 									"my-message": message.is_mine,
 									"shared-post": isOnlyPostUrl(message.content)
-								}, "message"])}" data-v-372cda44${_scopeId}>`);
-								if (message.image_url) _push(`<img${ssrRenderAttr("src", message.image_url)} alt="Изображение" class="message-image" data-v-372cda44${_scopeId}>`);
+								}, "message"])}" data-v-08923f12${_scopeId}>`);
+								if (message.image_url) _push(`<img${ssrRenderAttr("src", message.image_url)} alt="Изображение" class="message-image" data-v-08923f12${_scopeId}>`);
 								else _push(`<!---->`);
-								if (message.video_url) _push(`<video${ssrRenderAttr("src", message.video_url)} class="message-video" controls data-v-372cda44${_scopeId}></video>`);
+								if (message.video_url) _push(`<video${ssrRenderAttr("src", message.video_url)} class="message-video" controls data-v-08923f12${_scopeId}></video>`);
 								else _push(`<!---->`);
-								_push(`<div class="message-content" data-v-372cda44${_scopeId}>`);
-								if (message.content && !isOnlyPostUrl(message.content)) _push(`<span data-v-372cda44${_scopeId}>${renderContent(message.content) ?? ""}</span>`);
+								_push(`<div class="message-content" data-v-08923f12${_scopeId}>`);
+								if (message.content && !isOnlyPostUrl(message.content)) _push(`<span data-v-08923f12${_scopeId}>${renderContent(message.content) ?? ""}</span>`);
 								else _push(`<!---->`);
 								_push(`<!--[-->`);
 								ssrRenderList(getPostPreviewsFromContent(message.content), (preview) => {
-									_push(`<div class="${ssrRenderClass([{ "shared-post-card": isOnlyPostUrl(message.content) }, "post-preview-card"])}" data-v-372cda44${_scopeId}>`);
-									if (preview.image_url) _push(`<img${ssrRenderAttr("src", preview.image_url)} class="post-preview-img" alt="" data-v-372cda44${_scopeId}>`);
+									_push(`<div class="${ssrRenderClass([{ "shared-post-card": isOnlyPostUrl(message.content) }, "post-preview-card"])}" data-v-08923f12${_scopeId}>`);
+									if (preview.image_url) _push(`<img${ssrRenderAttr("src", preview.image_url)} class="post-preview-img" alt="" data-v-08923f12${_scopeId}>`);
 									else _push(`<!---->`);
-									_push(`<div class="post-preview-body" data-v-372cda44${_scopeId}><div class="post-preview-title" data-v-372cda44${_scopeId}>${ssrInterpolate(preview.title)}</div>`);
-									if (preview.description) _push(`<div class="post-preview-desc" data-v-372cda44${_scopeId}>${ssrInterpolate(preview.description.slice(0, 80))}${ssrInterpolate(preview.description.length > 80 ? "…" : "")}</div>`);
+									_push(`<div class="post-preview-body" data-v-08923f12${_scopeId}><div class="post-preview-title" data-v-08923f12${_scopeId}>${ssrInterpolate(preview.title)}</div>`);
+									if (preview.description) _push(`<div class="post-preview-desc" data-v-08923f12${_scopeId}>${ssrInterpolate(preview.description.slice(0, 80))}${ssrInterpolate(preview.description.length > 80 ? "…" : "")}</div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								});
 								_push(`<!--]-->`);
 								if (message.file_url) {
-									_push(`<div class="file-attachment" data-v-372cda44${_scopeId}><button type="button" class="file-download-circle"${ssrRenderAttr("title", isFileDownloaded(message) ? "Скачано" : "Скачать")} data-v-372cda44${_scopeId}>`);
-									if (!isFileDownloaded(message)) _push(`<span data-v-372cda44${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-372cda44${_scopeId}></span>`);
-									else _push(`<span data-v-372cda44${_scopeId}><img src="/images/document.svg" alt="Файл" data-v-372cda44${_scopeId}></span>`);
-									_push(`</button><div class="file-meta" data-v-372cda44${_scopeId}><div class="file-name" data-v-372cda44${_scopeId}>${ssrInterpolate(message.file_name || "Файл")}</div>`);
-									if (message.file_size) _push(`<div class="file-size" data-v-372cda44${_scopeId}>${ssrInterpolate(formatSize(message.file_size))}</div>`);
+									_push(`<div class="file-attachment" data-v-08923f12${_scopeId}><button type="button" class="file-download-circle"${ssrRenderAttr("title", isFileDownloaded(message) ? "Скачано" : "Скачать")} data-v-08923f12${_scopeId}>`);
+									if (!isFileDownloaded(message)) _push(`<span data-v-08923f12${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-08923f12${_scopeId}></span>`);
+									else _push(`<span data-v-08923f12${_scopeId}><img src="/images/document.svg" alt="Файл" data-v-08923f12${_scopeId}></span>`);
+									_push(`</button><div class="file-meta" data-v-08923f12${_scopeId}><div class="file-name" data-v-08923f12${_scopeId}>${ssrInterpolate(message.file_name || "Файл")}</div>`);
+									if (message.file_size) _push(`<div class="file-size" data-v-08923f12${_scopeId}>${ssrInterpolate(formatSize(message.file_size))}</div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								} else _push(`<!---->`);
-								if (message.is_price_proposal && message.price_proposal_status === "pending" && !message.is_mine) _push(`<div class="price-proposal-actions" data-v-372cda44${_scopeId}><form class="price-action-form" data-v-372cda44${_scopeId}><button type="submit" class="accept-price-btn" data-v-372cda44${_scopeId}>Принять</button></form><button type="button" class="change-price-btn" data-v-372cda44${_scopeId}>Изменить</button></div>`);
+								if (message.is_price_proposal && message.price_proposal_status === "pending" && !message.is_mine) _push(`<div class="price-proposal-actions" data-v-08923f12${_scopeId}><form class="price-action-form" data-v-08923f12${_scopeId}><button type="submit" class="accept-price-btn" data-v-08923f12${_scopeId}>Принять</button></form><button type="button" class="change-price-btn" data-v-08923f12${_scopeId}>Изменить</button></div>`);
 								else _push(`<!---->`);
-								_push(`</div><div class="message-time" data-v-372cda44${_scopeId}><span data-v-372cda44${_scopeId}>${ssrInterpolate(message.time)}</span>`);
+								_push(`</div><div class="message-time" data-v-08923f12${_scopeId}><span data-v-08923f12${_scopeId}>${ssrInterpolate(message.time)}</span>`);
 								if (getMessageStatus(message)) {
-									_push(`<span class="${ssrRenderClass([getMessageStatus(message), "message-status"])}" data-v-372cda44${_scopeId}>`);
-									if (getMessageStatus(message) === "sending") _push(`<img src="/images/loading.svg" alt="Отправляется" class="status-icon spinning" data-v-372cda44${_scopeId}>`);
-									else if (getMessageStatus(message) === "sent") _push(`<img src="/images/check-mark.svg" alt="Отправлено" class="status-icon" data-v-372cda44${_scopeId}>`);
+									_push(`<span class="${ssrRenderClass([getMessageStatus(message), "message-status"])}" data-v-08923f12${_scopeId}>`);
+									if (getMessageStatus(message) === "sending") _push(`<img src="/images/loading.svg" alt="Отправляется" class="status-icon spinning" data-v-08923f12${_scopeId}>`);
+									else if (getMessageStatus(message) === "sent") _push(`<img src="/images/check-mark.svg" alt="Отправлено" class="status-icon" data-v-08923f12${_scopeId}>`);
 									else if (getMessageStatus(message) === "read") _push(`<img src="/images/double-check.svg" alt="Прочитано" class="status-icon" style="${ssrRenderStyle({
 										"width": "16px",
 										"height": "16px"
-									})}" data-v-372cda44${_scopeId}>`);
-									else if (getMessageStatus(message) === "failed") _push(`<img src="/images/exclamation-circle.svg" alt="Не отправлено" class="status-icon" data-v-372cda44${_scopeId}>`);
+									})}" data-v-08923f12${_scopeId}>`);
+									else if (getMessageStatus(message) === "failed") _push(`<img src="/images/exclamation-circle.svg" alt="Не отправлено" class="status-icon" data-v-08923f12${_scopeId}>`);
 									else _push(`<!---->`);
 									_push(`</span>`);
 								} else _push(`<!---->`);
@@ -3463,50 +3463,50 @@ var _sfc_main$14 = {
 							});
 							_push(`</div>`);
 							if (showSkeleton.value) {
-								_push(`<div class="${ssrRenderClass([{ fading: isSkeletonFading.value }, "chat-skeleton"])}" data-v-372cda44${_scopeId}><!--[-->`);
+								_push(`<div class="${ssrRenderClass([{ fading: isSkeletonFading.value }, "chat-skeleton"])}" data-v-08923f12${_scopeId}><!--[-->`);
 								ssrRenderList(skeletonItems.value, (item, index) => {
-									_push(`<div class="${ssrRenderClass([{ right: item.side === "right" }, "skeleton-message"])}" data-v-372cda44${_scopeId}><div class="skeleton-avatar" data-v-372cda44${_scopeId}></div><div class="skeleton-bubble" data-v-372cda44${_scopeId}><div class="skeleton-line" style="${ssrRenderStyle({ width: item.lines[0] })}" data-v-372cda44${_scopeId}></div><div class="skeleton-line short" style="${ssrRenderStyle({ width: item.lines[1] })}" data-v-372cda44${_scopeId}></div>`);
-									if (item.hasThirdLine) _push(`<div class="skeleton-line tiny" style="${ssrRenderStyle({ width: item.lines[2] })}" data-v-372cda44${_scopeId}></div>`);
+									_push(`<div class="${ssrRenderClass([{ right: item.side === "right" }, "skeleton-message"])}" data-v-08923f12${_scopeId}><div class="skeleton-avatar" data-v-08923f12${_scopeId}></div><div class="skeleton-bubble" data-v-08923f12${_scopeId}><div class="skeleton-line" style="${ssrRenderStyle({ width: item.lines[0] })}" data-v-08923f12${_scopeId}></div><div class="skeleton-line short" style="${ssrRenderStyle({ width: item.lines[1] })}" data-v-08923f12${_scopeId}></div>`);
+									if (item.hasThirdLine) _push(`<div class="skeleton-line tiny" style="${ssrRenderStyle({ width: item.lines[2] })}" data-v-08923f12${_scopeId}></div>`);
 									else _push(`<!---->`);
 									_push(`</div></div>`);
 								});
 								_push(`<!--]--></div>`);
 							} else _push(`<!---->`);
-							_push(`</div></div><form class="message-form" enctype="multipart/form-data" data-v-372cda44${_scopeId}>`);
-							if (editingMessage.value) _push(`<div class="editing-indicator" data-v-372cda44${_scopeId}><span data-v-372cda44${_scopeId}>Редактирование сообщения</span><button type="button" class="cancel-edit-btn" data-v-372cda44${_scopeId}>✕</button></div>`);
+							_push(`</div></div><form class="message-form" enctype="multipart/form-data" data-v-08923f12${_scopeId}>`);
+							if (editingMessage.value) _push(`<div class="editing-indicator" data-v-08923f12${_scopeId}><span data-v-08923f12${_scopeId}>Редактирование сообщения</span><button type="button" class="cancel-edit-btn" data-v-08923f12${_scopeId}>✕</button></div>`);
 							else _push(`<!---->`);
-							_push(`<div class="message-input-container" data-v-372cda44${_scopeId}>`);
-							if (!editingMessage.value) _push(`<div class="add" data-v-372cda44${_scopeId}><img src="/images/clip.svg" alt="Добавить вложение" data-v-372cda44${_scopeId}><div class="add-select" data-v-372cda44${_scopeId}><label data-v-372cda44${_scopeId}> Фото <input type="file" name="photo" accept="image/*" data-v-372cda44${_scopeId}></label><label data-v-372cda44${_scopeId}> Видео <input type="file" name="video" accept="video/*" data-v-372cda44${_scopeId}></label><label data-v-372cda44${_scopeId}> Документ <input type="file" name="document" data-v-372cda44${_scopeId}></label></div></div>`);
+							_push(`<div class="message-input-container" data-v-08923f12${_scopeId}>`);
+							if (!editingMessage.value) _push(`<div class="add" data-v-08923f12${_scopeId}><img src="/images/clip.svg" alt="Добавить вложение" data-v-08923f12${_scopeId}><div class="add-select" data-v-08923f12${_scopeId}><label data-v-08923f12${_scopeId}> Фото <input type="file" name="photo" accept="image/*" data-v-08923f12${_scopeId}></label><label data-v-08923f12${_scopeId}> Видео <input type="file" name="video" accept="video/*" data-v-08923f12${_scopeId}></label><label data-v-08923f12${_scopeId}> Документ <input type="file" name="document" data-v-08923f12${_scopeId}></label></div></div>`);
 							else _push(`<!---->`);
-							_push(`<textarea${ssrRenderAttr("placeholder", editingMessage.value ? "Редактируйте сообщение..." : "Введите сообщение...")} data-v-372cda44${_scopeId}>${ssrInterpolate(unref(form).content)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(form).processing || !canSend.value) ? " disabled" : ""} data-v-372cda44${_scopeId}>${ssrInterpolate(editingMessage.value ? "Сохранить" : "Отправить")}</button></div>`);
+							_push(`<textarea${ssrRenderAttr("placeholder", editingMessage.value ? "Редактируйте сообщение..." : "Введите сообщение...")} data-v-08923f12${_scopeId}>${ssrInterpolate(unref(form).content)}</textarea><button type="submit"${ssrIncludeBooleanAttr(unref(form).processing || !canSend.value) ? " disabled" : ""} data-v-08923f12${_scopeId}>${ssrInterpolate(editingMessage.value ? "Сохранить" : "Отправить")}</button></div>`);
 							if (photoPreviewUrl.value || videoPreviewUrl.value || documentPreviewName.value) {
-								_push(`<div class="image-preview-container" style="${ssrRenderStyle({ "display": "flex" })}" data-v-372cda44${_scopeId}>`);
-								if (photoPreviewUrl.value) _push(`<img${ssrRenderAttr("src", photoPreviewUrl.value)} alt="Превью" class="image-preview" data-v-372cda44${_scopeId}>`);
+								_push(`<div class="image-preview-container" style="${ssrRenderStyle({ "display": "flex" })}" data-v-08923f12${_scopeId}>`);
+								if (photoPreviewUrl.value) _push(`<img${ssrRenderAttr("src", photoPreviewUrl.value)} alt="Превью" class="image-preview" data-v-08923f12${_scopeId}>`);
 								else _push(`<!---->`);
-								if (videoPreviewUrl.value) _push(`<video${ssrRenderAttr("src", videoPreviewUrl.value)} class="video-preview" controls data-v-372cda44${_scopeId}></video>`);
+								if (videoPreviewUrl.value) _push(`<video${ssrRenderAttr("src", videoPreviewUrl.value)} class="video-preview" controls data-v-08923f12${_scopeId}></video>`);
 								else _push(`<!---->`);
-								if (documentPreviewName.value) _push(`<div class="file-preview" data-v-372cda44${_scopeId}> 📎 ${ssrInterpolate(documentPreviewName.value)}</div>`);
+								if (documentPreviewName.value) _push(`<div class="file-preview" data-v-08923f12${_scopeId}> 📎 ${ssrInterpolate(documentPreviewName.value)}</div>`);
 								else _push(`<!---->`);
-								_push(`<div class="preview-actions" data-v-372cda44${_scopeId}><button type="button" class="select-other-btn" data-v-372cda44${_scopeId}> Выбрать другое </button>`);
-								if (!editingMessage.value) _push(`<button type="button" class="cancel-preview-btn" data-v-372cda44${_scopeId}> Отмена </button>`);
+								_push(`<div class="preview-actions" data-v-08923f12${_scopeId}><button type="button" class="select-other-btn" data-v-08923f12${_scopeId}> Выбрать другое </button>`);
+								if (!editingMessage.value) _push(`<button type="button" class="cancel-preview-btn" data-v-08923f12${_scopeId}> Отмена </button>`);
 								else _push(`<!---->`);
 								_push(`</div></div>`);
 							} else _push(`<!---->`);
 							_push(`</form><!--]-->`);
-						} else _push(`<div class="chat-placeholder" data-v-372cda44${_scopeId}><p data-v-372cda44${_scopeId}>Выберите чат для начала общения</p></div>`);
+						} else _push(`<div class="chat-placeholder" data-v-08923f12${_scopeId}><p data-v-08923f12${_scopeId}>Выберите чат для начала общения</p></div>`);
 						_push(`</div>`);
 						if (showChatFiles.value) {
-							_push(`<div class="chat-files-panel" data-v-372cda44${_scopeId}><div class="chat-files-header" data-v-372cda44${_scopeId}><h3 data-v-372cda44${_scopeId}>Файлы чата</h3><button type="button" class="chat-files-close" data-v-372cda44${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-372cda44${_scopeId}></button></div><div class="chat-files-tabs" data-v-372cda44${_scopeId}><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "media" }, "chat-files-tab"])}" data-v-372cda44${_scopeId}> Медиа </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "files" }, "chat-files-tab"])}" data-v-372cda44${_scopeId}> Файлы </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "links" }, "chat-files-tab"])}" data-v-372cda44${_scopeId}> Ссылки </button></div><div class="chat-files-content" data-v-372cda44${_scopeId}>`);
+							_push(`<div class="chat-files-panel" data-v-08923f12${_scopeId}><div class="chat-files-header" data-v-08923f12${_scopeId}><h3 data-v-08923f12${_scopeId}>Файлы чата</h3><button type="button" class="chat-files-close" data-v-08923f12${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-08923f12${_scopeId}></button></div><div class="chat-files-tabs" data-v-08923f12${_scopeId}><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "media" }, "chat-files-tab"])}" data-v-08923f12${_scopeId}> Медиа </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "files" }, "chat-files-tab"])}" data-v-08923f12${_scopeId}> Файлы </button><button type="button" class="${ssrRenderClass([{ active: chatFilesTab.value === "links" }, "chat-files-tab"])}" data-v-08923f12${_scopeId}> Ссылки </button></div><div class="chat-files-content" data-v-08923f12${_scopeId}>`);
 							if (chatFilesTab.value === "media") {
-								_push(`<div class="chat-files-media" data-v-372cda44${_scopeId}>`);
-								if (chatMediaFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-372cda44${_scopeId}> Нет медиафайлов </div>`);
+								_push(`<div class="chat-files-media" data-v-08923f12${_scopeId}>`);
+								if (chatMediaFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-08923f12${_scopeId}> Нет медиафайлов </div>`);
 								else {
-									_push(`<div class="chat-files-grid" data-v-372cda44${_scopeId}><!--[-->`);
+									_push(`<div class="chat-files-grid" data-v-08923f12${_scopeId}><!--[-->`);
 									ssrRenderList(chatMediaFiles.value, (media) => {
-										_push(`<div class="chat-files-media-item" data-v-372cda44${_scopeId}>`);
-										if (media.type === "image") _push(`<img${ssrRenderAttr("src", media.url)} alt="Медиа" data-v-372cda44${_scopeId}>`);
-										else _push(`<video${ssrRenderAttr("src", media.url)} data-v-372cda44${_scopeId}></video>`);
-										if (media.type === "video") _push(`<div class="play-icon" data-v-372cda44${_scopeId}>▶</div>`);
+										_push(`<div class="chat-files-media-item" data-v-08923f12${_scopeId}>`);
+										if (media.type === "image") _push(`<img${ssrRenderAttr("src", media.url)} alt="Медиа" data-v-08923f12${_scopeId}>`);
+										else _push(`<video${ssrRenderAttr("src", media.url)} data-v-08923f12${_scopeId}></video>`);
+										if (media.type === "video") _push(`<div class="play-icon" data-v-08923f12${_scopeId}>▶</div>`);
 										else _push(`<!---->`);
 										_push(`</div>`);
 									});
@@ -3515,24 +3515,24 @@ var _sfc_main$14 = {
 								_push(`</div>`);
 							} else _push(`<!---->`);
 							if (chatFilesTab.value === "files") {
-								_push(`<div class="chat-files-list" data-v-372cda44${_scopeId}>`);
-								if (chatDocFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-372cda44${_scopeId}> Нет файлов </div>`);
+								_push(`<div class="chat-files-list" data-v-08923f12${_scopeId}>`);
+								if (chatDocFiles.value.length === 0) _push(`<div class="chat-files-empty" data-v-08923f12${_scopeId}> Нет файлов </div>`);
 								else {
-									_push(`<div data-v-372cda44${_scopeId}><!--[-->`);
+									_push(`<div data-v-08923f12${_scopeId}><!--[-->`);
 									ssrRenderList(chatDocFiles.value, (file) => {
-										_push(`<div class="chat-files-item" data-v-372cda44${_scopeId}><button type="button" class="file-download-circle" data-v-372cda44${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-372cda44${_scopeId}></button><div class="file-info" data-v-372cda44${_scopeId}><div class="file-name" data-v-372cda44${_scopeId}>${ssrInterpolate(file.file_name)}</div><div class="file-size" data-v-372cda44${_scopeId}>${ssrInterpolate(formatSize(file.file_size))}</div></div></div>`);
+										_push(`<div class="chat-files-item" data-v-08923f12${_scopeId}><button type="button" class="file-download-circle" data-v-08923f12${_scopeId}><img src="/images/download.svg" alt="Скачать" data-v-08923f12${_scopeId}></button><div class="file-info" data-v-08923f12${_scopeId}><div class="file-name" data-v-08923f12${_scopeId}>${ssrInterpolate(file.file_name)}</div><div class="file-size" data-v-08923f12${_scopeId}>${ssrInterpolate(formatSize(file.file_size))}</div></div></div>`);
 									});
 									_push(`<!--]--></div>`);
 								}
 								_push(`</div>`);
 							} else _push(`<!---->`);
 							if (chatFilesTab.value === "links") {
-								_push(`<div class="chat-files-list" data-v-372cda44${_scopeId}>`);
-								if (chatLinks.value.length === 0) _push(`<div class="chat-files-empty" data-v-372cda44${_scopeId}> Нет ссылок </div>`);
+								_push(`<div class="chat-files-list" data-v-08923f12${_scopeId}>`);
+								if (chatLinks.value.length === 0) _push(`<div class="chat-files-empty" data-v-08923f12${_scopeId}> Нет ссылок </div>`);
 								else {
-									_push(`<div data-v-372cda44${_scopeId}><!--[-->`);
+									_push(`<div data-v-08923f12${_scopeId}><!--[-->`);
 									ssrRenderList(chatLinks.value, (link) => {
-										_push(`<div class="chat-files-link" data-v-372cda44${_scopeId}><span class="link-text" data-v-372cda44${_scopeId}>${ssrInterpolate(link.content)}</span><span class="link-time" data-v-372cda44${_scopeId}>${ssrInterpolate(link.time)}</span></div>`);
+										_push(`<div class="chat-files-link" data-v-08923f12${_scopeId}><span class="link-text" data-v-08923f12${_scopeId}>${ssrInterpolate(link.content)}</span><span class="link-time" data-v-08923f12${_scopeId}>${ssrInterpolate(link.time)}</span></div>`);
 									});
 									_push(`<!--]--></div>`);
 								}
@@ -3541,36 +3541,36 @@ var _sfc_main$14 = {
 							_push(`</div></div>`);
 						} else _push(`<!---->`);
 						_push(`</div>`);
-						if (modalOpen.value && modalImage.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-372cda44${_scopeId}><div class="modal-content" data-v-372cda44${_scopeId}><button class="modal-close" type="button" data-v-372cda44${_scopeId}> × </button><img${ssrRenderAttr("src", modalImage.value)} alt="Предпросмотр" data-v-372cda44${_scopeId}></div></div>`);
+						if (modalOpen.value && modalImage.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-08923f12${_scopeId}><div class="modal-content" data-v-08923f12${_scopeId}><button class="modal-close" type="button" data-v-08923f12${_scopeId}> × </button><img${ssrRenderAttr("src", modalImage.value)} alt="Предпросмотр" data-v-08923f12${_scopeId}></div></div>`);
 						else _push(`<!---->`);
-						if (modalOpen.value && modalVideo.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-372cda44${_scopeId}><div class="modal-content modal-video-content" data-v-372cda44${_scopeId}><button class="modal-close" type="button" data-v-372cda44${_scopeId}> × </button><video${ssrRenderAttr("src", modalVideo.value)} controls autoplay class="modal-video" data-v-372cda44${_scopeId}></video></div></div>`);
+						if (modalOpen.value && modalVideo.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-08923f12${_scopeId}><div class="modal-content modal-video-content" data-v-08923f12${_scopeId}><button class="modal-close" type="button" data-v-08923f12${_scopeId}> × </button><video${ssrRenderAttr("src", modalVideo.value)} controls autoplay class="modal-video" data-v-08923f12${_scopeId}></video></div></div>`);
 						else _push(`<!---->`);
 						if (contextMenu.value.show) {
 							_push(`<div class="context-menu" style="${ssrRenderStyle({
 								left: contextMenu.value.x + "px",
 								top: contextMenu.value.y + "px"
-							})}" data-v-372cda44${_scopeId}>`);
-							if (!contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-372cda44${_scopeId}> Ответить </div>`);
+							})}" data-v-08923f12${_scopeId}>`);
+							if (!contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-08923f12${_scopeId}> Ответить </div>`);
 							else _push(`<!---->`);
-							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-372cda44${_scopeId}> Редактировать </div>`);
+							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item" data-v-08923f12${_scopeId}> Редактировать </div>`);
 							else _push(`<!---->`);
-							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item delete" data-v-372cda44${_scopeId}> Удалить </div>`);
+							if (contextMenu.value.message?.is_mine) _push(`<div class="context-menu-item delete" data-v-08923f12${_scopeId}> Удалить </div>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						} else _push(`<!---->`);
 						if (selectedMessages.value.length > 0) {
-							_push(`<div class="selection-toolbar" data-v-372cda44${_scopeId}><span data-v-372cda44${_scopeId}>${ssrInterpolate(selectedMessages.value.length)} выбрано</span>`);
-							if (canDeleteSelected.value) _push(`<button type="button" class="selection-delete-btn" data-v-372cda44${_scopeId}> Удалить </button>`);
+							_push(`<div class="selection-toolbar" data-v-08923f12${_scopeId}><span data-v-08923f12${_scopeId}>${ssrInterpolate(selectedMessages.value.length)} выбрано</span>`);
+							if (canDeleteSelected.value) _push(`<button type="button" class="selection-delete-btn" data-v-08923f12${_scopeId}> Удалить </button>`);
 							else _push(`<!---->`);
-							_push(`<button type="button" class="selection-clear-btn" data-v-372cda44${_scopeId}> Отмена </button></div>`);
+							_push(`<button type="button" class="selection-clear-btn" data-v-08923f12${_scopeId}> Отмена </button></div>`);
 						} else _push(`<!---->`);
-						if (showPriceModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-372cda44${_scopeId}><div class="price-modal" data-v-372cda44${_scopeId}><div class="price-modal-header" data-v-372cda44${_scopeId}><h3 data-v-372cda44${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-372cda44${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-372cda44${_scopeId}></button></div><form data-v-372cda44${_scopeId}><div class="price-modal-body" data-v-372cda44${_scopeId}><label for="new-price" data-v-372cda44${_scopeId}>Новая цена (₽):</label><input id="new-price"${ssrRenderAttr("value", priceForm.value.proposed_price)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-372cda44${_scopeId}></div><div class="price-modal-footer" data-v-372cda44${_scopeId}><button type="button" class="cancel-btn" data-v-372cda44${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-372cda44${_scopeId}>Предложить</button></div></form></div></div>`);
+						if (showPriceModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-08923f12${_scopeId}><div class="price-modal" data-v-08923f12${_scopeId}><div class="price-modal-header" data-v-08923f12${_scopeId}><h3 data-v-08923f12${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-08923f12${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-08923f12${_scopeId}></button></div><form data-v-08923f12${_scopeId}><div class="price-modal-body" data-v-08923f12${_scopeId}><label for="new-price" data-v-08923f12${_scopeId}>Новая цена (₽):</label><input id="new-price"${ssrRenderAttr("value", priceForm.value.proposed_price)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-08923f12${_scopeId}></div><div class="price-modal-footer" data-v-08923f12${_scopeId}><button type="button" class="cancel-btn" data-v-08923f12${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-08923f12${_scopeId}>Предложить</button></div></form></div></div>`);
 						else _push(`<!---->`);
-						if (priceChangeModal.value.show) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-372cda44${_scopeId}><div class="price-modal" data-v-372cda44${_scopeId}><div class="price-modal-header" data-v-372cda44${_scopeId}><h3 data-v-372cda44${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-372cda44${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-372cda44${_scopeId}></button></div><form data-v-372cda44${_scopeId}><div class="price-modal-body" data-v-372cda44${_scopeId}><p class="price-modal-info" data-v-372cda44${_scopeId}>Текущее предложение: ${ssrInterpolate(priceChangeModal.value.message?.proposed_price)} ₽</p><label for="new-price-change" data-v-372cda44${_scopeId}>Новая цена (₽):</label><input id="new-price-change"${ssrRenderAttr("value", priceChangeModal.value.newPrice)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-372cda44${_scopeId}></div><div class="price-modal-footer" data-v-372cda44${_scopeId}><button type="button" class="cancel-btn" data-v-372cda44${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-372cda44${_scopeId}>Предложить</button></div></form></div></div>`);
+						if (priceChangeModal.value.show) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-08923f12${_scopeId}><div class="price-modal" data-v-08923f12${_scopeId}><div class="price-modal-header" data-v-08923f12${_scopeId}><h3 data-v-08923f12${_scopeId}>Предложить новую цену</h3><button type="button" class="modal-close" data-v-08923f12${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-08923f12${_scopeId}></button></div><form data-v-08923f12${_scopeId}><div class="price-modal-body" data-v-08923f12${_scopeId}><p class="price-modal-info" data-v-08923f12${_scopeId}>Текущее предложение: ${ssrInterpolate(priceChangeModal.value.message?.proposed_price)} ₽</p><label for="new-price-change" data-v-08923f12${_scopeId}>Новая цена (₽):</label><input id="new-price-change"${ssrRenderAttr("value", priceChangeModal.value.newPrice)} type="number" min="0" max="9999999999" placeholder="Введите сумму" required data-v-08923f12${_scopeId}></div><div class="price-modal-footer" data-v-08923f12${_scopeId}><button type="button" class="cancel-btn" data-v-08923f12${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-08923f12${_scopeId}>Предложить</button></div></form></div></div>`);
 						else _push(`<!---->`);
-						if (openDisputeModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-372cda44${_scopeId}><div class="price-modal" data-v-372cda44${_scopeId}><div class="price-modal-header" data-v-372cda44${_scopeId}><h3 data-v-372cda44${_scopeId}>Открыть спор</h3><button type="button" class="modal-close" data-v-372cda44${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-372cda44${_scopeId}></button></div><form data-v-372cda44${_scopeId}><div class="price-modal-body" data-v-372cda44${_scopeId}><label for="dispute-reason" data-v-372cda44${_scopeId}>Причина спора:</label><textarea id="dispute-reason" rows="5" minlength="10" maxlength="5000" placeholder="Опишите причину спора (минимум 10 символов)" required data-v-372cda44${_scopeId}>${ssrInterpolate(disputeForm.value.reason)}</textarea></div><div class="price-modal-footer" data-v-372cda44${_scopeId}><button type="button" class="cancel-btn" data-v-372cda44${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-372cda44${_scopeId}>Отправить</button></div></form></div></div>`);
+						if (openDisputeModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-08923f12${_scopeId}><div class="price-modal" data-v-08923f12${_scopeId}><div class="price-modal-header" data-v-08923f12${_scopeId}><h3 data-v-08923f12${_scopeId}>Открыть спор</h3><button type="button" class="modal-close" data-v-08923f12${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-08923f12${_scopeId}></button></div><form data-v-08923f12${_scopeId}><div class="price-modal-body" data-v-08923f12${_scopeId}><label for="dispute-reason" data-v-08923f12${_scopeId}>Причина спора:</label><textarea id="dispute-reason" rows="5" minlength="10" maxlength="5000" placeholder="Опишите причину спора (минимум 10 символов)" required data-v-08923f12${_scopeId}>${ssrInterpolate(disputeForm.value.reason)}</textarea></div><div class="price-modal-footer" data-v-08923f12${_scopeId}><button type="button" class="cancel-btn" data-v-08923f12${_scopeId}>Отмена</button><button type="submit" class="submit-btn" data-v-08923f12${_scopeId}>Отправить</button></div></form></div></div>`);
 						else _push(`<!---->`);
-						if (openCancelModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-372cda44${_scopeId}><div class="price-modal" data-v-372cda44${_scopeId}><div class="price-modal-header" data-v-372cda44${_scopeId}><h3 data-v-372cda44${_scopeId}>Отмена сделки</h3><button type="button" class="modal-close" data-v-372cda44${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-372cda44${_scopeId}></button></div><form data-v-372cda44${_scopeId}><div class="price-modal-body" data-v-372cda44${_scopeId}><label for="cancel-reason" data-v-372cda44${_scopeId}>Причина отмены:</label><textarea id="cancel-reason" rows="5" minlength="5" maxlength="5000" placeholder="Опишите причину отмены (минимум 5 символов)" required data-v-372cda44${_scopeId}>${ssrInterpolate(cancelForm.value.reason)}</textarea></div><div class="price-modal-footer" data-v-372cda44${_scopeId}><button type="button" class="cancel-btn" data-v-372cda44${_scopeId}>Назад</button><button type="submit" class="reject-btn" data-v-372cda44${_scopeId}>Подтвердить отмену</button></div></form></div></div>`);
+						if (openCancelModal.value) _push(`<div class="modal-overlay" style="${ssrRenderStyle({ "display": "flex" })}" data-v-08923f12${_scopeId}><div class="price-modal" data-v-08923f12${_scopeId}><div class="price-modal-header" data-v-08923f12${_scopeId}><h3 data-v-08923f12${_scopeId}>Отмена сделки</h3><button type="button" class="modal-close" data-v-08923f12${_scopeId}><img src="/images/close.svg" alt="Закрыть" data-v-08923f12${_scopeId}></button></div><form data-v-08923f12${_scopeId}><div class="price-modal-body" data-v-08923f12${_scopeId}><label for="cancel-reason" data-v-08923f12${_scopeId}>Причина отмены:</label><textarea id="cancel-reason" rows="5" minlength="5" maxlength="5000" placeholder="Опишите причину отмены (минимум 5 символов)" required data-v-08923f12${_scopeId}>${ssrInterpolate(cancelForm.value.reason)}</textarea></div><div class="price-modal-footer" data-v-08923f12${_scopeId}><button type="button" class="cancel-btn" data-v-08923f12${_scopeId}>Назад</button><button type="submit" class="reject-btn" data-v-08923f12${_scopeId}>Подтвердить отмену</button></div></form></div></div>`);
 						else _push(`<!---->`);
 					} else return [
 						createVNode(unref(Head), { title: "Чаты" }),
@@ -4406,7 +4406,7 @@ _sfc_main$14.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Chat/Chats.vue");
 	return _sfc_setup$14 ? _sfc_setup$14(props, ctx) : void 0;
 };
-var Chats_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$14, [["__scopeId", "data-v-372cda44"]]);
+var Chats_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$14, [["__scopeId", "data-v-08923f12"]]);
 //#endregion
 //#region resources/js/Pages/Disputes/Index.vue
 var Index_exports$1 = /* @__PURE__ */ __exportAll({ default: () => Index_default$1 });
@@ -4848,21 +4848,13 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: "Главная" }, null, _parent));
-			_push(`<div class="block1" data-v-e953aeaf><img${ssrRenderAttr("src", unref(isDark) ? "/images/nightEarth.png" : "/images/Earth.png")} alt="Earth" class="hero-image" data-v-e953aeaf><h1 class="hero-title" data-v-e953aeaf><span class="visket-text" data-v-e953aeaf> V<span class="letter-i"${ssrRenderAttr("title", unref(isDark) ? "переключить на светлую тему" : "переключить на темную тему")} data-v-e953aeaf> I <svg class="sun-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-v-e953aeaf><circle cx="12" cy="12" r="5" fill="currentColor" data-v-e953aeaf></circle><path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-v-e953aeaf></path></svg></span>SKET </span> — место, где работа находит работника<br data-v-e953aeaf>и наоборот. </h1></div><div class="block2" data-v-e953aeaf><button class="filter-toggle" data-v-e953aeaf> Фильтры <span data-v-e953aeaf>${ssrInterpolate(filtersVisible.value ? "▼" : "▶")}</span></button><div class="search-container" data-v-e953aeaf><input class="searchbar"${ssrRenderAttr("value", query.value)} type="text" placeholder="Поиск по постам" data-v-e953aeaf><div class="view-mode-toggle" data-v-e953aeaf><button class="${ssrRenderClass([{ active: viewMode.value === "grid" }, "view-mode-btn"])}" type="button" data-v-e953aeaf><img src="/images/grid-view.svg" alt="Сетка" data-v-e953aeaf></button><button class="${ssrRenderClass([{ active: viewMode.value === "list" }, "view-mode-btn"])}" type="button" data-v-e953aeaf><img src="/images/list-view.svg" alt="Список" data-v-e953aeaf></button></div></div></div><div class="${ssrRenderClass([{ filtersOpen: filtersVisible.value }, "content-wrapper"])}" data-v-e953aeaf><div class="filterscontainer" data-v-e953aeaf><div class="filters" data-v-e953aeaf><div class="filter-group" data-v-e953aeaf><label data-v-e953aeaf>Тип:</label><div class="type-selector" data-v-e953aeaf><button class="${ssrRenderClass({ active: typeFilter.value === "" })}" data-v-e953aeaf> Все </button><button class="${ssrRenderClass({ active: typeFilter.value === "vacancy" })}" data-v-e953aeaf> Вакансии </button><button class="${ssrRenderClass({ active: typeFilter.value === "post" })}" data-v-e953aeaf> Посты </button></div></div><div class="filter-group" data-v-e953aeaf><label data-v-e953aeaf>Навыки:</label>`);
+			_push(`<div class="block1" data-v-3678e9ff><img${ssrRenderAttr("src", unref(isDark) ? "/images/nightEarth.png" : "/images/Earth.png")} alt="Earth" class="hero-image" data-v-3678e9ff><h1 class="hero-title" data-v-3678e9ff><span class="visket-text" data-v-3678e9ff> V<span class="letter-i"${ssrRenderAttr("title", unref(isDark) ? "переключить на светлую тему" : "переключить на темную тему")} data-v-3678e9ff> I <svg class="sun-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-v-3678e9ff><circle cx="12" cy="12" r="5" fill="currentColor" data-v-3678e9ff></circle><path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-v-3678e9ff></path></svg></span>SKET </span> — место, где работа находит работника<br data-v-3678e9ff>и наоборот. </h1></div><div class="block2" data-v-3678e9ff><button class="filter-toggle" data-v-3678e9ff> Фильтры <span data-v-3678e9ff>${ssrInterpolate(filtersVisible.value ? "▼" : "▶")}</span></button><div class="search-container" data-v-3678e9ff><input class="searchbar"${ssrRenderAttr("value", query.value)} type="text" placeholder="Поиск по постам" data-v-3678e9ff><div class="view-mode-toggle" data-v-3678e9ff><button class="${ssrRenderClass([{ active: viewMode.value === "grid" }, "view-mode-btn"])}" type="button" data-v-3678e9ff><img src="/images/grid-view.svg" alt="Сетка" data-v-3678e9ff></button><button class="${ssrRenderClass([{ active: viewMode.value === "list" }, "view-mode-btn"])}" type="button" data-v-3678e9ff><img src="/images/list-view.svg" alt="Список" data-v-3678e9ff></button></div></div></div><div class="${ssrRenderClass([{ filtersOpen: filtersVisible.value }, "content-wrapper"])}" data-v-3678e9ff><div class="filterscontainer" data-v-3678e9ff><div class="filters" data-v-3678e9ff><div class="filter-group" data-v-3678e9ff><label data-v-3678e9ff>Тип:</label><div class="type-selector" data-v-3678e9ff><button class="${ssrRenderClass({ active: typeFilter.value === "" })}" data-v-3678e9ff> Все </button><button class="${ssrRenderClass({ active: typeFilter.value === "vacancy" })}" data-v-3678e9ff> Вакансии </button><button class="${ssrRenderClass({ active: typeFilter.value === "post" })}" data-v-3678e9ff> Посты </button></div></div><div class="filter-group" data-v-3678e9ff><label data-v-3678e9ff>Навыки:</label>`);
 			_push(ssrRenderComponent(SkillsSelector_default, {
 				modelValue: selectedSkills.value,
 				"onUpdate:modelValue": ($event) => selectedSkills.value = $event,
 				skills: __props.skills
 			}, null, _parent));
-			_push(`</div>`);
-			if (selectedSkills.value.length > 0) {
-				_push(`<div class="selected-skills" data-v-e953aeaf><!--[-->`);
-				ssrRenderList(selectedSkills.value, (skill) => {
-					_push(`<div class="${ssrRenderClass([unref(getSkillClass)(skill.name), "skill-tag"])}" data-v-e953aeaf><span class="skill-name" data-v-e953aeaf>${ssrInterpolate(skill.name)}</span><div class="skill-level" data-v-e953aeaf><label data-v-e953aeaf>Уровень:</label><select data-v-e953aeaf><option${ssrRenderAttr("value", 1)} data-v-e953aeaf${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 1) : ssrLooseEqual(skill.level, 1)) ? " selected" : ""}>1</option><option${ssrRenderAttr("value", 2)} data-v-e953aeaf${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 2) : ssrLooseEqual(skill.level, 2)) ? " selected" : ""}>2</option><option${ssrRenderAttr("value", 3)} data-v-e953aeaf${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 3) : ssrLooseEqual(skill.level, 3)) ? " selected" : ""}>3</option><option${ssrRenderAttr("value", 4)} data-v-e953aeaf${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 4) : ssrLooseEqual(skill.level, 4)) ? " selected" : ""}>4</option><option${ssrRenderAttr("value", 5)} data-v-e953aeaf${ssrIncludeBooleanAttr(Array.isArray(skill.level) ? ssrLooseContain(skill.level, 5) : ssrLooseEqual(skill.level, 5)) ? " selected" : ""}>5</option></select></div><button type="button" class="remove-skill" data-v-e953aeaf>×</button></div>`);
-				});
-				_push(`<!--]--></div>`);
-			} else _push(`<!---->`);
-			_push(`</div></div><div class="main-wrapper" data-v-e953aeaf><div class="tabs" data-v-e953aeaf><button class="${ssrRenderClass({ active: activeTab.value === "all" })}" data-v-e953aeaf> Все посты </button><button class="${ssrRenderClass({ active: activeTab.value === "foryou" })}" data-v-e953aeaf> Для вас </button></div><div class="${ssrRenderClass([{ "list-mode": viewMode.value === "list" }, "posts"])}" data-v-e953aeaf>`);
+			_push(`</div></div></div><div class="main-wrapper" data-v-3678e9ff><div class="tabs" data-v-3678e9ff><button class="${ssrRenderClass({ active: activeTab.value === "all" })}" data-v-3678e9ff> Все посты </button><button class="${ssrRenderClass({ active: activeTab.value === "foryou" })}" data-v-3678e9ff> Для вас </button></div><div class="${ssrRenderClass([{ "list-mode": viewMode.value === "list" }, "posts"])}" data-v-3678e9ff>`);
 			if (displayedPosts.value.length > 0) {
 				_push(`<!--[-->`);
 				ssrRenderList(displayedPosts.value, (post) => {
@@ -4875,7 +4867,7 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 			} else {
 				_push(`<!--[-->`);
 				if (activeTab.value === "foryou" && !authUser.value) {
-					_push(`<p class="empty-message" data-v-e953aeaf> Чтобы подобрать для вас лучшую работу — `);
+					_push(`<p class="empty-message" data-v-3678e9ff> Чтобы подобрать для вас лучшую работу — `);
 					_push(ssrRenderComponent(unref(Link), { href: "/login/" }, {
 						default: withCtx((_, _push, _parent, _scopeId) => {
 							if (_push) _push(`авторизуйтесь`);
@@ -4884,7 +4876,7 @@ var _sfc_main$11 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 						_: 1
 					}, _parent));
 					_push(`</p>`);
-				} else _push(`<p class="empty-message" data-v-e953aeaf>Пока ничего нет</p>`);
+				} else _push(`<p class="empty-message" data-v-3678e9ff>Пока ничего нет</p>`);
 				_push(`<!--]-->`);
 			}
 			_push(`</div></div></div><!--]-->`);
@@ -4897,7 +4889,7 @@ _sfc_main$11.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Home.vue");
 	return _sfc_setup$11 ? _sfc_setup$11(props, ctx) : void 0;
 };
-var Home_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$11, [["__scopeId", "data-v-e953aeaf"]]);
+var Home_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$11, [["__scopeId", "data-v-3678e9ff"]]);
 //#endregion
 //#region resources/js/Pages/Posts/Create.vue
 var Create_exports = /* @__PURE__ */ __exportAll({ default: () => Create_default });

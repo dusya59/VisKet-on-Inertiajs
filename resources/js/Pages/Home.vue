@@ -79,27 +79,7 @@
               :skills="skills"
             />
           </div>
-          <div class="selected-skills" v-if="selectedSkills.length > 0">
-            <div 
-              v-for="skill in selectedSkills" 
-              :key="skill.id" 
-              class="skill-tag"
-              :class="getSkillClass(skill.name)"
-            >
-              <span class="skill-name">{{ skill.name }}</span>
-              <div class="skill-level">
-                <label>Уровень:</label>
-                <select v-model="skill.level">
-                  <option :value="1">1</option>
-                  <option :value="2">2</option>
-                  <option :value="3">3</option>
-                  <option :value="4">4</option>
-                  <option :value="5">5</option>
-                </select>
-              </div>
-              <button type="button" class="remove-skill" @click="removeSkill(skill.id)">×</button>
-            </div>
-          </div>
+
         </div>
       </div>
       
@@ -143,7 +123,6 @@ import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import Post from '@/Components/Post.vue'
 import SkillsSelector from '@/Components/SkillsSelector.vue'
-import { getSkillClass } from '@/composables/useSkills'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
@@ -190,10 +169,6 @@ onMounted(() => {
     window.addEventListener('resize', syncFiltersHeight)
   })
 })
-
-const removeSkill = (skillId) => {
-  selectedSkills.value = selectedSkills.value.filter(s => s.id !== skillId)
-}
 
 const calculateMatchPercentage = (vacancySkills, userSkillsArr) => {
   if (!vacancySkills || vacancySkills.length === 0) return 0
@@ -777,7 +752,7 @@ html.dark .posts.list-mode :deep(#like) {
 .hero-title {
   position: absolute;
   margin: 0 0 0 65vw;
-  font-size: 30px;
+  font-size: 36px;
   line-height: 1.3;
   width: 500px;
   font-weight: 400;
@@ -800,8 +775,8 @@ html.dark .posts.list-mode :deep(#like) {
 
 .sun-svg {
   position: absolute;
-  top: -0.8em;
-  left: -80%;
+  top: -0.7em;
+  left: -90%;
   transform: translateX(-50%);
   width: 0.9em;
   height: 0.9em;
