@@ -1017,6 +1017,7 @@ header {
 .comments-section {
   background: white;
   border-radius: 24px;
+  padding: 28px;
 }
 
 .comment-form {
@@ -1245,10 +1246,6 @@ h3 {
 
   .comments-section-wrapper {
     margin: 0 20px 20px;
-  }
-
-  .comments-section {
-    padding: 28px;
   }
 }
 

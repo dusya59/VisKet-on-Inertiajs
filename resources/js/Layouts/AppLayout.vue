@@ -165,7 +165,8 @@ const mainClass = computed(() => {
     page.component === 'Profile/LikedPosts'||
     page.component === 'Auth/Auth.vue' ||
     page.component === 'Settings/Index' ||
-    page.component === 'Settings/Notifications'
+    page.component === 'Settings/Notifications' ||
+    page.component === 'Balance/Index'
   ) {
     return 'main-home'
   }

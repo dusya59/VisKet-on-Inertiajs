@@ -3,187 +3,262 @@
     <Head title="Баланс" />
 
     <div class="balance-page">
-      <div class="back-link">
-          <Link href="#" onclick="history.back(); return false;">
-            ← Назад
-          </Link>
-        </div>
-      <div class="balance-container">
-        <div v-if="pendingTransactions && pendingTransactions.length > 0" class="pending-section">
-          <h2>Ожидающие зачисления</h2>
-          <div class="transactions-list">
-            <div v-for="transaction in pendingTransactions" :key="transaction.id" class="transaction-item pending">
-              <div class="transaction-icon">⏳</div>
-              <div class="transaction-details">
-                <div class="transaction-type">
-                  {{ transaction.type === 'payment' ? 'Оплата за работу' : transaction.description }}
-                </div>
-                <div class="transaction-from" v-if="transaction.from_user">
-                  От: {{ transaction.from_user.name }}
-                </div>
-                <div class="transaction-vacancy" v-if="transaction.application?.vacancy">
-                  Вакансия: {{ transaction.application.vacancy.position }}
-                </div>
-                <div class="transaction-status">
-                  Ожидание: {{ getDaysRemaining(transaction) }} дн.
-                </div>
-              </div>
-              <div class="transaction-amount">+{{ Number(transaction.amount).toFixed(2) }} ₽</div>
+      <div class="main">
+        <!-- Top row: Funding + Analytics -->
+        <section class="top-row">
+          <!-- Funding card -->
+          <div class="card">
+            <h2 class="funding-card-title">{{ isWithdrawal ? 'Снятие средств' : 'Пополнение баланса' }}</h2>
+
+            <div class="balance-row">
+              <span class="balance-row-label">Текущий баланс:</span>
+              <span class="balance-row-amount">{{ Number(balance).toLocaleString('ru-RU') }} ₽</span>
             </div>
-          </div>
-        </div>
 
-        <div class="history-section">
-          <h1>История транзакций</h1>
-          
-          <div class="filter-tabs">
-            <button 
-              :class="{ active: filter === 'all' }"
-              @click="filter = 'all'"
-            >
-              Все
-            </button>
-            <button 
-              :class="{ active: filter === 'incoming' }"
-              @click="filter = 'incoming'"
-            >
-              Входящие
-            </button>
-            <button 
-              :class="{ active: filter === 'outgoing' }"
-              @click="filter = 'outgoing'"
-            >
-              Исходящие
-            </button>
-          </div>
-
-          <div class="transactions-list" v-if="filteredTransactions.length > 0">
-            <div 
-              v-for="transaction in filteredTransactions" 
-              :key="transaction.id" 
-              class="transaction-item"
-              :class="{
-                pending: transaction.status === 'pending',
-                cancelled: transaction.status === 'cancelled'
-              }"
-            >
-              <div class="transaction-icon">
-                {{ getTransactionIcon(transaction) }}
-              </div>
-              <div class="transaction-details">
-                <div class="transaction-type">
-                  {{ getTransactionType(transaction) }}
-                </div>
-                <div class="transaction-party" v-if="getTransactionParty(transaction)">
-                  {{ getTransactionParty(transaction) }}
-                </div>
-                <div class="transaction-date">
-                  {{ formatDate(transaction.created_at) }}
-                </div>
-              </div>
-              <div 
-                class="transaction-amount"
-                :class="{ 
-                  incoming: isIncoming(transaction),
-                  outgoing: isOutgoing(transaction)
-                }"
+            <div class="toggle-row">
+              <button
+                type="button"
+                class="toggle-btn"
+                :class="{ active: !isWithdrawal }"
+                @click="isWithdrawal = false"
               >
-                {{ isIncoming(transaction) ? '+' : '-' }}{{ Number(transaction.amount).toFixed(2) }} ₽
+                Пополнение
+              </button>
+              <button
+                type="button"
+                class="toggle-btn"
+                :class="{ active: isWithdrawal }"
+                :disabled="Number(balance) <= 0"
+                @click="isWithdrawal = true"
+              >
+                Снятие
+              </button>
+            </div>
+
+            <label class="input-label">{{ isWithdrawal ? 'Сумма снятия:' : 'Сумма пополнения:' }}</label>
+            <div class="input-wrapper">
+              <input
+                v-model="formattedAmount"
+                type="text"
+                inputmode="numeric"
+                placeholder="Введите сумму"
+              />
+              <span class="currency-suffix">₽</span>
+            </div>
+
+            <div class="quick-amounts">
+              <button
+                v-for="amount in (isWithdrawal ? withdrawalAmounts : quickAmounts)"
+                :key="amount"
+                type="button"
+                class="quick-amount-btn"
+                @click="setAmount(amount)"
+              >
+                {{ amount.toLocaleString('ru-RU') }} ₽
+              </button>
+            </div>
+
+            <button class="btn-cta" :disabled="form.processing" @click="submitBalance">
+              {{ form.processing ? (isWithdrawal ? 'Снятие...' : 'Пополнение...') : (isWithdrawal ? 'Вывести средства' : 'Пополнить баланс') }}
+            </button>
+          </div>
+
+          <!-- Analytics chart -->
+          <div class="card chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title">Аналитика</h2>
+              <div class="toggle-row">
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  :class="{ active: chartView === 'received' }"
+                  @click="chartView = 'received'"
+                >
+                  Получено
+                </button>
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  :class="{ active: chartView === 'spent' }"
+                  @click="chartView = 'spent'"
+                >
+                  Выведено
+                </button>
               </div>
             </div>
+            <div ref="chartWrapper" class="chart-wrapper">
+              <div class="chart-container">
+                <div class="y-axis">
+                  <span v-for="val in yAxisValues" :key="val">{{ val.toLocaleString('ru-RU') }}</span>
+                </div>
+                <div class="grid-lines">
+                  <div
+                    v-for="i in 5"
+                    :key="i"
+                    class="grid-line"
+                    :style="{ top: ((i - 1) * 20) + '%' }"
+                  />
+                </div>
+                <div ref="barsContainer" class="chart-bars">
+                  <div
+                    v-for="(val, i) in chartData"
+                    :key="i"
+                    class="bar-group"
+                  >
+                    <div
+                      class="bar"
+                      :class="chartView"
+                      :style="{ height: (val / chartMax * 100) + '%' }"
+                      @mouseenter="showTooltip($event, i, val)"
+                      @mouseleave="hideTooltip"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="x-axis">
+                <span v-for="(m, i) in months" :key="i">{{ m }}</span>
+              </div>
+              <div
+                class="chart-tooltip"
+                :class="{ visible: tooltip.visible }"
+                :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+                v-html="tooltip.text"
+              />
+            </div>
           </div>
-          <div v-else class="no-transactions">
-            Транзакций пока нет
+        </section>
+
+        <!-- Pending -->
+        <div v-if="pendingTransactions && pendingTransactions.length > 0" class="card pending-section">
+          <h2 class="funding-card-title">Ожидающие зачисления</h2>
+          <div class="tx-list">
+            <div v-for="tx in pendingTransactions" :key="tx.id" class="tx-item pending">
+              <div class="tx-top">
+                <span class="tx-amount positive">+{{ Number(tx.amount).toFixed(2) }} ₽</span>
+                <span class="tx-status pending">Ожидание</span>
+              </div>
+              <div class="tx-desc">
+                {{ tx.type === 'payment' ? 'Оплата за работу' : tx.description }}
+                <span v-if="tx.from_user"> — {{ tx.from_user.name }}</span>
+              </div>
+              <div class="tx-date">Осталось: {{ getDaysRemaining(tx) }} дн.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History -->
+        <section class="history-section card">
+          <div class="history-header">
+            <h2 class="history-title">История транзакций</h2>
+          </div>
+
+          <div class="history-tabs">
+            <button
+              class="history-tab"
+              :class="{ active: historyTab === 'received' }"
+              @click="historyTab = 'received'"
+            >
+              Получено
+            </button>
+            <button
+              class="history-tab"
+              :class="{ active: historyTab === 'sent' }"
+              @click="historyTab = 'sent'"
+            >
+              Отправлено
+            </button>
+            <button
+              class="history-tab"
+              :class="{ active: historyTab === 'withdrawn' }"
+              @click="historyTab = 'withdrawn'"
+            >
+              Вывод
+            </button>
+          </div>
+
+          <div class="history-columns">
+            <!-- Received -->
+            <div class="history-col" :class="{ active: historyTab === 'received' }">
+              <div class="history-column-title">
+                <span class="dot dot-received" />
+                Получено
+              </div>
+              <div class="tx-list">
+                <div v-for="tx in receivedTransactions" :key="tx.id" class="tx-item">
+                  <div class="tx-top">
+                    <span class="tx-amount positive">+{{ Number(tx.amount).toFixed(2) }} ₽</span>
+                    <span :class="['tx-status', tx.status]">
+                      {{ tx.status === 'completed' ? 'Завершён' : 'Ожидание' }}
+                    </span>
+                  </div>
+                  <div class="tx-desc">{{ getTransactionType(tx) }}</div>
+                  <div class="tx-date">{{ formatDate(tx.created_at) }}</div>
+                </div>
+                <div v-if="receivedTransactions.length === 0" class="tx-item empty">Нет транзакций</div>
+              </div>
+            </div>
+
+            <!-- Sent -->
+            <div class="history-col" :class="{ active: historyTab === 'sent' }">
+              <div class="history-column-title">
+                <span class="dot dot-sent" />
+                Отправлено
+              </div>
+              <div class="tx-list">
+                <div v-for="tx in sentTransactions" :key="tx.id" class="tx-item">
+                  <div class="tx-top">
+                    <span class="tx-amount negative">−{{ Number(tx.amount).toFixed(2) }} ₽</span>
+                    <span :class="['tx-status', tx.status]">
+                      {{ tx.status === 'completed' ? 'Завершён' : 'Ожидание' }}
+                    </span>
+                  </div>
+                  <div class="tx-desc">{{ getTransactionType(tx) }}</div>
+                  <div class="tx-date">{{ formatDate(tx.created_at) }}</div>
+                </div>
+                <div v-if="sentTransactions.length === 0" class="tx-item empty">Нет транзакций</div>
+              </div>
+            </div>
+
+            <!-- Withdrawn -->
+            <div class="history-col" :class="{ active: historyTab === 'withdrawn' }">
+              <div class="history-column-title">
+                <span class="dot dot-withdrawn" />
+                Вывод средств
+              </div>
+              <div class="tx-list">
+                <div v-for="tx in withdrawnTransactions" :key="tx.id" class="tx-item">
+                  <div class="tx-top">
+                    <span class="tx-amount withdrawn">−{{ Number(tx.amount).toFixed(2) }} ₽</span>
+                    <span :class="['tx-status', tx.status]">
+                      {{ tx.status === 'completed' ? 'Завершён' : 'Ожидание' }}
+                    </span>
+                  </div>
+                  <div class="tx-desc">{{ getTransactionType(tx) }}</div>
+                  <div class="tx-date">{{ formatDate(tx.created_at) }}</div>
+                </div>
+                <div v-if="withdrawnTransactions.length === 0" class="tx-item empty">Нет транзакций</div>
+              </div>
+            </div>
           </div>
 
           <div v-if="transactions && transactions.last_page > 1" class="pagination">
-            <button 
+            <button
               v-if="transactions.current_page > 1"
-              @click="loadPage(transactions.current_page - 1)"
               class="pagination-btn"
+              @click="loadPage(transactions.current_page - 1)"
             >
               ← Назад
             </button>
-            <span class="pagination-info">
-              Страница {{ transactions.current_page }} из {{ transactions.last_page }}
-            </span>
-            <button 
+            <span class="pagination-info">Страница {{ transactions.current_page }} из {{ transactions.last_page }}</span>
+            <button
               v-if="transactions.current_page < transactions.last_page"
-              @click="loadPage(transactions.current_page + 1)"
               class="pagination-btn"
+              @click="loadPage(transactions.current_page + 1)"
             >
               Вперёд →
             </button>
           </div>
-        </div>
-        <div class="balance-card">
-          <h1>{{ isWithdrawal ? 'Снятие средств' : 'Пополнение баланса' }}</h1>
-          
-          <div class="current-balance">
-            <span class="label">Текущий баланс:</span>
-            <span class="amount">{{ Number(balance) }} ₽</span>
-          </div>
-
-          <div class="type-toggle">
-            <button 
-              :class="{ active: !isWithdrawal }"
-              @click="isWithdrawal = false"
-            >
-              Пополнение
-            </button>
-            <button 
-              :class="{ active: isWithdrawal }"
-              @click="isWithdrawal = true"
-              :disabled="Number(balance) <= 0"
-            >
-              Снятие
-            </button>
-          </div>
-
-          <form @submit.prevent="submitBalance" class="balance-form">
-            <div class="form-group">
-              <label for="amount">{{ isWithdrawal ? 'Сумма снятия:' : 'Сумма пополнения:' }}</label>
-              <input 
-                type="number" 
-                name="amount" 
-                id="amount" 
-                v-model="form.amount"
-                :min="1"
-                :max="isWithdrawal ? Number(balance) : 100000"
-                required
-                placeholder="Введите сумму"
-              >
-            </div>
-
-            <div class="quick-amounts" v-if="!isWithdrawal">
-              <button 
-                type="button" 
-                v-for="amount in quickAmounts" 
-                :key="amount"
-                @click="form.amount = amount"
-                :class="{ active: form.amount === amount }"
-              >
-                {{ amount }} ₽
-              </button>
-            </div>
-
-            <div class="quick-amounts" v-else>
-              <button 
-                type="button" 
-                v-for="amount in withdrawalAmounts" 
-                :key="amount"
-                @click="form.amount = amount"
-                :class="{ active: form.amount === amount }"
-              >
-                {{ amount }} ₽
-              </button>
-            </div>
-
-            <button type="submit" class="btn-submit" :disabled="form.processing">
-              {{ form.processing ? (isWithdrawal ? 'Снятие...' : 'Пополнение...') : (isWithdrawal ? 'Снять средства' : 'Пополнить баланс') }}
-            </button>
-          </form>
-        </div>
+        </section>
       </div>
     </div>
   </AppLayout>
@@ -196,18 +271,9 @@ import { computed, ref } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
-  balance: {
-    type: [Number, String],
-    default: 0
-  },
-  pendingTransactions: {
-    type: Array,
-    default: () => []
-  },
-  transactions: {
-    type: Object,
-    default: () => ({ data: [], current_page: 1, last_page: 1 })
-  }
+  balance: { type: [Number, String], default: 0 },
+  pendingTransactions: { type: Array, default: () => [] },
+  transactions: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1 }) }
 })
 
 useDarkMode()
@@ -218,11 +284,24 @@ const authUser = computed(() => page.props.auth?.user || page.props.authUser || 
 const quickAmounts = [100, 300, 500, 1000, 3000, 5000]
 const withdrawalAmounts = [100, 300, 500, 1000, 3000, 5000]
 const isWithdrawal = ref(false)
-const filter = ref('all')
+const historyTab = ref('received')
 
-const form = useForm({
-  amount: ''
+const form = useForm({ amount: '' })
+const displayAmount = ref('')
+
+const formattedAmount = computed({
+  get: () => displayAmount.value,
+  set: (val) => {
+    const raw = val.replace(/[^\d]/g, '')
+    displayAmount.value = raw ? parseInt(raw, 10).toLocaleString('ru-RU') : ''
+    form.amount = raw
+  }
 })
+
+const setAmount = (amount) => {
+  displayAmount.value = amount.toLocaleString('ru-RU')
+  form.amount = String(amount)
+}
 
 const submitBalance = () => {
   const url = isWithdrawal.value ? '/balance/withdraw' : '/balance/add'
@@ -230,6 +309,7 @@ const submitBalance = () => {
     preserveScroll: true,
     onSuccess: () => {
       form.reset()
+      displayAmount.value = ''
     }
   })
 }
@@ -238,57 +318,34 @@ const getDaysRemaining = (transaction) => {
   if (!transaction.completed_at) return 7
   const completed = new Date(transaction.completed_at)
   const now = new Date()
-  const diffTime = completed - now
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffDays = Math.ceil((completed - now) / (1000 * 60 * 60 * 24))
   return Math.max(0, 7 - diffDays)
 }
 
-const filteredTransactions = computed(() => {
-  if (!props.transactions || !props.transactions.data) return []
-  
-  return props.transactions.data.filter(transaction => {
-    if (filter.value === 'all') return true
-    if (filter.value === 'incoming') return transaction.to_user_id === authUser.value?.id
-    if (filter.value === 'outgoing') return transaction.from_user_id === authUser.value?.id
-    return true
-  })
-})
+const isIncoming = (tx) => tx.to_user_id === authUser.value?.id
+const isOutgoing = (tx) => tx.from_user_id === authUser.value?.id
 
-const isIncoming = (transaction) => {
-  return transaction.to_user_id === authUser.value?.id
-}
+const allTransactions = computed(() => props.transactions?.data || [])
 
-const isOutgoing = (transaction) => {
-  return transaction.from_user_id === authUser.value?.id
-}
+const receivedTransactions = computed(() =>
+  allTransactions.value.filter(tx => isIncoming(tx) && tx.type !== 'withdrawal')
+)
 
-const getTransactionIcon = (transaction) => {
-  if (transaction.status === 'pending') return '⏳'
-  if (transaction.status === 'cancelled') return '❌'
-  if (transaction.type === 'deposit') return '💰'
-  if (transaction.type === 'withdrawal') return '💸'
-  if (transaction.type === 'payment') return '💳'
-  return '💱'
-}
+const sentTransactions = computed(() =>
+  allTransactions.value.filter(tx => isOutgoing(tx) && tx.type !== 'withdrawal')
+)
 
-const getTransactionType = (transaction) => {
-  if (transaction.status === 'pending') return 'Ожидание зачисления'
-  if (transaction.status === 'cancelled') return 'Отменено'
-  if (transaction.type === 'deposit') return 'Пополнение баланса'
-  if (transaction.type === 'withdrawal') return 'Снятие средств'
-  if (transaction.type === 'payment') return transaction.description || 'Оплата'
-  return transaction.description || 'Перевод'
-}
+const withdrawnTransactions = computed(() =>
+  allTransactions.value.filter(tx => tx.type === 'withdrawal')
+)
 
-const getTransactionParty = (transaction) => {
-  if (transaction.type === 'deposit' || transaction.type === 'withdrawal') return null
-  if (isIncoming(transaction) && transaction.from_user) {
-    return `От: ${transaction.from_user.name}`
-  }
-  if (isOutgoing(transaction) && transaction.to_user) {
-    return `Кому: ${transaction.to_user.name}`
-  }
-  return null
+const getTransactionType = (tx) => {
+  if (tx.status === 'pending') return 'Ожидание зачисления'
+  if (tx.status === 'cancelled') return 'Отменено'
+  if (tx.type === 'deposit') return 'Пополнение баланса'
+  if (tx.type === 'withdrawal') return 'Снятие средств'
+  if (tx.type === 'payment') return tx.description || 'Оплата'
+  return tx.description || 'Перевод'
 }
 
 const formatDate = (dateString) => {
@@ -305,302 +362,474 @@ const formatDate = (dateString) => {
 const loadPage = (pageNum) => {
   window.location.href = `/balance?page=${pageNum}`
 }
+
+/* Chart */
+const chartView = ref('received')
+const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+
+const chartData = computed(() => {
+  const data = new Array(12).fill(0)
+  allTransactions.value.forEach(tx => {
+    const d = new Date(tx.created_at)
+    const month = d.getMonth()
+    if (chartView.value === 'received') {
+      if (isIncoming(tx) && tx.type !== 'withdrawal') data[month] += Number(tx.amount)
+    } else {
+      if (isOutgoing(tx) || tx.type === 'withdrawal') data[month] += Number(tx.amount)
+    }
+  })
+  return data
+})
+
+const chartMax = computed(() => {
+  const max = Math.max(...chartData.value, 1)
+  return Math.ceil(max / 5000) * 5000
+})
+
+const yAxisValues = computed(() => {
+  const step = chartMax.value / 5
+  return [5, 4, 3, 2, 1, 0].map(i => Math.round(step * i))
+})
+
+const tooltip = ref({ visible: false, x: 0, y: 0, text: '' })
+const barsContainer = ref(null)
+const chartWrapper = ref(null)
+
+const showTooltip = (event, i, val) => {
+  const bar = event.target
+  const wrapper = chartWrapper.value
+  if (!wrapper) return
+  const rect = bar.getBoundingClientRect()
+  const wrapperRect = wrapper.getBoundingClientRect()
+  tooltip.value = {
+    visible: true,
+    x: rect.left - wrapperRect.left + rect.width / 2,
+    y: rect.top - wrapperRect.top - 48,
+    text: `${months[i]}: <strong>${val.toLocaleString('ru-RU')} ₽</strong>`
+  }
+}
+
+const hideTooltip = () => {
+  tooltip.value.visible = false
+}
 </script>
 
 <style scoped>
 .balance-page {
+  font-family: var(--font-body);
+  line-height: 1.5;
   min-height: 100vh;
 }
 
-.balance-container {
-  display: flex;
-  flex-direction: row;
-  gap: 30px;
-  width: 1200px;
+.main {
+  width: 80%;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 40px 0 80px;
 }
 
-.back-link {
-  margin-bottom: 30px;
+.card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+  transition: box-shadow var(--transition);
+}
+.card:hover { box-shadow: var(--shadow-lg); }
+
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
-.back-link a {
-  color: #666;
-  text-decoration: none;
-  font-size: 16px;
-  transition: color 0.2s;
+.funding-card-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
 }
 
-.back-link a:hover {
-  color: rgb(255, 52, 52);
-}
-
-.balance-card {
-  background: white;
-  border-radius: 24px;
-  border: 2px solid rgb(182, 182, 182);
-  padding: 40px;
-  margin-bottom: 30px;
-  width: 500px;
-  height: min-content;
-}
-
-.balance-container h1 {
-  font-size: 28px;
-  margin-bottom: 30px;
-  color: #333;
-}
-
-.type-toggle {
+.balance-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
+  align-items: center;
+  justify-content: space-between;
+  background: oklch(96% 0.005 250);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin-bottom: 24px;
 }
-
-.type-toggle button {
-  flex: 1;
-  padding: 12px 20px;
-  border: 2px solid rgb(182, 182, 182);
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  font-size: 16px;
+.balance-row-label {
+  font-size: 15px;
+  color: var(--muted);
   font-weight: 500;
-  transition: all 0.2s;
+}
+.balance-row-amount {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
 }
 
-.type-toggle button:hover:not(:disabled) {
-  border-color: rgb(255, 52, 52);
+.toggle-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
 }
-
-.type-toggle button.active {
-  background: rgb(255, 52, 52);
-  border-color: rgb(255, 52, 52);
+.toggle-btn {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+}
+.toggle-btn.active {
+  background: var(--accent);
   color: white;
+  border-color: var(--accent);
 }
-
-.type-toggle button:disabled {
+.toggle-btn:hover:not(.active):not(:disabled) {
+  border-color: var(--muted);
+}
+.toggle-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.current-balance {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 12px;
-  margin-bottom: 30px;
-}
-
-.current-balance .label {
-  font-size: 16px;
-  color: #666;
-}
-
-.current-balance .amount {
-  font-size: 24px;
+.input-label {
+  font-size: 14px;
   font-weight: 600;
-  color: rgb(255, 52, 52);
+  color: var(--fg);
+  margin-bottom: 8px;
+  display: block;
 }
-
-.balance-form .form-group {
+.input-wrapper {
+  position: relative;
   margin-bottom: 20px;
 }
-
-.balance-form label {
-  display: block;
-  margin-bottom: 8px;
-  color: #333;
-  font-weight: 500;
-}
-
-.balance-form input[type="number"] {
+.input-wrapper input {
   width: 100%;
-  padding: 12px;
-  border: 1px solid rgb(182, 182, 182);
-  border-radius: 5px;
+  font-family: var(--font-body);
   font-size: 16px;
+  padding: 14px 60px 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition);
+  background: var(--surface);
+  color: var(--fg);
+}
+.input-wrapper input:focus {
+  border-color: var(--accent);
+}
+.input-wrapper input::placeholder {
+  color: var(--muted);
+}
+.currency-suffix {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .quick-amounts {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
-
-.quick-amounts button {
-  padding: 10px 20px;
-  border: 1px solid rgb(182, 182, 182);
-  border-radius: 5px;
-  background: white;
-  cursor: pointer;
+.quick-amount-btn {
+  font-family: var(--font-body);
   font-size: 14px;
-  transition: all 0.2s;
-}
-
-.quick-amounts button:hover {
-  border-color: rgb(255, 52, 52);
-  color: rgb(255, 52, 52);
-}
-
-.quick-amounts button.active {
-  background: rgb(255, 52, 52);
-  border-color: rgb(255, 52, 52);
-  color: white;
-}
-
-.btn-submit {
-  width: 100%;
-  background-color: rgb(255, 52, 52);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 14px 24px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--fg);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all var(--transition);
+}
+.quick-amount-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.quick-amount-btn:active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.btn-cta {
+  font-family: var(--font-body);
   font-size: 16px;
+  font-weight: 700;
+  padding: 14px 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+  background: var(--accent);
+  color: white;
+}
+.btn-cta:hover:not(:disabled) { background: var(--accent-deep); }
+.btn-cta:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Chart */
+.chart-card { display: flex; flex-direction: column; }
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.chart-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.chart-wrapper { position: relative; }
+.chart-container {
+  position: relative;
+  height: 280px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0 0 40px 60px;
+}
+.y-axis {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 40px;
+  width: 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.y-axis span {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.grid-lines {
+  position: absolute;
+  left: 60px;
+  right: 0;
+  top: 0;
+  bottom: 40px;
+  pointer-events: none;
+}
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex: 1;
+  height: 100%;
+  position: relative;
+}
+.bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  height: 100%;
+  justify-content: flex-end;
+}
+.bar {
+  width: 100%;
+  max-width: 48px;
+  border-radius: 4px 4px 0 0;
+  transition: opacity var(--transition);
+  cursor: pointer;
+  position: relative;
+}
+.bar:hover { opacity: 0.8; }
+.bar.received { background: var(--success); }
+.bar.spent { background: var(--accent); }
+.x-axis {
+  display: flex;
+  gap: 8px;
+  padding-left: 60px;
+  margin-top: 8px;
+}
+.x-axis span {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
   font-weight: 500;
 }
-
-.btn-submit:hover {
-  background-color: rgb(230, 45, 45);
+.chart-tooltip {
+  position: absolute;
+  background: var(--fg);
+  color: white;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.chart-tooltip.visible { opacity: 1; }
+.chart-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--fg);
 }
 
-.btn-submit:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.pending-section,
-.history-section {
-  background: white;
-  border-radius: 24px;
-  border: 2px solid rgb(182, 182, 182);
-  padding: 30px;
-  margin-bottom: 30px;
-  min-width: 500px;
-}
-
-.pending-section h2,
-.history-section h2 {
-  font-size: 20px;
+/* History */
+.history-section { margin-bottom: 32px; }
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
-  color: #333;
 }
+.history-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.history-tabs {
+  display: none;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+.history-tab {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.history-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.history-tab:hover:not(.active) { color: var(--fg); }
 
-.transactions-list {
+.history-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.history-column-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot-received { background: var(--success); }
+.dot-sent { background: var(--info); }
+.dot-withdrawn { background: var(--accent); }
+
+.tx-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
-.transaction-item {
+.tx-item {
+  padding: 14px 16px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: box-shadow var(--transition);
+}
+.tx-item:hover { box-shadow: var(--shadow-card); }
+.tx-item.empty {
+  text-align: center;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+.tx-top {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-}
-
-.transaction-item.pending {
-  background: #fef3c7;
-  border-color: #fbbf24;
-}
-
-.transaction-item.cancelled {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  opacity: 0.7;
-}
-
-.transaction-icon {
-  font-size: 24px;
-  width: 40px;
-  text-align: center;
-}
-
-.transaction-details {
-  flex: 1;
-}
-
-.transaction-type {
-  font-weight: 500;
-  color: #333;
+  justify-content: space-between;
   margin-bottom: 4px;
 }
-
-.transaction-from,
-.transaction-party,
-.transaction-vacancy {
+.tx-amount {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tx-amount.positive { color: var(--success); }
+.tx-amount.negative { color: var(--fg); }
+.tx-amount.withdrawn { color: var(--accent); }
+.tx-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+.tx-desc {
   font-size: 13px;
-  color: #666;
+  color: var(--muted);
 }
-
-.transaction-date {
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
-}
-
-.transaction-status {
-  font-size: 12px;
-  color: #d97706;
-  font-weight: 500;
-  margin-top: 4px;
-}
-
-.transaction-amount {
-  font-size: 18px;
+.tx-status {
+  font-size: 11px;
   font-weight: 600;
-  color: #333;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
+.tx-status.completed { background: var(--success-bg); color: var(--success); }
+.tx-status.pending { background: oklch(95% 0.04 80); color: oklch(75% 0.16 80); }
 
-.transaction-amount.incoming {
-  color: #22c55e;
-}
+.pending-section { margin-bottom: 32px; }
 
-.transaction-amount.outgoing {
-  color: #ef4444;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.filter-tabs button {
-  padding: 8px 16px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.filter-tabs button:hover {
-  border-color: rgb(255, 52, 52);
-}
-
-.filter-tabs button.active {
-  background: rgb(255, 52, 52);
-  border-color: rgb(255, 52, 52);
-  color: white;
-}
-
-.no-transactions {
-  text-align: center;
-  padding: 40px;
-  color: #999;
-  font-size: 16px;
-}
-
+/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -608,158 +837,109 @@ const loadPage = (pageNum) => {
   gap: 15px;
   margin-top: 20px;
 }
-
 .pagination-btn {
+  font-family: var(--font-body);
   padding: 8px 16px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  font-weight: 500;
+  color: var(--fg);
+  transition: all var(--transition);
 }
-
 .pagination-btn:hover {
-  border-color: rgb(255, 52, 52);
-  color: rgb(255, 52, 52);
+  border-color: var(--accent);
+  color: var(--accent);
 }
-
 .pagination-info {
   font-size: 14px;
-  color: #666;
+  color: var(--muted);
 }
 
-html.dark .back-link a {
-  color: #94a3b8;
+/* Responsive */
+@media (max-width: 1000px) {
+  .main { width: 92%; padding: 24px 0 60px; }
+  .top-row { grid-template-columns: 1fr; }
+  .history-columns { grid-template-columns: 1fr; }
+  .history-col { display: none; }
+  .history-col.active { display: block; }
+  .history-tabs { display: flex; }
+  .chart-container { height: 220px; }
 }
 
-html.dark .balance-card {
+@media (max-width: 768px) {
+  .card { padding: 20px; }
+  .chart-bars { gap: 4px; }
+  .x-axis { gap: 4px; }
+  .x-axis span { font-size: 11px; }
+}
+
+@media (max-width: 480px) {
+  .main { width: 96%; }
+  .funding-card-title { font-size: 20px; }
+  .balance-row-amount { font-size: 18px; }
+  .toggle-btn { padding: 8px 16px; font-size: 14px; }
+  .quick-amounts { gap: 8px; }
+  .quick-amount-btn { padding: 6px 12px; font-size: 13px; }
+}
+
+</style>
+
+<style>
+:root {
+  --bg: oklch(97.5% 0.003 250);
+  --surface: oklch(100% 0 0);
+  --fg: oklch(28% 0.025 260);
+  --muted: oklch(55% 0.02 250);
+  --border: oklch(90% 0.008 250);
+  --accent: oklch(62% 0.22 25);
+  --accent-deep: oklch(55% 0.20 25);
+  --success: oklch(72% 0.18 145);
+  --success-bg: oklch(95% 0.04 145);
+  --info: oklch(55% 0.20 250);
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body: 'Montserrat', system-ui, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --radius-pill: 40px;
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 20px rgba(0,0,0,0.1);
+  --transition: 0.2s ease;
+}
+
+html.dark {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --fg: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #334155;
+  --accent: #f87171;
+  --accent-deep: #ef4444;
+  --success: #4ade80;
+  --success-bg: #14532d;
+  --info: #60a5fa;
+}
+
+html.dark .card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+html.dark .balance-row {
   background: #1e293b;
-  border-color: #334155;
 }
-
-html.dark .balance-container h1 {
-  color: #f1f5f9;
+html.dark .input-wrapper input {
+  background: var(--surface);
+  color: var(--fg);
 }
-
-html.dark .type-toggle button {
-  border-color: #334155;
-  background: #1e293b;
-  color: #f1f5f9;
-}
-
-html.dark .current-balance {
+html.dark .tx-item {
   background: #0f172a;
+  border-color: var(--border);
 }
-
-html.dark .current-balance .label {
-  color: #94a3b8;
-}
-
-html.dark .balance-form label {
-  color: #f1f5f9;
-}
-
-html.dark .balance-form input[type="number"] {
-  background: #1e293b;
-  border-color: #334155;
-  color: #f1f5f9;
-}
-
-html.dark .quick-amounts button {
-  border-color: #334155;
-  background: #1e293b;
-  color: #f1f5f9;
-}
-
-html.dark .btn-submit:disabled {
-  background-color: #475569;
-}
-
-html.dark .pending-section,
-html.dark .history-section {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-html.dark .pending-section h2,
-html.dark .history-section h2 {
-  color: #f1f5f9;
-}
-
-html.dark .transaction-item {
-  background: #0f172a;
-  border-color: #334155;
-}
-
-html.dark .transaction-item.pending {
+html.dark .tx-status.pending {
   background: #451a03;
-  border-color: #92400e;
-}
-
-html.dark .transaction-item.cancelled {
-  background: #450a0a;
-  border-color: #b91c1c;
-}
-
-html.dark .transaction-type {
-  color: #f1f5f9;
-}
-
-html.dark .transaction-from,
-html.dark .transaction-party,
-html.dark .transaction-vacancy {
-  color: #94a3b8;
-}
-
-html.dark .transaction-date {
-  color: #94a3b8;
-}
-
-html.dark .transaction-status {
   color: #fbbf24;
-}
-
-html.dark .transaction-amount {
-  color: #f1f5f9;
-}
-
-html.dark .filter-tabs button {
-  border-color: #334155;
-  background: #1e293b;
-  color: #f1f5f9;
-}
-
-html.dark .no-transactions {
-  color: #94a3b8;
-}
-
-html.dark .pagination-btn {
-  border-color: #334155;
-  background: #1e293b;
-}
-
-html.dark .pagination-info {
-  color: #94a3b8;
-}
-
-@media(max-width: 1000px) {
-  .balance-page {
-    padding: 150px 20px 50px;
-  }
-
-  .balance-card,
-  .pending-section,
-  .history-section {
-    padding: 25px;
-  }
-
-  .balance-card h1 {
-    font-size: 24px;
-  }
-
-  .current-balance .amount {
-    font-size: 20px;
-  }
 }
 </style>

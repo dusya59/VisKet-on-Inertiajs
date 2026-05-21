@@ -13,6 +13,7 @@ class Message extends Model
         'image_path',
         'video_path',
         'file_path',
+        'original_file_name',
         'is_system',
         'is_price_proposal',
         'proposed_price',

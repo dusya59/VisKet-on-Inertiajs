@@ -104,12 +104,22 @@
 
                   <div class="form-row">
                     <div class="form-group">
-                      <label for="requirements">Требования</label>
+                      <div class="label-row">
+                        <label for="requirements">Требования</label>
+                        <span 
+                          class="char-counter"
+                          :class="{ 'limit-reached': isRequirementsLimitReached }"
+                        >
+                          {{ requirementsLength }}/{{ MAX_REQUIREMENTS }}
+                        </span>
+                      </div>
                       <textarea 
                         v-model="form.requirements"
                         id="requirements"
                         placeholder="Опишите требования к исполнителю..."
                         rows="4"
+                        :maxlength="MAX_REQUIREMENTS"
+                        :class="{ 'limit-reached': isRequirementsLimitReached }"
                       ></textarea>
                     </div>
                   </div>
@@ -164,7 +174,7 @@ const fileInputRef = ref(null)
 const imagePreview = ref(props.post.image_url)
 const isDragging = ref(false)
 
-const isVacancy = computed(() => props.post.vacancy !== null)
+const MAX_REQUIREMENTS = 1000
 
 const form = useForm({
   title: props.post.title,
@@ -178,6 +188,12 @@ const form = useForm({
   skills: [],
   _method: 'PUT'
 })
+
+const isVacancy = computed(() => props.post.vacancy !== null)
+
+const requirementsLength = computed(() => (form.requirements || '').length)
+
+const isRequirementsLimitReached = computed(() => requirementsLength.value >= MAX_REQUIREMENTS)
 
 onMounted(() => {
   if (props.post.vacancy && props.post.vacancy.skills) {
@@ -571,10 +587,31 @@ form {
   gap: 6px;
 }
 
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .form-group label {
   font-size: 14px;
   font-weight: 600;
   color: #334155;
+}
+
+.char-counter {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.char-counter.limit-reached {
+  color: #ef4444;
+}
+
+.form-group textarea.limit-reached {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .form-group input,
@@ -655,5 +692,18 @@ html.dark .form-group textarea {
   background: #0f172a;
   border-color: #334155;
   color: #f1f5f9;
+}
+
+html.dark .char-counter {
+  color: #64748b;
+}
+
+html.dark .char-counter.limit-reached {
+  color: #f87171;
+}
+
+html.dark .form-group textarea.limit-reached {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
 }
 </style>

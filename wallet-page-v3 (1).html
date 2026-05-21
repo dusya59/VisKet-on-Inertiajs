@@ -1,0 +1,890 @@
+
+<!doctype html>
+<html lang="ru">
+<head><script>(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VisKet — Кошелёк</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       oklch(97.5% 0.003 250);
+    --surface:  oklch(100% 0 0);
+    --fg:       oklch(28% 0.025 260);
+    --muted:    oklch(55% 0.02 250);
+    --border:   oklch(90% 0.008 250);
+    --accent:   oklch(62% 0.22 25);
+    --accent-deep: oklch(55% 0.20 25);
+    --success:  oklch(72% 0.18 145);
+    --success-bg: oklch(95% 0.04 145);
+    --info:     oklch(55% 0.20 250);
+
+    --font-display: 'Unbounded', system-ui, sans-serif;
+    --font-body:    'Montserrat', system-ui, sans-serif;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 24px;
+    --radius-pill: 40px;
+
+    --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.1);
+
+    --transition: 0.2s ease;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 50px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-logo {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .header-logo .vis { color: var(--accent); }
+  .header-logo .ket { color: var(--fg); }
+  .header-nav {
+    margin-left: 48px;
+    display: flex;
+    gap: 24px;
+  }
+  .header-nav a {
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color var(--transition);
+    font-weight: 500;
+  }
+  .header-nav a:hover { color: var(--fg); }
+  .header-nav a.active { color: var(--accent); }
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header-balance {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* Main */
+  .main {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 0 80px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 32px;
+    transition: box-shadow var(--transition);
+  }
+  .card:hover { box-shadow: var(--shadow-lg); }
+
+  /* Top row: Funding card + Analytics side by side */
+  .top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  /* Funding card — matches reference image */
+  .funding-card-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .balance-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: oklch(96% 0.005 250);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .balance-row-label {
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .balance-row-amount {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Toggle buttons — filled / outlined style from reference */
+  .toggle-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .toggle-btn {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition);
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--fg);
+  }
+  .toggle-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .toggle-btn:hover:not(.active) {
+    border-color: var(--muted);
+  }
+
+  /* Input */
+  .input-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .input-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .input-wrapper input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 16px;
+    padding: 14px 60px 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color var(--transition);
+    background: var(--surface);
+    color: var(--fg);
+  }
+  .input-wrapper input:focus {
+    border-color: var(--accent);
+  }
+  .input-wrapper input::placeholder {
+    color: var(--muted);
+  }
+  .input-wrapper .currency-suffix {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  /* Quick amount pills */
+  .quick-amounts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .quick-amount-btn {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--fg);
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .quick-amount-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .quick-amount-btn:active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* CTA button */
+  .btn-cta {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    width: 100%;
+    background: var(--accent);
+    color: white;
+  }
+  .btn-cta:hover { background: var(--accent-deep); }
+
+  /* Chart section */
+  .chart-card { display: flex; flex-direction: column; }
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .chart-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .chart-container {
+    position: relative;
+    height: 280px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 0 0 40px 60px;
+  }
+
+  .y-axis {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 40px;
+    width: 55px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .y-axis span {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .grid-lines {
+    position: absolute;
+    left: 60px;
+    right: 0;
+    top: 0;
+    bottom: 40px;
+    pointer-events: none;
+  }
+  .grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex: 1;
+    height: 100%;
+    position: relative;
+  }
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar {
+    width: 100%;
+    max-width: 48px;
+    border-radius: 4px 4px 0 0;
+    transition: opacity var(--transition);
+    cursor: pointer;
+    position: relative;
+  }
+  .bar:hover { opacity: 0.8; }
+  .bar.received { background: var(--success); }
+  .bar.spent { background: var(--accent); }
+
+  .x-axis {
+    display: flex;
+    gap: 8px;
+    padding-left: 60px;
+    margin-top: 8px;
+  }
+  .x-axis span {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .chart-tooltip {
+    position: absolute;
+    background: var(--fg);
+    color: white;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+  .chart-tooltip.visible { opacity: 1; }
+  .chart-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--fg);
+  }
+
+  /* Transaction history */
+  .history-section { margin-bottom: 32px; }
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .history-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .history-tabs {
+    display: none;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .history-tab {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all var(--transition);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+  }
+  .history-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .history-tab:hover:not(.active) { color: var(--fg); }
+
+  .history-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .history-column-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .history-column-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .dot-received { background: var(--success); }
+  .dot-sent { background: var(--info); }
+  .dot-withdrawn { background: var(--accent); }
+
+  .tx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tx-item {
+    padding: 14px 16px;
+    background: var(--bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    transition: box-shadow var(--transition);
+  }
+  .tx-item:hover { box-shadow: var(--shadow-card); }
+  .tx-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .tx-amount {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .tx-amount.positive { color: var(--success); }
+  .tx-amount.negative { color: var(--fg); }
+  .tx-amount.withdrawn { color: var(--accent); }
+  .tx-date {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .tx-desc {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .tx-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .tx-status.completed { background: var(--success-bg); color: var(--success); }
+  .tx-status.pending { background: oklch(95% 0.04 80); color: oklch(75% 0.16 80); }
+
+  /* Responsive */
+  @media (max-width: 1000px) {
+    .header { padding: 0 20px; }
+    .header-nav { display: none; }
+    .main { width: 92%; padding: 24px 0 60px; }
+    .top-row { grid-template-columns: 1fr; }
+
+    .history-columns {
+      grid-template-columns: 1fr;
+    }
+    .history-col[data-type] { display: none; }
+    .history-col[data-type].active { display: block; }
+    .history-tabs { display: flex; }
+
+    .chart-container { height: 220px; }
+  }
+
+  @media (max-width: 768px) {
+    .header { height: 60px; }
+    .header-logo { font-size: 22px; }
+    .card { padding: 20px; }
+    .chart-bars { gap: 4px; }
+    .x-axis { gap: 4px; }
+    .x-axis span { font-size: 11px; }
+  }
+
+  @media (max-width: 480px) {
+    .main { width: 96%; }
+    .funding-card-title { font-size: 20px; }
+    .balance-row-amount { font-size: 18px; }
+    .toggle-btn { padding: 8px 16px; font-size: 14px; }
+    .quick-amounts { gap: 8px; }
+    .quick-amount-btn { padding: 6px 12px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="#" class="header-logo"><span class="vis">vis</span><span class="ket">Ket</span></a>
+  <nav class="header-nav">
+    <a href="#">Задания</a>
+    <a href="#">Чат</a>
+    <a href="#" class="active">Кошелёк</a>
+    <a href="#">Профиль</a>
+  </nav>
+  <div class="header-right">
+    <span class="header-balance">12 450 ₽</span>
+    <div class="header-avatar">АК</div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- Top row: Funding card + Analytics side by side -->
+  <section class="top-row">
+
+    <!-- Funding card — matches reference image -->
+    <div class="card" data-od-id="funding">
+      <h2 class="funding-card-title">Пополнение баланса</h2>
+
+      <div class="balance-row">
+        <span class="balance-row-label">Текущий баланс:</span>
+        <span class="balance-row-amount">12 450 ₽</span>
+      </div>
+
+      <div class="toggle-row" id="actionToggle">
+        <button class="toggle-btn active" data-action="deposit">Пополнение</button>
+        <button class="toggle-btn" data-action="withdraw">Снятие</button>
+      </div>
+
+      <label class="input-label" id="inputLabel">Сумма пополнения:</label>
+      <div class="input-wrapper">
+        <input type="text" id="amountInput" placeholder="Введите сумму" inputmode="numeric">
+        <span class="currency-suffix">₽</span>
+      </div>
+
+      <div class="quick-amounts" id="quickAmounts">
+        <button class="quick-amount-btn" data-amount="100">100 ₽</button>
+        <button class="quick-amount-btn" data-amount="300">300 ₽</button>
+        <button class="quick-amount-btn" data-amount="500">500 ₽</button>
+        <button class="quick-amount-btn" data-amount="1000">1000 ₽</button>
+        <button class="quick-amount-btn" data-amount="3000">3000 ₽</button>
+        <button class="quick-amount-btn" data-amount="5000">5000 ₽</button>
+      </div>
+
+      <button class="btn-cta" id="actionBtn">Пополнить баланс</button>
+    </div>
+
+    <!-- Analytics chart -->
+    <div class="card chart-card" data-od-id="analytics">
+      <div class="chart-header">
+        <h2 class="chart-title">Аналитика</h2>
+        <div class="toggle-row" id="chartToggle">
+          <button class="toggle-btn active" data-view="received">Получено</button>
+          <button class="toggle-btn" data-view="spent">Выведено</button>
+        </div>
+      </div>
+      <div style="position: relative;">
+        <div class="chart-container">
+          <div class="y-axis">
+            <span>50 000</span>
+            <span>40 000</span>
+            <span>30 000</span>
+            <span>20 000</span>
+            <span>10 000</span>
+            <span>0</span>
+          </div>
+          <div class="grid-lines">
+            <div class="grid-line" style="top: 0%"></div>
+            <div class="grid-line" style="top: 20%"></div>
+            <div class="grid-line" style="top: 40%"></div>
+            <div class="grid-line" style="top: 60%"></div>
+            <div class="grid-line" style="top: 80%"></div>
+          </div>
+          <div class="chart-bars" id="chartBars"></div>
+        </div>
+        <div class="x-axis" id="xAxis"></div>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Transaction history — wrapped in card -->
+  <section class="history-section card" data-od-id="history">
+    <div class="history-header">
+      <h2 class="history-title">История транзакций</h2>
+    </div>
+
+    <div class="history-tabs" id="historyTabs">
+      <button class="history-tab active" data-tab="received">Получено</button>
+      <button class="history-tab" data-tab="sent">Отправлено</button>
+      <button class="history-tab" data-tab="withdrawn">Вывод</button>
+    </div>
+
+    <div class="history-columns">
+      <!-- Received -->
+      <div class="history-col" data-type="received">
+        <div class="history-column-title"><span class="dot dot-received"></span>Получено</div>
+        <div class="tx-list">
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount positive">+8 500 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">Разработка лендинга — клиент @ivanov</div>
+            <div class="tx-date">28 апр 2026, 14:32</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount positive">+3 200 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">Дизайн баннера — клиент @petrova</div>
+            <div class="tx-date">25 апр 2026, 09:15</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount positive">+15 000 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">Верстка интернет-магазина — клиент @shop_ru</div>
+            <div class="tx-date">20 апр 2026, 18:47</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount positive">+4 800 ₽</span>
+              <span class="tx-status pending">Ожидание</span>
+            </div>
+            <div class="tx-desc">Копирайтинг — клиент @content_studio</div>
+            <div class="tx-date">18 апр 2026, 11:20</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent -->
+      <div class="history-col" data-type="sent">
+        <div class="history-column-title"><span class="dot dot-sent"></span>Отправлено</div>
+        <div class="tx-list">
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount negative">−2 000 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">Оплата за макет — фрилансер @designer_m</div>
+            <div class="tx-date">27 апр 2026, 16:10</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount negative">−5 500 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">Backend API — разработчик @coder_x</div>
+            <div class="tx-date">22 апр 2026, 12:45</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount negative">−1 200 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">Перевод текста — переводчик @translate_pro</div>
+            <div class="tx-date">15 апр 2026, 08:30</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdrawn -->
+      <div class="history-col" data-type="withdrawn">
+        <div class="history-column-title"><span class="dot dot-withdrawn"></span>Вывод средств</div>
+        <div class="tx-list">
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount withdrawn">−10 000 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">На карту ••4521</div>
+            <div class="tx-date">26 апр 2026, 20:00</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount withdrawn">−7 300 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">На карту ••4521</div>
+            <div class="tx-date">14 апр 2026, 10:22</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-top">
+              <span class="tx-amount withdrawn">−20 000 ₽</span>
+              <span class="tx-status completed">Завершён</span>
+            </div>
+            <div class="tx-desc">На карту ••4521</div>
+            <div class="tx-date">1 апр 2026, 15:55</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const actionToggle = document.getElementById('actionToggle');
+  const actionBtn = document.getElementById('actionBtn');
+  const inputLabel = document.getElementById('inputLabel');
+  const amountInput = document.getElementById('amountInput');
+
+  actionToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn) return;
+    actionToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const action = btn.dataset.action;
+    if (action === 'deposit') {
+      actionBtn.textContent = 'Пополнить баланс';
+      inputLabel.textContent = 'Сумма пополнения:';
+    } else {
+      actionBtn.textContent = 'Вывести средства';
+      inputLabel.textContent = 'Сумма вывода:';
+    }
+  });
+
+  const quickAmounts = document.getElementById('quickAmounts');
+  quickAmounts.addEventListener('click', (e) => {
+    const btn = e.target.closest('.quick-amount-btn');
+    if (!btn) return;
+    amountInput.value = parseInt(btn.dataset.amount, 10).toLocaleString('ru-RU');
+  });
+
+  const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+  const receivedData = [18000, 24000, 15000, 32000, 28000, 35000, 22000, 30000, 40000, 25000, 19000, 31000];
+  const spentData = [12000, 8000, 10000, 15000, 20000, 18000, 14000, 12000, 22000, 16000, 9000, 17000];
+  const maxVal = 50000;
+
+  let currentView = 'received';
+
+  function renderChart(view) {
+    const data = view === 'received' ? receivedData : spentData;
+    const barsEl = document.getElementById('chartBars');
+    const xAxisEl = document.getElementById('xAxis');
+    const tooltip = document.getElementById('chartTooltip');
+
+    barsEl.innerHTML = '';
+    xAxisEl.innerHTML = '';
+
+    data.forEach((val, i) => {
+      const pct = (val / maxVal) * 100;
+      const group = document.createElement('div');
+      group.className = 'bar-group';
+
+      const bar = document.createElement('div');
+      bar.className = `bar ${view}`;
+      bar.style.height = `${pct}%`;
+      bar.dataset.month = months[i];
+      bar.dataset.value = val.toLocaleString('ru-RU');
+
+      bar.addEventListener('mouseenter', (e) => {
+        tooltip.innerHTML = `${months[i]}: <strong>${val.toLocaleString('ru-RU')} ₽</strong>`;
+        const rect = bar.getBoundingClientRect();
+        const containerRect = barsEl.getBoundingClientRect();
+        tooltip.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+        tooltip.style.top = `${rect.top - containerRect.top - 48}px`;
+        tooltip.classList.add('visible');
+      });
+      bar.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+      });
+
+      group.appendChild(bar);
+      barsEl.appendChild(group);
+
+      const label = document.createElement('span');
+      label.textContent = months[i];
+      xAxisEl.appendChild(label);
+    });
+  }
+
+  const chartToggle = document.getElementById('chartToggle');
+  chartToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn) return;
+    chartToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentView = btn.dataset.view;
+    renderChart(currentView);
+  });
+
+  renderChart('received');
+
+  const historyTabs = document.getElementById('historyTabs');
+  const historyCols = document.querySelectorAll('.history-col');
+
+  historyTabs.addEventListener('click', (e) => {
+    const tab = e.target.closest('.history-tab');
+    if (!tab) return;
+    historyTabs.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const type = tab.dataset.tab;
+    historyCols.forEach(col => {
+      col.classList.toggle('active', col.dataset.type === type);
+    });
+  });
+
+  historyCols.forEach(col => {
+    if (col.dataset.type === 'received') col.classList.add('active');
+  });
+
+  amountInput.addEventListener('input', (e) => {
+    let val = e.target.value.replace(/[^\d]/g, '');
+    if (val) {
+      val = parseInt(val, 10).toLocaleString('ru-RU');
+    }
+    e.target.value = val;
+  });
+</script>
+
+</body>
+</html>

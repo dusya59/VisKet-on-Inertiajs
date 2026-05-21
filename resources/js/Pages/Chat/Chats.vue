@@ -100,9 +100,9 @@
               <span v-if="vacancyPostId" class="vacancy-link">
                 {{ isVacancyAuthor ? 'откликнулся на' : 'автор вакансии' }}
               </span>
-              <Link :href="`/posts/${vacancyPostId}`"><h2>{{ vacancyPosition }}</h2></Link>
+              <Link :href="`/posts/${vacancyPostId}`" class="vacancy-position"><h2>{{ vacancyPosition }}</h2></Link>
             </div>
-            <img class="chat-options" src="/images/dots.svg" alt="опции" @click.stop="toggleOptionsMenu">
+            <img class="chat-options" src="/images/dots.svg" alt="опции" @click.stop="toggleOptionsMenu($event)">
           </div>
 
           <div v-if="isSearching && !isGlobalSearch && activeChat" class="search-navigation">
@@ -118,7 +118,7 @@
           <div
             v-if="optionsMenu.show"
             class="options-menu"
-            :style="{ right: optionsMenu.x + 'px', top: optionsMenu.y+ 70 + 'px' }"
+            :style="{ right: optionsMenu.x + 'px', top: optionsMenu.y + 'px' }"
           >
             <div class="options-menu-item" @click="handleChatFiles">Файлы чата</div>
             <div class="options-menu-item" @click="handleAddParticipant">Добавить участника в чат</div>
@@ -375,6 +375,35 @@
               <span>Редактирование сообщения</span>
               <button type="button" class="cancel-edit-btn" @click="cancelEdit">✕</button>
             </div>
+            <div
+              v-if="photoPreviewUrl || videoPreviewUrl || documentPreviewName"
+              class="image-preview-container"
+              style="display: flex"
+            >
+              <img
+                v-if="photoPreviewUrl"
+                :src="photoPreviewUrl"
+                alt="Превью"
+                class="image-preview"
+              />
+              <video
+                v-if="videoPreviewUrl"
+                :src="videoPreviewUrl"
+                class="video-preview"
+                controls
+              ></video>
+              <div v-if="documentPreviewName" class="file-preview">
+                📎 {{ documentPreviewName }}
+              </div>
+              <div class="preview-actions">
+                <button type="button" class="select-other-btn" @click="selectOtherFile">
+                  Выбрать другое
+                </button>
+                <button v-if="!editingMessage" type="button" class="cancel-preview-btn" @click="cancelPreview">
+                  Отмена
+                </button>
+              </div>
+            </div>
             <div class="message-input-container">
               <div class="add" v-if="!editingMessage">
                 <img src="/images/clip.svg" alt="Добавить вложение" />
@@ -404,36 +433,6 @@
               <button type="submit" :disabled="form.processing || !canSend">
                 {{ editingMessage ? 'Сохранить' : 'Отправить' }}
               </button>
-            </div>
-
-            <div
-              v-if="photoPreviewUrl || videoPreviewUrl || documentPreviewName"
-              class="image-preview-container"
-              style="display: flex"
-            >
-              <img
-                v-if="photoPreviewUrl"
-                :src="photoPreviewUrl"
-                alt="Превью"
-                class="image-preview"
-              />
-              <video
-                v-if="videoPreviewUrl"
-                :src="videoPreviewUrl"
-                class="video-preview"
-                controls
-              ></video>
-              <div v-if="documentPreviewName" class="file-preview">
-                📎 {{ documentPreviewName }}
-              </div>
-              <div class="preview-actions">
-                <button type="button" class="select-other-btn" @click="selectOtherFile">
-                  Выбрать другое
-                </button>
-                <button v-if="!editingMessage" type="button" class="cancel-preview-btn" @click="cancelPreview">
-                  Отмена
-                </button>
-              </div>
             </div>
           </form>
         </template>
@@ -731,7 +730,8 @@ const form = useForm({
   content: '',
   photo: null,
   video: null,
-  document: null
+  document: null,
+  file_name: null
 })
 
 function toLocalPath(url) {
@@ -1201,7 +1201,7 @@ const autoResize = () => {
 const isMobile = () => window.innerWidth <= 1000
 
 const resetForm = () => {
-  form.reset('content', 'photo', 'video', 'document')
+  form.reset('content', 'photo', 'video', 'document', 'file_name')
   photoPreviewUrl.value = null
   videoPreviewUrl.value = null
   documentPreviewName.value = null
@@ -1493,6 +1493,7 @@ const selectOtherFile = () => {
 
       if (file.type.startsWith('image/')) {
         form.photo = file
+        form.file_name = null
         const reader = new FileReader()
         reader.onload = (e) => {
           photoPreviewUrl.value = e.target.result
@@ -1502,6 +1503,7 @@ const selectOtherFile = () => {
         reader.readAsDataURL(file)
       } else if (file.type.startsWith('video/')) {
         form.video = file
+        form.file_name = null
         const reader = new FileReader()
         reader.onload = (e) => {
           videoPreviewUrl.value = e.target.result
@@ -1511,6 +1513,7 @@ const selectOtherFile = () => {
         reader.readAsDataURL(file)
       } else {
         form.document = file
+        form.file_name = file.name
         documentPreviewName.value = file.name
         photoPreviewUrl.value = null
         videoPreviewUrl.value = null
@@ -1518,6 +1521,45 @@ const selectOtherFile = () => {
     }
   }
   input.click()
+}
+
+const onPhotoChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    form.photo = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      photoPreviewUrl.value = e.target.result
+      videoPreviewUrl.value = null
+      documentPreviewName.value = null
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const onVideoChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    form.video = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      videoPreviewUrl.value = e.target.result
+      photoPreviewUrl.value = null
+      documentPreviewName.value = null
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const onDocumentChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    form.document = file
+    form.file_name = file.name
+    documentPreviewName.value = file.name
+    photoPreviewUrl.value = null
+    videoPreviewUrl.value = null
+  }
 }
 
 const persistDownloaded = () => {
@@ -1571,6 +1613,7 @@ const sendMessage = () => {
       created_at: new Date().toISOString(),
       image_url: photoPreviewUrl.value,
       video_url: videoPreviewUrl.value,
+      file_name: documentPreviewName.value,
       _status: 'sending'
     })
 
@@ -1738,7 +1781,10 @@ const deleteSelectedMessages = async () => {
   })
 }
 
-const toggleOptionsMenu = () => {
+const toggleOptionsMenu = (event) => {
+  const rect = event.target.getBoundingClientRect()
+  optionsMenu.value.x = Math.max(10, window.innerWidth - rect.right)
+  optionsMenu.value.y = rect.bottom + 5
   optionsMenu.value.show = !optionsMenu.value.show
 }
 
@@ -1906,8 +1952,8 @@ onMounted(async () => {
       broadcaster: 'reverb',
       key: import.meta.env.VITE_REVERB_APP_KEY,
       wsHost: import.meta.env.VITE_REVERB_HOST,
-      wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
-      wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
+      wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8081),
+      wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8081),
       forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
       enabledTransports: ['ws'], 
     })
@@ -2343,14 +2389,17 @@ watch(() => props.activeChat?.messages, (msgs) => {
   justify-content: flex-end;
   align-items: center;
   gap: 15px;
+  padding: 0 15px;
+  min-width: 0;
 }
 .chat-header-user{
-  
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 15px;
+  min-width: 0;
+  overflow: hidden;
 }
 .vacancy-link{
   height: 25px;
@@ -2362,9 +2411,21 @@ watch(() => props.activeChat?.messages, (msgs) => {
   color: black;
 }
 
+.chat-header h2{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .vacancy-link {
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
+  min-width: 0;
+}
+
+.vacancy-position {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .vacancy-link a {
@@ -2384,10 +2445,6 @@ watch(() => props.activeChat?.messages, (msgs) => {
 
 .user-status.online {
   color: #22c55e;
-}
-
-.chat-area.active {
-    height: 93vh;
 }
 
 .chat-messages {
@@ -2828,7 +2885,6 @@ watch(() => props.activeChat?.messages, (msgs) => {
 
 .preview-actions {
     display: flex;
-    flex-direction: column;
     gap: 5px;
     margin-left: 10px;
 }
@@ -3326,6 +3382,22 @@ watch(() => props.activeChat?.messages, (msgs) => {
     .add-select label {
         padding: 12px;
         font-size: 14px;
+    }
+
+    html.dark .chat-area {
+        background: #0f172a;
+    }
+
+    html.dark .chat-header {
+        background: #0f172a;
+    }
+
+    html.dark .application-block {
+        background: #0f172a;
+    }
+
+    .avatar-wrapper {
+        display: none;
     }
 }
 
@@ -3953,6 +4025,9 @@ html.dark .chat-preview.unread {
 
 html.dark .chat-header {
   border-bottom-color: #334155;
+  color: #f1f5f9;
+  font-size: 0.9rem;
+  background: #0f172a;
 }
 
 html.dark .chat-header a {
@@ -4052,6 +4127,7 @@ html.dark .editing-indicator {
 
 html.dark .application-block {
   border-bottom-color: #334155;
+  color: #f1f5f9;
 }
 
 html.dark .application-toggle-btn {
@@ -4237,5 +4313,16 @@ html.dark .status-badge.completed {
 html.dark .status-badge.cancelled {
   background: #334155;
   color: #94a3b8;
+}
+</style>
+
+<style>
+html.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+html.dark * {
+  scrollbar-color: #888 #0f172a;
+  scrollbar-width: thin;
 }
 </style>

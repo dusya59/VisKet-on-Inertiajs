@@ -146,7 +146,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { getSkillClass } from '@/composables/useSkills'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
-import { computed, ref, onMounted, nextTick } from 'vue';
+import { computed, ref, onMounted, nextTick, watch } from 'vue';
 import Post from '@/Components/Post.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 
@@ -177,12 +177,8 @@ const isExpanded = ref(false);
 const expandedHeight = ref('15em');
 
 const checkTextHeight = () => {
-  if (aboutmeText.value) {
-    const lineHeight = parseFloat(getComputedStyle(aboutmeText.value).lineHeight);
-    const textHeight = aboutmeText.value.scrollHeight;
-    const maxHeight = lineHeight * 15;
-    
-    showExpandButton.value = textHeight > maxHeight;
+  if (aboutmeContent.value) {
+    showExpandButton.value = aboutmeContent.value.scrollHeight > aboutmeContent.value.clientHeight;
   }
 };
 
@@ -196,6 +192,12 @@ const toggleExpand = () => {
 };
 
 onMounted(() => {
+  nextTick(() => {
+    checkTextHeight();
+  });
+});
+
+watch(() => props.user.aboutme, () => {
   nextTick(() => {
     checkTextHeight();
   });
@@ -408,9 +410,10 @@ const toggleSubscription = () => {
     max-height: 15em; 
     transition: all .5s ease;
 }
-.aboutme-content p{
+.aboutme-content p {
     word-wrap: break-word;
     overflow-wrap: break-word;
+    white-space: pre-wrap;
 }
 
 .aboutme h1 {
@@ -641,7 +644,6 @@ h2 {
 }
 
 .user-skills {
-    margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #e2e8f0;
 }

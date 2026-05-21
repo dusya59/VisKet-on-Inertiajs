@@ -214,7 +214,7 @@ class ChatController extends Controller
                     'image_url' => $m->image_path ? asset('storage/'.$m->image_path) : null,
                     'video_url' => $m->video_path ? asset('storage/'.$m->video_path) : null,
                     'file_url' => $m->file_path ? asset('storage/'.$m->file_path) : null,
-                    'file_name' => $m->file_path ? basename($m->file_path) : null,
+                    'file_name' => $m->original_file_name ?? ($m->file_path ? basename($m->file_path) : null),
                     'file_size' => $m->file_path ? Storage::disk('public')->size($m->file_path) : null,
                     'is_system' => $m->is_system,
                     'is_price_proposal' => $m->is_price_proposal,
@@ -269,6 +269,7 @@ class ChatController extends Controller
         $imagePath = null;
         $videoPath = null;
         $filePath = null;
+        $originalFileName = null;
 
         if ($request->hasFile('photo')) {
             $imagePath = $request->file('photo')->store('chat-photos', 'public');
@@ -276,6 +277,7 @@ class ChatController extends Controller
             $videoPath = $request->file('video')->store('chat-videos', 'public');
         } elseif ($request->hasFile('document')) {
             $filePath = $request->file('document')->store('chat-files', 'public');
+            $originalFileName = $request->input('file_name') ?? $request->file('document')->getClientOriginalName();
         }
 
         $message = Message::create([
@@ -285,6 +287,7 @@ class ChatController extends Controller
             'image_path' => $imagePath,
             'video_path' => $videoPath,
             'file_path' => $filePath,
+            'original_file_name' => $originalFileName,
         ]);
 
         $chat->touch();
@@ -334,6 +337,7 @@ class ChatController extends Controller
         $imagePath = $message->image_path;
         $videoPath = $message->video_path;
         $filePath = $message->file_path;
+        $originalFileName = $message->original_file_name;
 
         if ($request->hasFile('photo')) {
             if ($message->image_path && Storage::disk('public')->exists($message->image_path)) {
@@ -346,6 +350,7 @@ class ChatController extends Controller
             if ($message->file_path && Storage::disk('public')->exists($message->file_path)) {
                 Storage::disk('public')->delete($message->file_path);
                 $filePath = null;
+                $originalFileName = null;
             }
             $imagePath = $request->file('photo')->store('chat-photos', 'public');
         } elseif ($request->hasFile('video')) {
@@ -359,6 +364,7 @@ class ChatController extends Controller
             if ($message->file_path && Storage::disk('public')->exists($message->file_path)) {
                 Storage::disk('public')->delete($message->file_path);
                 $filePath = null;
+                $originalFileName = null;
             }
             $videoPath = $request->file('video')->store('chat-videos', 'public');
         } elseif ($request->hasFile('document')) {
@@ -374,6 +380,7 @@ class ChatController extends Controller
                 $videoPath = null;
             }
             $filePath = $request->file('document')->store('chat-files', 'public');
+            $originalFileName = $request->input('file_name') ?? $request->file('document')->getClientOriginalName();
         }
 
         $message->update([
@@ -381,6 +388,7 @@ class ChatController extends Controller
             'image_path' => $imagePath,
             'video_path' => $videoPath,
             'file_path' => $filePath,
+            'original_file_name' => $originalFileName,
         ]);
 
         event(new \App\Events\MessageUpdated($user, $message));
