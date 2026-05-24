@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Services\YooKassaService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -33,26 +34,33 @@ class BalanceController extends Controller
         ]);
     }
 
-    public function add(Request $request)
+    public function add(Request $request, YooKassaService $yooKassaService)
     {
         $validated = $request->validate([
             'amount' => 'required|numeric|min:1|max:100000',
         ]);
 
         $user = auth()->user();
-        $user->balance += $validated['amount'];
-        $user->save();
 
-        Transaction::create([
-            'from_user_id' => null,
-            'to_user_id' => $user->id,
-            'amount' => $validated['amount'],
-            'type' => 'deposit',
-            'status' => 'completed',
-            'description' => 'Пополнение баланса',
-        ]);
+        if ($user->is_admin) {
+            $user->balance += $validated['amount'];
+            $user->save();
 
-        return back()->with('success', 'Баланс успешно пополнен!');
+            Transaction::create([
+                'from_user_id' => null,
+                'to_user_id' => $user->id,
+                'amount' => $validated['amount'],
+                'type' => 'deposit',
+                'status' => 'completed',
+                'description' => 'Пополнение баланса',
+            ]);
+
+            return back()->with('success', 'Баланс успешно пополнен!');
+        }
+
+        $payment = $yooKassaService->createPayment($user, $validated['amount']);
+
+        return Inertia::location($payment->confirmation_url);
     }
 
     public function withdraw(Request $request)

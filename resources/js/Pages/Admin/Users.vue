@@ -1,5 +1,6 @@
 <template>
   <AppLayout>
+    <Head :title="getPageTitle()" />
     <div class="admin-container">
       <h1>{{ getPageTitle() }}</h1>
       <div class="admin-nav">
@@ -175,7 +176,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { useDarkMode } from '@/composables/useDarkMode';
 

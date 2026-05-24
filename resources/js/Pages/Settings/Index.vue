@@ -1,5 +1,6 @@
 <template>
   <AppLayout>
+    <Head title="Настройки" />
     <div class="settings-container">
       <div class="settings-header">
         <h1>Настройки</h1>

@@ -1,5 +1,6 @@
 <template>
       <AppLayout>
+    <Head :title="mode === 'reports' ? 'Жалобы на комментарии' : 'Управление комментариями'" />
     <div class="admin-container">
       <h1>{{ mode === 'reports' ? 'Жалобы на комментарии' : 'Управление комментариями' }}</h1>
       <div class="admin-nav">
@@ -124,7 +125,7 @@
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { ref, computed, onMounted, onUnmounted } from 'vue';
-    import { Link } from '@inertiajs/vue3';
+    import { Head, Link } from '@inertiajs/vue3';
     import axios from 'axios';
 import { useDarkMode } from '@/composables/useDarkMode';
 

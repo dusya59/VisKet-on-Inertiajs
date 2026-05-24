@@ -45,6 +45,9 @@
               />
               <span class="currency-suffix">₽</span>
             </div>
+            <p v-if="form.errors.amount" class="error-text">{{ form.errors.amount }}</p>
+            <p v-if="withdrawError" class="error-text">{{ withdrawError }}</p>
+            <p v-if="flashMessage" class="success-text">{{ flashMessage }}</p>
 
             <div class="quick-amounts">
               <button
@@ -280,6 +283,7 @@ useDarkMode()
 
 const page = usePage()
 const authUser = computed(() => page.props.auth?.user || page.props.authUser || null)
+const flashMessage = computed(() => page.props.flash?.success || page.props.flash?.message || '')
 
 const quickAmounts = [100, 300, 500, 1000, 3000, 5000]
 const withdrawalAmounts = [100, 300, 500, 1000, 3000, 5000]
@@ -288,6 +292,13 @@ const historyTab = ref('received')
 
 const form = useForm({ amount: '' })
 const displayAmount = ref('')
+const formError = ref('')
+
+const withdrawError = computed(() => {
+  if (formError.value) return formError.value
+  if (!isWithdrawal.value) return ''
+  return page.props.flash?.error || ''
+})
 
 const formattedAmount = computed({
   get: () => displayAmount.value,
@@ -304,12 +315,27 @@ const setAmount = (amount) => {
 }
 
 const submitBalance = () => {
+  formError.value = ''
+
+  if (isWithdrawal.value) {
+    const balanceVal = typeof props.balance === 'number' ? props.balance : parseFloat(props.balance) || 0
+    const amount = parseFloat(form.amount)
+    if (amount > balanceVal) {
+      formError.value = 'Недостаточно средств на балансе! Максимум: ' + balanceVal.toLocaleString('ru-RU') + ' ₽'
+      return
+    }
+  }
+
   const url = isWithdrawal.value ? '/balance/withdraw' : '/balance/add'
   form.post(url, {
     preserveScroll: true,
     onSuccess: () => {
       form.reset()
       displayAmount.value = ''
+      formError.value = ''
+    },
+    onError: (errors) => {
+      if (errors?.error) formError.value = errors.error
     }
   })
 }
@@ -457,6 +483,7 @@ const hideTooltip = () => {
   align-items: center;
   justify-content: space-between;
   background: oklch(96% 0.005 250);
+  border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 16px 20px;
   margin-bottom: 24px;
@@ -586,6 +613,20 @@ const hideTooltip = () => {
 .btn-cta:hover:not(:disabled) { background: var(--accent-deep); }
 .btn-cta:disabled { opacity: 0.6; cursor: not-allowed; }
 
+.error-text {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.success-text {
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
 /* Chart */
 .chart-card { display: flex; flex-direction: column; }
 .chart-header {
@@ -687,7 +728,7 @@ const hideTooltip = () => {
 .chart-tooltip {
   position: absolute;
   background: var(--fg);
-  color: white;
+  color: black;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   font-size: 13px;

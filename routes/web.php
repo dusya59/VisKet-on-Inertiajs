@@ -12,6 +12,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SocialiteController;
 use App\Models\Skill;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show')->where('post', '[0-9]+');
 Route::get('/api/posts/{post}/preview', function (App\Models\Post $post) {
     if ($post->is_hidden) {
         abort(404);
@@ -43,6 +44,19 @@ Route::get('/profile/{user}/liked-posts', [ProfileController::class, 'likedPosts
 Route::get('/ratings/{user}', [ProfileController::class, 'ratings'])->name('ratings');
 
 // Auth
+Route::post('/payment/yookassa/create', [PaymentController::class, 'create'])
+    ->middleware('auth')
+    ->name('payment.create');
+
+Route::post('/payment/yookassa/webhook', [PaymentController::class, 'webhook'])
+    ->name('payment.webhook');
+
+Route::get('/payment/success', [PaymentController::class, 'success'])
+    ->name('payment.success');
+
+Route::get('/payment/fail', [PaymentController::class, 'fail'])
+    ->name('payment.fail');
+
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
@@ -75,15 +89,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::post('/posts/vacancy', [PostController::class, 'storeVacancy'])->name('posts.store-vacancy');
-    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
-    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
-    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
-    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
-    Route::post('/posts/{post}/report', [ReportController::class, 'reportPost'])->name('posts.report');
-    Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit')->where('post', '[0-9]+');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update')->where('post', '[0-9]+');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy')->where('post', '[0-9]+');
+    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like')->where('post', '[0-9]+');
+    Route::post('/posts/{post}/report', [ReportController::class, 'reportPost'])->name('posts.report')->where('post', '[0-9]+');
+    Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share')->where('post', '[0-9]+');
 
     // Comments
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store')->where('post', '[0-9]+');
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/report', [CommentController::class, 'report'])->name('comments.report');

@@ -3396,7 +3396,7 @@ watch(() => props.activeChat?.messages, (msgs) => {
         background: #0f172a;
     }
 
-    .avatar-wrapper {
+    .chat-header .avatar-wrapper {
         display: none;
     }
 }

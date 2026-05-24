@@ -1,5 +1,6 @@
 <template>
   <AppLayout>
+    <Head title="Админ панель" />
     <div class="admin-container">
       <h1>Админ панель</h1>
       <div class="admin-nav">
@@ -55,7 +56,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { useDarkMode } from '@/composables/useDarkMode';
   
   const props = defineProps({

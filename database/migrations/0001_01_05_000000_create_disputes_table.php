@@ -10,21 +10,31 @@ return new class extends Migration
     {
         Schema::create('disputes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('application_id')->constrained('applications')->cascadeOnDelete();
+            $table->foreignId('application_id')->constrained()->cascadeOnDelete();
             $table->foreignId('initiator_id')->constrained('users')->cascadeOnDelete();
             $table->text('reason');
             $table->enum('status', ['open', 'resolved', 'cancelled'])->default('open');
             $table->foreignId('admin_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->unsignedBigInteger('chat_id')->nullable();
+            $table->foreignId('chat_id')->nullable()->constrained()->nullOnDelete();
             $table->text('resolution')->nullable();
             $table->timestamps();
+        });
 
-            $table->foreign('chat_id')->references('id')->on('chats')->nullOnDelete();
+        Schema::create('admin_notifications', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('type')->nullable();
+            $table->string('title')->nullable();
+            $table->text('content')->nullable();
+            $table->string('link')->nullable();
+            $table->boolean('is_read')->default(false);
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
         Schema::dropIfExists('disputes');
+        Schema::dropIfExists('admin_notifications');
     }
 };

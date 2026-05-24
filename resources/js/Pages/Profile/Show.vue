@@ -350,6 +350,8 @@ const toggleSubscription = () => {
     width: 350px;
     height: 350px;
     object-fit: cover;
+    border: 1px solid rgb(182, 182, 182);
+    border-radius: 10px;
 }
 .desc{
   display: flex;

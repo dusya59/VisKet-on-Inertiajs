@@ -1,5 +1,6 @@
 <template>
   <AppLayout>
+    <Head title="Уведомления" />
     <div class="notifications-container">
       <div class="notifications-header">
         <h1>Уведомления</h1>
@@ -44,7 +45,7 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import axios from 'axios'
 import { useDarkMode } from '@/composables/useDarkMode'

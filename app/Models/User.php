@@ -150,6 +150,11 @@ class User extends Authenticatable
         return $this->hasMany(Report::class, 'reported_user_id');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function socialAccounts()
     {
         return $this->hasMany(SocialAccount::class);
