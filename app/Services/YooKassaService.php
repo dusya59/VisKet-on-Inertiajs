@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use YooKassa\Client;
 
 class YooKassaService
@@ -16,9 +18,29 @@ class YooKassaService
         $this->client->setAuth(config('services.yookassa.shop_id'), config('services.yookassa.secret_key'));
     }
 
+    public function verifyWebhookSignature(string $requestBody, ?string $signatureHeader): bool
+    {
+        if (empty($signatureHeader)) {
+            Log::warning('YooKassa webhook: missing signature header');
+            return false;
+        }
+
+        $secretKey = config('services.yookassa.secret_key');
+        $expectedSignature = base64_encode(hash('sha256', $requestBody . $secretKey, true));
+
+        if (!hash_equals($expectedSignature, $signatureHeader)) {
+            Log::warning('YooKassa webhook: invalid signature', [
+                'expected_prefix' => substr($expectedSignature, 0, 8) . '...',
+            ]);
+            return false;
+        }
+
+        return true;
+    }
+
     public function createPayment(User $user, float $amount): Payment
     {
-        $idempotenceKey = 'payment_' . $user->id . '_' . uniqid();
+        $idempotenceKey = 'payment_' . $user->id . '_' . \Illuminate\Support\Str::uuid()->toString();
 
         $response = $this->client->createPayment(
             [
@@ -74,7 +96,7 @@ class YooKassaService
                     ],
                 ],
                 $payment->yookassa_payment_id,
-                uniqid('capture_', true)
+                \Illuminate\Support\Str::uuid()->toString()
             );
         }
 
@@ -120,7 +142,7 @@ class YooKassaService
                     ],
                 ],
                 $yookassaPaymentId,
-                uniqid('capture_', true)
+                \Illuminate\Support\Str::uuid()->toString()
             );
         }
 
@@ -129,23 +151,36 @@ class YooKassaService
 
     private function applySucceededPayment(Payment $payment, ?string $paymentMethod): void
     {
-        $payment->update([
-            'status' => 'succeeded',
-            'paid_at' => now(),
-            'payment_method' => $paymentMethod,
-        ]);
+        DB::transaction(function () use ($payment, $paymentMethod) {
+            $payment = Payment::where('id', $payment->id)->lockForUpdate()->first();
 
-        $user = $payment->user;
-        $user->balance += $payment->amount;
-        $user->save();
+            if ($payment->status !== 'pending') {
+                return;
+            }
 
-        $user->transactions()->create([
-            'from_user_id' => null,
-            'to_user_id' => $user->id,
-            'amount' => $payment->amount,
-            'type' => 'deposit',
-            'status' => 'completed',
-            'description' => 'Пополнение баланса через ЮKassa',
-        ]);
+            $payment->update([
+                'status' => 'succeeded',
+                'paid_at' => now(),
+                'payment_method' => $paymentMethod,
+            ]);
+
+            $user = User::where('id', $payment->user_id)->lockForUpdate()->first();
+            $user->increment('balance', $payment->amount);
+
+            $user->transactions()->create([
+                'from_user_id' => null,
+                'to_user_id' => $user->id,
+                'amount' => $payment->amount,
+                'type' => 'deposit',
+                'status' => 'completed',
+                'description' => 'Пополнение баланса через ЮKassa',
+            ]);
+
+            Log::info('Payment succeeded', [
+                'payment_id' => $payment->id,
+                'user_id' => $user->id,
+                'amount' => $payment->amount,
+            ]);
+        });
     }
 }

@@ -49,6 +49,7 @@ Route::post('/payment/yookassa/create', [PaymentController::class, 'create'])
     ->name('payment.create');
 
 Route::post('/payment/yookassa/webhook', [PaymentController::class, 'webhook'])
+    ->middleware('throttle:60,1')
     ->name('payment.webhook');
 
 Route::get('/payment/success', [PaymentController::class, 'success'])
@@ -58,9 +59,9 @@ Route::get('/payment/fail', [PaymentController::class, 'fail'])
     ->name('payment.fail');
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Email Verification
@@ -122,8 +123,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Balance
     Route::get('/balance', [BalanceController::class, 'index'])->name('balance');
-    Route::post('/balance/add', [BalanceController::class, 'add'])->name('balance.add');
-    Route::post('/balance/withdraw', [BalanceController::class, 'withdraw'])->name('balance.withdraw');
+    Route::post('/balance/add', [BalanceController::class, 'add'])->middleware('throttle:10,1')->name('balance.add');
+    Route::post('/balance/withdraw', [BalanceController::class, 'withdraw'])->middleware('throttle:10,1')->name('balance.withdraw');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Services\YooKassaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class BalanceController extends Controller
@@ -43,17 +45,25 @@ class BalanceController extends Controller
         $user = auth()->user();
 
         if ($user->is_admin) {
-            $user->balance += $validated['amount'];
-            $user->save();
+            DB::transaction(function () use ($user, $validated) {
+                $lockedUser = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+                $lockedUser->increment('balance', $validated['amount']);
 
-            Transaction::create([
-                'from_user_id' => null,
-                'to_user_id' => $user->id,
-                'amount' => $validated['amount'],
-                'type' => 'deposit',
-                'status' => 'completed',
-                'description' => 'Пополнение баланса',
-            ]);
+                Transaction::create([
+                    'from_user_id' => null,
+                    'to_user_id' => $lockedUser->id,
+                    'amount' => $validated['amount'],
+                    'type' => 'deposit',
+                    'status' => 'completed',
+                    'description' => 'Пополнение баланса (админ)',
+                ]);
+
+                Log::info('Admin balance deposit', [
+                    'admin_id' => $lockedUser->id,
+                    'amount' => $validated['amount'],
+                    'new_balance' => $lockedUser->fresh()->balance,
+                ]);
+            });
 
             return back()->with('success', 'Баланс успешно пополнен!');
         }
@@ -71,21 +81,36 @@ class BalanceController extends Controller
 
         $user = auth()->user();
 
-        if ($user->balance < $validated['amount']) {
+        $result = DB::transaction(function () use ($user, $validated) {
+            $lockedUser = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+
+            if ($lockedUser->balance < $validated['amount']) {
+                return false;
+            }
+
+            $lockedUser->decrement('balance', $validated['amount']);
+
+            Transaction::create([
+                'from_user_id' => $lockedUser->id,
+                'to_user_id' => $lockedUser->id,
+                'amount' => $validated['amount'],
+                'type' => 'withdrawal',
+                'status' => 'completed',
+                'description' => 'Снятие средств',
+            ]);
+
+            Log::info('Balance withdrawal', [
+                'user_id' => $lockedUser->id,
+                'amount' => $validated['amount'],
+                'new_balance' => $lockedUser->fresh()->balance,
+            ]);
+
+            return true;
+        });
+
+        if (!$result) {
             return back()->with('error', 'Недостаточно средств на балансе!');
         }
-
-        $user->balance -= $validated['amount'];
-        $user->save();
-
-        Transaction::create([
-            'from_user_id' => $user->id,
-            'to_user_id' => $user->id,
-            'amount' => $validated['amount'],
-            'type' => 'withdrawal',
-            'status' => 'completed',
-            'description' => 'Снятие средств',
-        ]);
 
         return back()->with('success', 'Средства успешно сняты!');
     }

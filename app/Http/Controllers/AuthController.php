@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -97,6 +98,8 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        Log::info('User registered', ['user_id' => $user->id, 'email' => $user->email]);
+
         return redirect()->route('profile', ['user' => $user->id]);
     }
 
@@ -110,8 +113,12 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
+            Log::info('User logged in', ['user_id' => Auth::id(), 'email' => $credentials['email']]);
+
             return redirect()->intended('/');
         }
+
+        Log::warning('Login failed', ['email' => $credentials['email'], 'ip' => $request->ip()]);
 
         return back()->withErrors([
             'email' => 'Неверный email или пароль.',
@@ -120,9 +127,13 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $userId = Auth::id();
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        Log::info('User logged out', ['user_id' => $userId]);
 
         return redirect('/');
     }

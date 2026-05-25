@@ -166,4 +166,11 @@ function toggleLike() {
   gap: 6px;
   margin-top: 8px;
 }
+
+@media (max-width: 768px) {
+  .post img {
+    width: 100%;
+    height: 100%;
+  }
+}
 </style>

@@ -81,7 +81,7 @@ class CommentController extends Controller
 
         // Проверка, не жаловался ли уже пользователь
         $existingReport = $comment->reports()
-            ->where('user_id', Auth::id())
+            ->where('reporter_id', Auth::id())
             ->first();
 
         if ($existingReport) {
@@ -89,7 +89,7 @@ class CommentController extends Controller
         }
 
         $comment->reports()->create([
-            'user_id' => Auth::id(),
+            'reporter_id' => Auth::id(),
             'reason' => $validated['reason'],
         ]);
 

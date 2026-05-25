@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Vacancy;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ApplicationLifecycleService
 {
@@ -47,46 +48,58 @@ class ApplicationLifecycleService
     public function accept(Application $application, User $client): void
     {
         DB::transaction(function () use ($application, $client) {
-            if (! $application->canBeAccepted()) {
+            $lockedApplication = Application::where('id', $application->id)->lockForUpdate()->first();
+
+            if (! $lockedApplication->canBeAccepted()) {
                 throw new \RuntimeException('Заявку нельзя принять.');
             }
 
-            $price = $application->proposed_price;
+            $price = $lockedApplication->proposed_price;
             if (! $price || $price <= 0) {
                 throw new \RuntimeException('Укажите корректную сумму для оплаты.');
             }
 
-            if ($client->balance < $price) {
+            $lockedClient = User::where('id', $client->id)->lockForUpdate()->first();
+
+            if ($lockedClient->balance < $price) {
                 throw new \RuntimeException('Недостаточно средств на балансе.');
             }
 
-            $client->balance -= $price;
-            $client->save();
+            $lockedClient->decrement('balance', $price);
 
-            $application->update([
+            $lockedApplication->update([
                 'status' => 'in_progress',
                 'accepted_at' => now(),
                 'in_progress_at' => now(),
             ]);
 
             Transaction::create([
-                'from_user_id' => $client->id,
+                'from_user_id' => $lockedClient->id,
                 'to_user_id' => null,
                 'amount' => $price,
                 'type' => 'payment',
                 'status' => 'pending',
-                'description' => "Оплата за вакансию: {$application->vacancy->position}",
-                'application_id' => $application->id,
+                'description' => "Оплата за вакансию: {$lockedApplication->vacancy->position}",
+                'application_id' => $lockedApplication->id,
             ]);
 
-            $application->vacancy->update(['status' => 'in_progress']);
+            $lockedApplication->vacancy->update(['status' => 'in_progress']);
 
             $this->sendSystemMessage(
-                $application,
+                $lockedApplication,
                 'Сделка началась, средства заморожены.'
             );
 
-            event(new ApplicationStatusChanged($application, 'in_progress', $client));
+            event(new ApplicationStatusChanged($lockedApplication, 'in_progress', $client));
+
+            Log::info('Application accepted', [
+                'application_id' => $lockedApplication->id,
+                'client_id' => $lockedClient->id,
+                'price' => $price,
+            ]);
+
+            $application->fill($lockedApplication->toArray());
+            $application->syncOriginal();
         });
     }
 
@@ -130,9 +143,8 @@ class ApplicationLifecycleService
                     'completed_at' => now(),
                 ]);
 
-                $executor = $application->user;
-                $executor->balance += $transaction->amount;
-                $executor->save();
+                $executor = User::where('id', $application->user_id)->lockForUpdate()->first();
+                $executor->increment('balance', $transaction->amount);
             }
 
             $application->vacancy->post->update([
@@ -173,10 +185,9 @@ class ApplicationLifecycleService
                 $transaction->update(['status' => 'cancelled']);
 
                 if ($transaction->from_user_id) {
-                    $client = User::find($transaction->from_user_id);
+                    $client = User::where('id', $transaction->from_user_id)->lockForUpdate()->first();
                     if ($client) {
-                        $client->balance += $transaction->amount;
-                        $client->save();
+                        $client->increment('balance', $transaction->amount);
                     }
                 }
             }
@@ -264,9 +275,8 @@ class ApplicationLifecycleService
                         'completed_at' => now(),
                     ]);
 
-                    $executor = $application->user;
-                    $executor->balance += $transaction->amount;
-                    $executor->save();
+                    $executor = User::where('id', $application->user_id)->lockForUpdate()->first();
+                    $executor->increment('balance', $transaction->amount);
                 }
 
                 $application->vacancy->post->update([
@@ -284,18 +294,16 @@ class ApplicationLifecycleService
                     if ($refundAmount && $refundAmount > 0 && $refundAmount < $total) {
                         $transaction->update(['status' => 'cancelled']);
 
-                        $client = User::find($transaction->from_user_id);
-                        $executor = $application->user;
+                        $client = User::where('id', $transaction->from_user_id)->lockForUpdate()->first();
+                        $executor = User::where('id', $application->user_id)->lockForUpdate()->first();
 
                         if ($client) {
-                            $client->balance += $refundAmount;
-                            $client->save();
+                            $client->increment('balance', $refundAmount);
                         }
 
                         $executorPart = $total - $refundAmount;
                         if ($executorPart > 0 && $executor) {
-                            $executor->balance += $executorPart;
-                            $executor->save();
+                            $executor->increment('balance', $executorPart);
 
                             Transaction::create([
                                 'from_user_id' => null,
@@ -311,10 +319,9 @@ class ApplicationLifecycleService
                     } else {
                         $transaction->update(['status' => 'cancelled']);
 
-                        $client = User::find($transaction->from_user_id);
+                        $client = User::where('id', $transaction->from_user_id)->lockForUpdate()->first();
                         if ($client) {
-                            $client->balance += $transaction->amount;
-                            $client->save();
+                            $client->increment('balance', $transaction->amount);
                         }
                     }
                 }

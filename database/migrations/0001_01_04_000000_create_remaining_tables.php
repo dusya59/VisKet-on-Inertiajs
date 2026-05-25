@@ -59,10 +59,10 @@ return new class extends Migration
 
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('subscriber_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('subscribed_to_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('following_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
-            $table->unique(['subscriber_id', 'subscribed_to_id']);
+            $table->unique(['user_id', 'following_id']);
         });
 
         Schema::create('personal_access_tokens', function (Blueprint $table) {

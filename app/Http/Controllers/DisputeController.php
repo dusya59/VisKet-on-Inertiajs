@@ -8,6 +8,7 @@ use App\Models\Dispute;
 use App\Services\ApplicationLifecycleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class DisputeController extends Controller
@@ -68,6 +69,11 @@ class DisputeController extends Controller
             'chat_id' => $chat?->id,
         ]);
 
+        Log::info('Dispute taken by admin', [
+            'dispute_id' => $dispute->id,
+            'admin_id' => $user->id,
+        ]);
+
         \App\Models\Notification::create([
             'user_id' => $dispute->initiator_id,
             'type' => 'dispute_taken',
@@ -92,6 +98,13 @@ class DisputeController extends Controller
                 $request->input('outcome'),
                 $request->input('refund_amount')
             );
+
+            Log::info('Dispute resolved', [
+                'dispute_id' => $dispute->id,
+                'admin_id' => Auth::id(),
+                'outcome' => $request->input('outcome'),
+                'refund_amount' => $request->input('refund_amount'),
+            ]);
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }

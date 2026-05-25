@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\YooKassaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PaymentController extends Controller
@@ -20,6 +21,11 @@ class PaymentController extends Controller
 
         $user = $request->user();
 
+        Log::info('Payment creation initiated', [
+            'user_id' => $user->id,
+            'amount' => $validated['amount'],
+        ]);
+
         $payment = $this->yooKassaService->createPayment($user, $validated['amount']);
 
         return Inertia::location($payment->confirmation_url);
@@ -27,6 +33,16 @@ class PaymentController extends Controller
 
     public function webhook(Request $request)
     {
+        $requestBody = $request->getContent();
+        $signatureHeader = $request->header('X-Signature');
+
+        if (!$this->yooKassaService->verifyWebhookSignature($requestBody, $signatureHeader)) {
+            Log::warning('YooKassa webhook: signature verification failed', [
+                'ip' => $request->ip(),
+            ]);
+            return response('Invalid signature', 403);
+        }
+
         $payload = $request->all();
 
         $this->yooKassaService->processNotification($payload);

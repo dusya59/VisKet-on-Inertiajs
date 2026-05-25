@@ -590,28 +590,17 @@ export default {
   overflow-x: hidden;
 }
 
-.filterscontainer {
-  width: 300px;
-  flex-shrink: 0;
-  background: white;
-  border-right: 2px solid #e2e8f0;
-  margin-left: -300px;
-  transition: margin-left 0.3s ease;
-}
-
-.content-wrapper.filtersOpen .filterscontainer {
-  margin-left: 20px;
-}
-
-.main-wrapper {
-  flex: 1;
-  min-width: 0;
-}
-
+/* --- Изменено под Masonry сетку для Десктопа в режиме Списка --- */
 .posts.list-mode {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: block;          /* Сменили с flex на block для работы колонок */
+  columns: 2;              /* Разбиваем на 2 колонки */
+  column-gap: 16px;        /* Расстояние между колонками */
+}
+
+/* Каждый элемент внутри masonry-списка на десктопе */
+.posts.list-mode > * {
+  break-inside: avoid;     /* Предотвращает разрыв карточки между колонками */
+  margin-bottom: 16px;     /* Отступ снизу до следующего кирпичика */
 }
 
 .posts.list-mode :deep(.post) {
@@ -625,7 +614,7 @@ export default {
 
 .posts.list-mode :deep(.post-content) {
   position: static;
-  background: #1e293b;
+  background: #e2e8f0;
   color: black;
   opacity: 1;
   width: 50%;
@@ -647,6 +636,24 @@ export default {
   max-width: 300px; 
   flex-shrink: 0;
   height: min-content;
+}
+
+.filterscontainer {
+  width: 300px;
+  flex-shrink: 0;
+  background: white;
+  border-right: 2px solid #e2e8f0;
+  margin-left: -300px;
+  transition: margin-left 0.3s ease;
+}
+
+.content-wrapper.filtersOpen .filterscontainer {
+  margin-left: 20px;
+}
+
+.main-wrapper {
+  flex: 1;
+  min-width: 0;
 }
 
 html.dark .filter-toggle {
@@ -675,11 +682,6 @@ html.dark .filter-group label {
 
 html.dark .type-selector {
   border-color: #334155;
-}
-
-html.dark .type-selector button {
-  /* background: #1e293b; */
-  /* color: #94a3b8; */
 }
 
 html.dark .type-selector button:not(:last-child) {
@@ -718,6 +720,7 @@ html.dark .skill-level select option {
 }
 
 html.dark .posts.list-mode :deep(.post-content) {
+  background: #1e293b;
   color: #f1f5f9;
 }
 
@@ -787,7 +790,6 @@ html.dark .posts.list-mode :deep(#like) {
 }
 
 /* ─── Mobile adaptation · VisKet homepage ─────────────────────────────────── */
-/* Подключай в конце основного CSS или как отдельный <style> после основных стилей */
 
 /* ── 1. Hero block ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -824,7 +826,6 @@ html.dark .posts.list-mode :deep(#like) {
   }
 
   .hero-title br {
-    /* убираем ручной перенос — на мобиле текст сам переносится */
     display: none;
   }
 
@@ -846,7 +847,6 @@ html.dark .posts.list-mode :deep(#like) {
 
   .filter-toggle {
     flex-shrink: 0;
-    /* минимальный квадратный вид: иконка + текст */
     white-space: nowrap;
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
@@ -857,7 +857,7 @@ html.dark .posts.list-mode :deep(#like) {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    min-width: 0; /* не вытесняет кнопку фильтров */
+    min-width: 0;
   }
 
   .searchbar {
@@ -982,7 +982,6 @@ html.dark .posts.list-mode :deep(#like) {
 
 /* ── 5. Посты: 2 колонки в grid-режиме, 1 колонка в list-режиме ─────────────── */
 @media (max-width: 768px) {
-  /* Grid-режим: masonry через CSS columns */
   .posts:not(.list-mode) {
     display: block;
     columns: 2;
@@ -990,18 +989,18 @@ html.dark .posts.list-mode :deep(#like) {
     padding: 0.75rem;
   }
 
-  /* Каждый пост не разрывается между колонками */
   .posts:not(.list-mode) > * {
     break-inside: avoid;
     margin-bottom: 0.625rem;
   }
 
-  /* List-режим: одна колонка, карточки через разделитель */
+  /* List-режим на мобилке: СБРОС ДЕСКТОПНОГО MASONRY (0 изменений на мобильном) */
   .posts.list-mode {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    padding: 10px 0 10px 10px;
+    display: flex !important;       /* Возвращаем flex-поток */
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 10px 0 10px 10px !important;
+    columns: auto !important;       /* Сбрасываем колонки */
   }
 
   .posts.list-mode :deep(.post a) {
@@ -1017,7 +1016,6 @@ html.dark .posts.list-mode :deep(#like) {
     border-top: 1px solid var(--border-color, rgba(0 0 0 / 0.08));
   }
 
-  /* Сообщение «пусто» — на всю ширину в обоих режимах */
   .posts .empty-message {
     grid-column: 1 / -1;
   }
@@ -1051,7 +1049,6 @@ html.dark .posts.list-mode :deep(#like) {
     font-size: 0.8rem;
   }
 
-  /* Прячем подписи у кнопок вида, оставляем только иконки */
   .view-mode-btn img {
     width: 18px;
     height: 18px;
@@ -1060,7 +1057,7 @@ html.dark .posts.list-mode :deep(#like) {
 
 @media (max-width: 1000px) {
   .hero-title {
-    padding: 20px 0 0 20px;
+    padding: 60px 0 0 20px;
   }
 }
 </style>

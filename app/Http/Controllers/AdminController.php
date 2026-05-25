@@ -10,6 +10,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Models\VerificationRejection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class AdminController extends Controller
@@ -162,6 +163,11 @@ class AdminController extends Controller
         $user->is_verified = 'verified';
         $user->save();
 
+        Log::info('Admin: verification approved', [
+            'admin_id' => auth()->id(),
+            'target_user_id' => $user->id,
+        ]);
+
         return response()->json(['success' => true]);
     }
 
@@ -179,11 +185,23 @@ class AdminController extends Controller
             'rejected_at' => now(),
         ]);
 
+        Log::info('Admin: verification rejected', [
+            'admin_id' => auth()->id(),
+            'target_user_id' => $user->id,
+            'reason' => $request->reason,
+        ]);
+
         return response()->json(['success' => true]);
     }
 
     public function deletePost(Post $post)
     {
+        Log::info('Admin: post deleted', [
+            'admin_id' => auth()->id(),
+            'post_id' => $post->id,
+            'post_author_id' => $post->user_id,
+        ]);
+
         $post->delete();
 
         return redirect()->back();
@@ -191,6 +209,12 @@ class AdminController extends Controller
 
     public function deleteComment(Comment $comment)
     {
+        Log::info('Admin: comment deleted', [
+            'admin_id' => auth()->id(),
+            'comment_id' => $comment->id,
+            'comment_author_id' => $comment->user_id,
+        ]);
+
         $comment->delete();
 
         return redirect()->back();
@@ -241,6 +265,12 @@ class AdminController extends Controller
 
     public function deleteUser(User $user)
     {
+        Log::info('Admin: user deleted', [
+            'admin_id' => auth()->id(),
+            'deleted_user_id' => $user->id,
+            'deleted_user_email' => $user->email,
+        ]);
+
         Report::where('reported_user_id', $user->id)
             ->where('status', 'pending')
             ->update(['status' => 'resolved']);
@@ -272,6 +302,12 @@ class AdminController extends Controller
     {
         $post->active = false;
         $post->save();
+
+        Log::info('Admin: post hidden', [
+            'admin_id' => auth()->id(),
+            'post_id' => $post->id,
+            'post_author_id' => $post->user_id,
+        ]);
 
         Notification::create([
             'user_id' => $post->user_id,

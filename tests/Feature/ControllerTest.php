@@ -414,7 +414,7 @@ test('cannot report same comment twice', function () {
     $user = User::factory()->create();
     $post = Post::factory()->create(['active' => true]);
     $comment = Comment::create(['user_id' => $user->id, 'post_id' => $post->id, 'text' => 'Report me']);
-    $comment->reports()->create(['user_id' => $user->id, 'reason' => 'First report']);
+    $comment->reports()->create(['reporter_id' => $user->id, 'reason' => 'First report']);
 
     $response = $this->actingAs($user)->post(route('comments.report', $comment), [
         'reason' => 'Second report',
