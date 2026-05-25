@@ -600,7 +600,7 @@ export default {
 }
 
 .content-wrapper.filtersOpen .filterscontainer {
-  margin-left: 0;
+  margin-left: 20px;
 }
 
 .main-wrapper {
@@ -619,15 +619,16 @@ export default {
   width: 100%;
 }
 
-.posts.list-mode :deep(.post-content) {
-  position: static;
-  background: none;
-  color: black;
-  opacity: 1;
-  width: 100%;
-}
 .posts.list-mode :deep(.post a) {
   color: black;
+}
+
+.posts.list-mode :deep(.post-content) {
+  position: static;
+  background: #1e293b;
+  color: black;
+  opacity: 1;
+  width: 50%;
 }
 
 .posts.list-mode :deep(.post .title) {
@@ -903,7 +904,7 @@ html.dark .posts.list-mode :deep(#like) {
   }
 
   .content-wrapper.filtersOpen .filterscontainer {
-    transform: translateX(0);
+    transform: translateX(-20px);
   }
 
   .filters-overlay-mobile {
@@ -1007,6 +1008,7 @@ html.dark .posts.list-mode :deep(#like) {
   }
 
   .posts.list-mode :deep(.post-content) {
+    height: auto;
     width: 50%;
   }
 
@@ -1023,6 +1025,8 @@ html.dark .posts.list-mode :deep(#like) {
 /* ── 6. Пустое состояние ────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .empty-message {
+    position: static;
+    width: auto;
     padding: 2.5rem 1.5rem;
     text-align: center;
     font-size: 0.9rem;
@@ -1050,6 +1054,12 @@ html.dark .posts.list-mode :deep(#like) {
   .view-mode-btn img {
     width: 18px;
     height: 18px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .hero-title {
+    padding: 20px 0 0 20px;
   }
 }
 </style>

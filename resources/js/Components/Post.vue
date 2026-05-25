@@ -12,22 +12,34 @@
     </Link>
 
     <div class="post-content">
-      <div>
+      <div class="post-body">
         <Link :href="post.show_url">
           <h3 class="title">{{ post.title }}</h3>
         </Link>
         <p class="description">{{ post.description }}</p>
+        <div v-if="post.is_vacancy && post.vacancy?.skills?.length" class="post-skills">
+          <span
+            v-for="skill in post.vacancy.skills"
+            :key="skill.id"
+            class="skill-tag"
+            :class="getSkillClass(skill.name)"
+          >
+            <span class="skill-name">{{ skill.name }}</span>
+          </span>
+        </div>
       </div>
 
-      <small>
-        Автор:
-        <Link :href="post.user.profile_url" class="username">{{ post.user.name }}</Link>
-      </small>
+      <div class="post-footer">
+        <small>
+          Автор:
+          <Link :href="post.user.profile_url" class="username">{{ post.user.name }}</Link>
+        </small>
 
-      <div class="post-actions">
-        <button @click="toggleLike" type="button" :class="{ liked: isLiked }" id="like">
-          {{ isLiked ? '❤️' : '🤍' }} {{ localLikes }}
-        </button>
+        <div class="post-actions">
+          <button @click="toggleLike" type="button" :class="{ liked: isLiked }" id="like">
+            {{ isLiked ? '❤️' : '🤍' }} {{ localLikes }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -37,6 +49,7 @@
 import { ref, watch } from 'vue'
 import { router, Link } from '@inertiajs/vue3'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { getSkillClass } from '@/composables/useSkills'
 
 const props = defineProps({
   post: Object
@@ -122,5 +135,30 @@ function toggleLike() {
   border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
+}
+
+.post-content {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  bottom: 0;
+}
+
+.post-body {
+  flex: 1;
+}
+
+.post-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 </style>

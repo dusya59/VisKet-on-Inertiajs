@@ -1,0 +1,114 @@
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.skill-tag.skill-php {
+  background: #6b21a8;
+  color: white;
+}
+
+.skill-tag.skill-laravel {
+  background: #ff5722;
+  color: white;
+}
+
+.skill-tag.skill-js {
+  background: #fbbf24;
+  color: #1f2937;
+}
+
+.skill-tag.skill-vue {
+  background: #16a34a;
+  color: white;
+}
+
+.skill-tag.skill-react {
+  background: #0ea5e9;
+  color: white;
+}
+
+.skill-tag.skill-node {
+  background: #15803d;
+  color: white;
+}
+
+.skill-tag.skill-python {
+  background: #2563eb;
+  color: white;
+}
+
+.skill-tag.skill-django {
+  background: #0f766e;
+  color: white;
+}
+
+.skill-tag.skill-design,
+.skill-tag.skill-uiux {
+  background: #ec4899;
+  color: white;
+}
+
+.skill-tag.skill-figma {
+  background: #f59e0b;
+  color: #1f2937;
+}
+
+.skill-tag.skill-photoshop,
+.skill-tag.skill-illustrator {
+  background: #3b82f6;
+  color: white;
+}
+
+.skill-tag.skill-copywriting,
+.skill-tag.skill-content {
+  background: #8b5cf6;
+  color: white;
+}
+
+.skill-tag.skill-marketing,
+.skill-tag.skill-seo,
+.skill-tag.skill-smm {
+  background: #14b8a6;
+  color: white;
+}
+
+.skill-tag.skill-video {
+  background: #ef4444;
+  color: white;
+}
+
+.skill-tag.skill-3d {
+  background: #f97316;
+  color: white;
+}
+
+.skill-tag.skill-animation,
+.skill-tag.skill-motion {
+  background: #d946ef;
+  color: white;
+}
+
+.skill-tag.skill-translation {
+  background: #06b6d4;
+  color: white;
+}
+
+.skill-tag.skill-data,
+.skill-tag.skill-excel {
+  background: #22c55e;
+  color: white;
+}
+
+.skill-tag.skill-default {
+  background: #64748b;
+  color: white;
+}
+
+.skill-name {
+  font-weight: 500;
+}
