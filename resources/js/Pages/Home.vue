@@ -47,6 +47,7 @@
     </div>
     
     <div class="content-wrapper" :class="{ filtersOpen: filtersVisible }">
+      <div v-if="filtersVisible" class="filters-overlay-mobile" @click="filtersVisible = false"></div>
       <div class="filterscontainer" ref="filtersContainer">
         <div class="filters">
           <div class="filter-group">
@@ -585,32 +586,26 @@ export default {
 
 .content-wrapper {
   display: flex;
-  transition: transform 0.3s ease;
-}
-
-.content-wrapper.filtersOpen {
-  transform: translateX(170px);
+  position: relative;
+  overflow-x: hidden;
 }
 
 .filterscontainer {
-  position: absolute;
-  left: 0;
-  top: auto;
   width: 300px;
+  flex-shrink: 0;
   background: white;
   border-right: 2px solid #e2e8f0;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  margin-left: -300px;
+  transition: margin-left 0.3s ease;
 }
 
 .content-wrapper.filtersOpen .filterscontainer {
-  transform: translateX(-50%);
+  margin-left: 0;
 }
 
 .main-wrapper {
   flex: 1;
   min-width: 0;
-  transition: margin-left 0.3s ease;
 }
 
 .posts.list-mode {
@@ -681,8 +676,8 @@ html.dark .type-selector {
 }
 
 html.dark .type-selector button {
-  background: #1e293b;
-  color: #94a3b8;
+  /* background: #1e293b; */
+  /* color: #94a3b8; */
 }
 
 html.dark .type-selector button:not(:last-child) {
@@ -789,16 +784,264 @@ html.dark .posts.list-mode :deep(#like) {
   to { transform: rotate(360deg); }
 }
 
+/* ─── Mobile adaptation · VisKet homepage ─────────────────────────────────── */
+/* Подключай в конце основного CSS или как отдельный <style> после основных стилей */
+
+/* ── 1. Hero block ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .block1 {
+    position: relative;
+    height: auto;
+    min-height: 220px;
+    padding: 1.5rem 1rem 1.25rem;
+    display: flex;
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+    justify-content: flex-end;
+    overflow: hidden;
   }
+
   .hero-image {
-    max-width: 80%;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    opacity: 0.35;
+    pointer-events: none;
   }
+
   .hero-title {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(1.35rem, 5.5vw, 1.75rem);
+    line-height: 1.25;
+    margin: 0;
+    width: fit-content;
+  }
+
+  .hero-title br {
+    /* убираем ручной перенос — на мобиле текст сам переносится */
+    display: none;
+  }
+
+  .visket-text {
+    display: block;
+    margin-bottom: 0.15em;
+  }
+}
+
+/* ── 2. Search / filter bar ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .block2 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .filter-toggle {
+    flex-shrink: 0;
+    /* минимальный квадратный вид: иконка + текст */
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .search-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0; /* не вытесняет кнопку фильтров */
+  }
+
+  .searchbar {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .view-mode-toggle {
+    flex-shrink: 0;
+    display: flex;
+    gap: 2px;
+  }
+
+  .view-mode-btn {
+    padding: 0.375rem;
+  }
+
+  .view-mode-btn img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ── 3. Content layout (посты + фильтры) ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .content-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .filterscontainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 280px;
+    max-height: none;
+    z-index: 11;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .content-wrapper.filtersOpen .filterscontainer {
+    transform: translateX(0);
+  }
+
+  .filters-overlay-mobile {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    background: transparent;
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0.875rem 1rem 1rem;
+    border-bottom: 1px solid var(--border-color, rgba(0 0 0 / 0.1));
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.55;
+  }
+
+  .type-selector {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+
+  .type-selector button {
+    flex: 1;
+    min-width: 80px;
     text-align: center;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ── 4. Табы ────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .main-wrapper {
+    min-width: 0;
+  }
+
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color, rgba(0 0 0 / 0.1));
+    padding: 0 1rem;
+    gap: 0;
+  }
+
+  .tabs button {
+    flex: 1;
+    padding: 0.75rem 0.25rem;
+    font-size: 0.9rem;
+    text-align: center;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: none;
+  }
+
+  .tabs button.active {
+    border-bottom-color: currentColor;
+  }
+}
+
+/* ── 5. Посты: 2 колонки в grid-режиме, 1 колонка в list-режиме ─────────────── */
+@media (max-width: 768px) {
+  /* Grid-режим: masonry через CSS columns */
+  .posts:not(.list-mode) {
+    display: block;
+    columns: 2;
+    column-gap: 0.625rem;
+    padding: 0.75rem;
+  }
+
+  /* Каждый пост не разрывается между колонками */
+  .posts:not(.list-mode) > * {
+    break-inside: avoid;
+    margin-bottom: 0.625rem;
+  }
+
+  /* List-режим: одна колонка, карточки через разделитель */
+  .posts.list-mode {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+
+  .posts.list-mode > * + * {
+    border-top: 1px solid var(--border-color, rgba(0 0 0 / 0.08));
+  }
+
+  /* Сообщение «пусто» — на всю ширину в обоих режимах */
+  .posts .empty-message {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── 6. Пустое состояние ────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .empty-message {
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.6;
+  }
+}
+
+/* ── 7. Очень маленькие экраны (< 360px) ────────────────────────────────────── */
+@media (max-width: 360px) {
+  .hero-title {
+    font-size: 1.2rem;
+  }
+
+  .block2 {
+    gap: 0.4rem;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .filter-toggle {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* Прячем подписи у кнопок вида, оставляем только иконки */
+  .view-mode-btn img {
+    width: 18px;
+    height: 18px;
   }
 }
 </style>

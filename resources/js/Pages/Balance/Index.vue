@@ -45,9 +45,11 @@
               />
               <span class="currency-suffix">₽</span>
             </div>
-            <p v-if="form.errors.amount" class="error-text">{{ form.errors.amount }}</p>
-            <p v-if="withdrawError" class="error-text">{{ withdrawError }}</p>
-            <p v-if="flashMessage" class="success-text">{{ flashMessage }}</p>
+            <div class="message-wrapper" :class="{ visible: form.errors.amount || withdrawError || flashMessage }">
+              <p v-if="form.errors.amount" class="error-text">{{ form.errors.amount }}</p>
+              <p v-if="withdrawError" class="error-text">{{ withdrawError }}</p>
+              <p v-if="flashMessage" class="success-text">{{ flashMessage }}</p>
+            </div>
 
             <div class="quick-amounts">
               <button
@@ -537,6 +539,20 @@ const hideTooltip = () => {
   margin-bottom: 8px;
   display: block;
 }
+
+.message-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, margin 0.3s ease;
+  margin-bottom: 0;
+}
+
+.message-wrapper.visible {
+  max-height: 60px;
+  margin-bottom: 12px;
+}
+
+
 .input-wrapper {
   position: relative;
   margin-bottom: 20px;
@@ -617,14 +633,12 @@ const hideTooltip = () => {
   color: var(--accent);
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 12px;
 }
 
 .success-text {
   color: var(--success);
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 12px;
 }
 
 /* Chart */
