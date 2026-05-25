@@ -95,6 +95,11 @@ function toggleLike() {
   position: relative;
 }
 
+.post img {
+  width: 300px;
+  height: 100%;
+}
+
 .badges {
   position: absolute;
   top: 12px;

@@ -629,6 +629,7 @@ export default {
   color: black;
   opacity: 1;
   width: 50%;
+  border-radius: 0 10px 10px 0;
 }
 
 .posts.list-mode :deep(.post .title) {
