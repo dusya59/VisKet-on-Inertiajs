@@ -868,7 +868,7 @@ html.dark .posts.list-mode :deep(#like) {
   .view-mode-toggle {
     flex-shrink: 0;
     display: flex;
-    gap: 2px;
+    gap: 5px;
   }
 
   .view-mode-btn {
@@ -999,7 +999,15 @@ html.dark .posts.list-mode :deep(#like) {
     display: flex;
     flex-direction: column;
     gap: 0;
-    padding: 0;
+    padding: 10px 0 10px 10px;
+  }
+
+  .posts.list-mode :deep(.post a) {
+    width: 50%;
+  }
+
+  .posts.list-mode :deep(.post-content) {
+    width: 50%;
   }
 
   .posts.list-mode > * + * {
