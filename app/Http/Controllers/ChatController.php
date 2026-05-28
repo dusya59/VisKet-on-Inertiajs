@@ -312,7 +312,7 @@ class ChatController extends Controller
 
         event(new \App\Events\MessageSent($user, $message));
 
-        return redirect()->route('chat', $chat);
+        return redirect()->back();
     }
 
     public function updateMessage(Request $request, Chat $chat, Message $message)
@@ -393,7 +393,7 @@ class ChatController extends Controller
 
         event(new \App\Events\MessageUpdated($user, $message));
 
-        return redirect()->route('chat', $chat);
+        return redirect()->back();
     }
 
     public function deleteMessage(Chat $chat, Message $message)
@@ -424,7 +424,7 @@ class ChatController extends Controller
 
         event(new \App\Events\MessageDeleted($messageId, $chatId));
 
-        return redirect()->route('chat', $chat);
+        return redirect()->back();
     }
 
     public function deleteMessagesBulk(Request $request, Chat $chat)
@@ -460,7 +460,7 @@ class ChatController extends Controller
 
         $chat->touch();
 
-        return redirect()->route('chat', $chat);
+        return redirect()->back();
     }
 
     public function search(Request $request)
