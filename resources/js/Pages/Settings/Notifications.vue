@@ -138,6 +138,7 @@ h1 {
 .notifications-list {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 12px;
 }
 
@@ -213,6 +214,10 @@ h1 {
 
   h1 {
     font-size: 24px;
+  }
+
+  .notification-item {
+    width: 100%;
   }
 }
 

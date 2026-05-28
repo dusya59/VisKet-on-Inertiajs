@@ -1944,27 +1944,6 @@ onMounted(async () => {
   }
 
   try {
-    if (props.activeChat) {
-      window.Echo.private(`chat.${props.activeChat.id}`)
-        .listen('.message.sent', (e) => {
-          const newMessages = page.props.activeChat?.messages ?? []
-          mergeMessages(newMessages)
-        })
-        .listen('.message.updated', (e) => {
-          router.reload({ only: ['activeChat'] })
-        })
-        .listen('.message.deleted', (e) => {
-          const newMessages = page.props.activeChat?.messages ?? []
-          mergeMessages(newMessages)
-        })
-        .listen('.messages.read', (e) => {
-          const otherUser = otherUsers.value[0]
-          if (otherUser && e.user_id === otherUser.id && e.last_read_at) {
-            otherLastReadAt.value = new Date(e.last_read_at)
-          }
-        });
-    }
-
     window.Echo.join('presence-online')
       .here((users) => {
         onlineUsers.value = new Set(users.map(u => u.id))
@@ -2015,15 +1994,23 @@ watch(
     if (newChatId) {
       window.Echo.private(`chat.${newChatId}`)
         .listen('.message.sent', (e) => {
-          const newMessages = page.props.activeChat?.messages ?? []
-          mergeMessages(newMessages)
+          if (e.message && e.message.id) {
+            const msg = {
+              ...e.message,
+              is_mine: e.message.user_id === page.props.auth?.user?.id,
+              time: new Date(e.message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+              _clientId: e.message.id,
+              user: e.user,
+            }
+            const exists = localMessages.value.some(m => m.id === msg.id)
+            if (!exists) localMessages.value.push(msg)
+          }
         })
         .listen('.message.updated', (e) => {
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.deleted', (e) => {
-          const newMessages = page.props.activeChat?.messages ?? []
-          mergeMessages(newMessages)
+          localMessages.value = localMessages.value.filter(m => m.id !== e.message_id)
         })
         .listen('.messages.read', (e) => {
           const otherUser = otherUsers.value[0]
@@ -2032,7 +2019,8 @@ watch(
           }
         });
     }
-  }
+  },
+  { immediate: true }
 )
 
 watch(() => props.activeChat?.messages, (msgs) => {

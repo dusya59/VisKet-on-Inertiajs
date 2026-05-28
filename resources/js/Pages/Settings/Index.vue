@@ -888,4 +888,132 @@ html.dark .no-files-hint {
     padding: 15px 30px;
   }
 }
+@media (max-width: 1000px) {
+  /* ─── Контейнер ───────────────────────────────────────── */
+  .settings-container {
+    padding: 20px 16px 50px;
+  }
+
+  .settings-header h1 {
+    font-size: 24px;
+  }
+
+  /* ─── Лейаут: nav сверху, панель снизу ───────────────── */
+  .settings-content {
+    flex-direction: column;
+    border-radius: 16px;
+  }
+
+  /* ─── Навигация — горизонтальный скролл ──────────────── */
+  .settings-nav {
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .settings-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 14px 20px;
+    border-left: none;
+    border-bottom: 3px solid transparent;  /* индикатор снизу */
+  }
+  .settings-nav-item.active {
+    background: transparent;
+    border-left-color: transparent;
+    border-bottom-color: rgb(255, 52, 52);
+  }
+
+  /* ─── Панель ──────────────────────────────────────────── */
+  .settings-panel {
+    padding: 20px 16px;
+  }
+
+  /* ─── Профиль: аватар + форма в колонку ──────────────── */
+  .edit-content {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .avatar {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .profile-header {
+    width: 100%;
+    height: 260px;
+  }
+
+  /* ─── Форма ───────────────────────────────────────────── */
+  .desc {
+    padding: 0;
+    width: 100%;
+  }
+
+  /* Строка «Имя + тумблер» — в колонку */
+  .form-group div[style*="display: flex"] {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-group input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  .form-group textarea {
+    font-size: 16px;
+    height: 160px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-save,
+  .btn-cancel {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    font-size: 16px;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+
+  /* ─── Файлы ───────────────────────────────────────────── */
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .file-view-btn {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 10px;
+  }
+
+  /* ─── Dark: граница nav ───────────────────────────────── */
+  html.dark .settings-nav {
+    border-bottom-color: #334155;
+  }
+
+  html.dark .settings-nav-item.active {
+    background: transparent;
+    border-bottom-color: rgb(255, 52, 52);
+  }
+}
 </style>
