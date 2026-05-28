@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\ApplicationStatusChanged;
+use App\Events\MessageSent;
 use App\Models\Application;
 use App\Models\Chat;
 use App\Models\Dispute;
@@ -350,11 +351,15 @@ class ApplicationLifecycleService
             return;
         }
 
-        Message::create([
+        $user = $application->vacancy->post->user;
+
+        $message = Message::create([
             'chat_id' => $chat->id,
-            'user_id' => $application->vacancy->post->user_id,
+            'user_id' => $user->id,
             'content' => $content,
             'is_system' => true,
         ]);
+
+        event(new MessageSent($user, $message));
     }
 }
