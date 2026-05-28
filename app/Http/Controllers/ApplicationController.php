@@ -40,7 +40,7 @@ class ApplicationController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('chat', $application->chat_id)->with('success', 'Ваш отклик отправлен!');
+        return redirect()->route('chat', $application->chat)->with('success', 'Ваш отклик отправлен!');
     }
 
     public function accept(AcceptApplicationRequest $request, Application $application)

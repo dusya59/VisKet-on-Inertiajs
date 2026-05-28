@@ -433,4 +433,68 @@ html.dark .rejection-reason {
 html.dark .reporter-info {
   color: #94a3b8;
 }
+@media (max-width: 1000px) {
+  /* ─── Навигация ───────────────────────────────────────── */
+  .admin-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ─── Поиск ───────────────────────────────────────────── */
+  .search-container {
+    width: 100%;
+  }
+  .search-container input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ─── Карточка комментария ────────────────────────────── */
+  .comment-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .comment-info {
+    width: 100%;
+  }
+
+  /* ─── Шапка комментария (аватар + имя + дата) ─────────── */
+  .comment-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .comment-avatar {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Кнопки действий ─────────────────────────────────── */
+  .comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+  .comment-actions .btn {
+    flex: 1 1 calc(50% - 4px);
+    text-align: center;
+    box-sizing: border-box;
+  }
+}
 </style>

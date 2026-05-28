@@ -245,6 +245,10 @@ const goToPage = (page) => {
   padding: 20px;
   max-width: 900px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
 }
 
 .page-header {
@@ -689,7 +693,7 @@ html.dark .btn-cancel:hover {
 
 @media(max-width: 1000px) {
   .disputes-page {
-    padding: 150px 20px 50px;
+    padding: 150px 0;
   }
 }
 </style>

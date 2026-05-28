@@ -21,92 +21,82 @@
           <span v-if="disputesCount > 0" class="badge">{{ disputesCount }}</span>
         </Link>
       </div>
-        <h2>Заявки</h2>
-        <div class="banner">
-          <Link href="/admin/verification-requests" class="link">
-            Заявки на подтверждение аккаунта
-            <span class="badge">{{ pendingCount }}</span>
-          </Link>
-        </div>
-        <h2>Репорты</h2>
-        <div class="banners">
+
+      <h2>Заявки</h2>
+      <div class="banner">
+        <Link href="/admin/verification-requests" class="link">
+          Заявки на подтверждение аккаунта
+          <span class="badge">{{ pendingCount }}</span>
+        </Link>
+      </div>
+
+      <h2>Репорты</h2>
+      <div class="banners">
         <div class="banner">
           <Link :href="`/admin/users?mode=reports`" class="link">
-          Пользователи 
-          <span class="badge">{{ usersReportCount }}</span>
+            Пользователи
+            <span class="badge">{{ usersReportCount }}</span>
           </Link>
         </div>
         <div class="banner">
           <Link :href="`/admin/posts?mode=reports`" class="link">
-          Посты 
-          <span class="badge">{{ postsReportCount }}</span>
-          </Link>
-        </div>          
-        <div class="banner">
-          <Link :href="`/admin/comments?mode=reports`" class="link">
-          Комментарии 
-          <span class="badge">{{ commentsReportCount }}</span>
+            Посты
+            <span class="badge">{{ postsReportCount }}</span>
           </Link>
         </div>
-        </div> 
+        <div class="banner">
+          <Link :href="`/admin/comments?mode=reports`" class="link">
+            Комментарии
+            <span class="badge">{{ commentsReportCount }}</span>
+          </Link>
+        </div>
+      </div>
     </div>
   </AppLayout>
 </template>
-  
+
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useDarkMode } from '@/composables/useDarkMode';
-  
-  const props = defineProps({
-    pendingVerificationCount: {
-      type: Number,
-      default: 0
-    },
-    usersReportCount: {
-      type: Number,
-      default: 0
-    },
-    postsReportCount: {
-      type: Number,
-      default: 0
-    },
-    commentsReportCount: {
-      type: Number,
-      default: 0
-    },
-    disputesCount: {
-      type: Number,
-      default: 0
-    }
-  });
 
-  const pendingCount = ref(props.pendingVerificationCount || 0);
-  useDarkMode();
-  
-  let adminLink = null;
-  
-  onMounted(() => {
-    adminLink = document.createElement('link');
-    adminLink.rel = 'stylesheet';
-    adminLink.href = '/css/admin.css';
-    document.head.appendChild(adminLink);
-  });
-  
-  onUnmounted(() => {
-    if (adminLink) {
-      document.head.removeChild(adminLink);
-      adminLink = null;
-    }
-  });
-  </script>
+const props = defineProps({
+  pendingVerificationCount: { type: Number, default: 0 },
+  usersReportCount:         { type: Number, default: 0 },
+  postsReportCount:         { type: Number, default: 0 },
+  commentsReportCount:      { type: Number, default: 0 },
+  disputesCount:            { type: Number, default: 0 },
+});
+
+const pendingCount = ref(props.pendingVerificationCount || 0);
+useDarkMode();
+
+let adminLink = null;
+
+onMounted(() => {
+  adminLink = document.createElement('link');
+  adminLink.rel = 'stylesheet';
+  adminLink.href = '/css/admin.css';
+  document.head.appendChild(adminLink);
+});
+
+onUnmounted(() => {
+  if (adminLink) {
+    document.head.removeChild(adminLink);
+    adminLink = null;
+  }
+});
+</script>
 
 <style scoped>
-.banners{
+/* ─── Banners layout ─────────────────────────────────────── */
+.banners {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;   /* ← на узких экранах переносится в колонку */
+  gap: 16px;
 }
+
 .banner {
   width: max-content;
   margin: 30px 0;
@@ -116,6 +106,7 @@ import { useDarkMode } from '@/composables/useDarkMode';
   border-radius: 8px;
 }
 
+/* ─── Link ───────────────────────────────────────────────── */
 .link {
   display: flex;
   align-items: center;
@@ -130,6 +121,7 @@ import { useDarkMode } from '@/composables/useDarkMode';
   text-decoration: underline;
 }
 
+/* ─── Badge ──────────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -143,6 +135,8 @@ import { useDarkMode } from '@/composables/useDarkMode';
   font-weight: 600;
   border-radius: 12px;
 }
+
+/* ─── Dark mode ──────────────────────────────────────────── */
 html.dark .banner {
   background: #1e293b;
   border-color: #334155;
@@ -150,5 +144,43 @@ html.dark .banner {
 
 html.dark .link {
   color: #f1f5f9;
+}
+
+/* ─── Mobile ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Навигация — горизонтальный скролл без переноса */
+  .admin-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;        /* Firefox */
+    gap: 4px;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+  }
+  .admin-nav::-webkit-scrollbar {
+    display: none;                /* Chrome/Safari */
+  }
+  .admin-nav-item {
+    white-space: nowrap;          /* не ломаем текст пунктов */
+    flex-shrink: 0;
+  }
+
+  /* Баннеры — в колонку, на всю ширину */
+  .banners {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .banner {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 12px 0;
+  }
+
+  /* Немного уменьшаем шрифт ссылки */
+  .link {
+    font-size: 15px;
+  }
 }
 </style>

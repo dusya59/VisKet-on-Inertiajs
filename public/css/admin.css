@@ -75,6 +75,12 @@ header nav{
     flex-direction: column;
 }
 
+@media (max-width: 1000px) {
+    .admin-container {
+        width: 100%;
+    }
+}
+
 .admin-nav {
     display: flex;
     gap: 20px;

@@ -100,7 +100,7 @@ class AuthController extends Controller
 
         Log::info('User registered', ['user_id' => $user->id, 'email' => $user->email]);
 
-        return redirect()->route('profile', ['user' => $user->id]);
+        return redirect()->route('home');
     }
 
     public function login(Request $request)

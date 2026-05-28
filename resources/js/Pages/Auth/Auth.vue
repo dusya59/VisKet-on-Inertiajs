@@ -1201,7 +1201,15 @@ html.dark .checkbox-label {
   }
 
   .form-actions {
-    flex-direction: column;
+    width: 350px;
+  }
+
+  .tooltip-content::after {
+    display: none;
+  }
+
+  .tooltip-content {
+    left: 320%;
   }
 
   .btn-back,

@@ -262,6 +262,7 @@ const submit = () => {
 <style scoped>
 .create-post-page {
   width: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   padding: 40px 20px;
@@ -310,6 +311,7 @@ form {
   display: flex;
   max-width: 1200px;
   width: 100%;
+  min-height: 70vh;
   background: white;
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
@@ -658,10 +660,6 @@ form {
 html.dark .post-type-toggle {
   background: #1e293b;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-html.dark .post-type-toggle button {
-  color: #94a3b8;
 }
 
 html.dark .post-type-toggle button:hover:not(.active) {

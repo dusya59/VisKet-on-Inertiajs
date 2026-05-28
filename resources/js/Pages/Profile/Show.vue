@@ -634,6 +634,7 @@ h2 {
     display:flex; 
     flex-direction: column; 
     align-items: center;
+    font-size: 0.85rem;
 }
 .add-post-button {
     height: 50px; 
@@ -815,5 +816,292 @@ html.dark .expand {
 
 html.dark .sendmes {
     border-color: #475569;
+}
+
+@media (max-width: 1024px) {
+  .Profileblock {
+    padding: 40px 30px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .container {
+    width: 280px;
+  }
+
+  .profile-header {
+    width: 280px;
+    height: 280px;
+  }
+
+  .profile-header img {
+    width: 280px;
+    height: 280px;
+  }
+
+  .aboutme {
+    width: 100%;
+    max-width: 500px;
+  }
+
+  h2 {
+    margin-left: 40px;
+  }
+}
+
+/* Мобильный (≤ 768px) */
+@media (max-width: 768px) {
+  /* --- Профиль-блок: вертикальная раскладка --- */
+  .Profileblock {
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    gap: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* --- Левая колонка: аватар по центру --- */
+  .container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .profile-header {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 12px;
+  }
+
+  .profile-header img {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+  }
+
+  .desc {
+    justify-content: center;
+  }
+
+  .desc h1 {
+    font-size: 20px;
+  }
+
+  .desc img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .rating-display {
+    margin-bottom: 6px;
+  }
+
+  .rating-link {
+    justify-content: center;
+  }
+
+  .star-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .rating-value {
+    font-size: 14px;
+  }
+
+  .created-at {
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* --- Обо мне --- */
+  .aboutme {
+    width: 100%;
+    min-height: unset;
+    padding: 16px;
+    box-sizing: border-box;
+    margin-top: 16px;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+
+  .aboutme h1 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  /* --- Шапка "обо мне": подписки/подписчики --- */
+  .aboutme-header {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+
+  .aboutme-header a {
+    font-size: 12px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+  }
+
+  .aboutme-header img {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* --- Кнопки действий (подписаться / написать) --- */
+  .profile-actions {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+  }
+
+  .profile-actions form,
+  .profile-actions a {
+    width: 100%;
+  }
+
+  .profile-actions button {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  /* --- Навыки --- */
+  .user-skills {
+    padding-top: 14px;
+  }
+
+  .user-skills h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .skills-list {
+    gap: 8px;
+  }
+
+  .skills-list .skill-tag {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  /* --- Развернуть/свернуть --- */
+  .expand {
+    font-size: 15px;
+  }
+
+  /* --- Форма "Обо мне" --- */
+  .aboutme-form textarea {
+    height: 150px;
+    font-size: 14px;
+  }
+
+  /* --- Посты --- */
+  h2 {
+    margin-left: 16px;
+    font-size: 18px;
+  }
+
+  .posts {
+    width: 100%;
+    columns: 2;
+    column-gap: 8px;
+    padding: 16px;
+    box-sizing: border-box;
+    min-height: unset;
+  }
+
+  .post {
+    width: 100%;
+    max-width: 100%;
+    break-inside: avoid;
+    margin-bottom: 8px;
+    display: inline-block; /* нужно для masonry в columns */
+  }
+
+  .post img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .add-post-block {
+    width: 100%;
+    height: 320px; /* было 160px — увеличено в 2 раза */
+    break-inside: avoid;
+    display: inline-flex;
+    margin-bottom: 8px;
+  }
+
+  .noposts {
+    padding: 30px 16px;
+    justify-content: center;
+  }
+
+  .noposts h1 {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  /* --- Завершённые вакансии --- */
+  .closed-vacancies {
+    margin-top: 24px;
+    padding-top: 16px;
+  }
+
+  .closed-vacancies h2 {
+    margin-left: 16px;
+    font-size: 16px;
+  }
+}
+
+/* Маленький экран (≤ 400px) */
+@media (max-width: 400px) {
+  .Profileblock {
+    padding: 14px 10px;
+  }
+
+  .desc h1 {
+    font-size: 17px;
+  }
+
+  .profile-header {
+    width: 110px;
+    height: 110px;
+  }
+
+  .profile-header img {
+    width: 110px;
+    height: 110px;
+  }
+
+  .aboutme {
+    padding: 12px 10px;
+  }
+
+  .aboutme h1 {
+    font-size: 16px;
+  }
+
+  .aboutme-header a {
+    font-size: 11px;
+  }
 }
 </style>

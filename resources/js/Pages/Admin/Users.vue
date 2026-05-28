@@ -636,5 +636,88 @@ html.dark .modal textarea {
   border-color: #334155;
   color: #f1f5f9;
 }
+
+@media (max-width: 1000px) {
+  /* ─── Навигация ───────────────────────────────────────── */
+  .admin-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ─── Поиск ───────────────────────────────────────────── */
+  .search-container {
+    width: 100%;
+  }
+  .search-container input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ─── Карточка пользователя ───────────────────────────── */
+  .user-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .user-avatar {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .user-info {
+    width: 100%;
+  }
+
+  /* ─── Кнопки действий ─────────────────────────────────── */
+  .user-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+  .user-actions .btn {
+    flex: 1 1 calc(50% - 4px);
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  /* ─── Дропдаун отказов / репортов ────────────────────── */
+  .rejections-dropdown {
+    font-size: 13px;
+  }
+
+  /* ─── Модальное окно ──────────────────────────────────── */
+  .modal-overlay {
+    align-items: flex-end;       /* снизу экрана на мобиле */
+  }
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 16px 32px;
+  }
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .modal-actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
 </style>
   

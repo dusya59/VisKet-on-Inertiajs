@@ -445,4 +445,69 @@ html.dark .reporter-info {
 html.dark .reporter-info:hover {
   color: #818cf8;
 }
+@media (max-width: 1000px) {
+  /* ─── Навигация ───────────────────────────────────────── */
+  .admin-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ─── Поиск ───────────────────────────────────────────── */
+  .search-container {
+    width: 100%;
+  }
+  .search-container input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ─── Карточка поста ──────────────────────────────────── */
+  .post-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .post-image {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .post-info {
+    width: 100%;
+  }
+
+  /* ─── Дропдаун: убираем absolute на мобиле ───────────── */
+  .rejections-dropdown {
+    position: static;
+  }
+
+  /* ─── Кнопки действий ─────────────────────────────────── */
+  .post-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+  .post-actions .btn {
+    flex: 1 1 calc(50% - 4px);
+    text-align: center;
+    box-sizing: border-box;
+  }
+}
 </style>

@@ -166,7 +166,10 @@ const mainClass = computed(() => {
     page.component === 'Auth/Auth.vue' ||
     page.component === 'Settings/Index' ||
     page.component === 'Settings/Notifications' ||
-    page.component === 'Balance/Index'
+    page.component === 'Balance/Index' ||
+    page.component === 'Posts/Create' ||
+    page.component === 'Disputes/Index' ||
+    page.component === 'Disputes/Show'
   ) {
     return 'main-home'
   }
