@@ -292,7 +292,7 @@ class ChatController extends Controller
 
         $chat->touch();
 
-        $recipientId = $chat->users()->where('user_id', '!=', $user->id)->first()->user_id;
+        $recipientId = $chat->users()->where('user_id', '!=', $user->id)->first()->id;
         $recipient = User::find($recipientId);
 
         if ($recipient) {

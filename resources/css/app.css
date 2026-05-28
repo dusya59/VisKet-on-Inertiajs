@@ -10,3 +10,7 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+input, button, textarea, select {
+    font-family: inherit;
+}
+

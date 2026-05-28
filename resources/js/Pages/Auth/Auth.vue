@@ -109,17 +109,6 @@
                     v-model="registerData.skills"
                     :skills="skills"
                   />
-                  <div v-if="registerData.skills.length > 0" class="selected-skills">
-                    <div 
-                      v-for="skill in registerData.skills" 
-                      :key="skill.id" 
-                      class="skill-tag"
-                      :class="getSkillClass(skill.name)"
-                    >
-                      <span class="skill-name">{{ skill.name }}</span>
-                      <button type="button" class="remove-skill" @click="removeSkill(skill.id)">×</button>
-                    </div>
-                  </div>
                 </div>
               </div>
 

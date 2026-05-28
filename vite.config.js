@@ -25,9 +25,6 @@ export default defineConfig({
         },
         cors: true,
     },
-    define: {
-        'process.env.VITE_REVERB_PORT': JSON.stringify(process.env.VITE_REVERB_PORT || '8081'),
-    },
     optimizeDeps: {
         include: ['pusher-js', 'laravel-echo']
     },
