@@ -423,7 +423,7 @@ class PostController extends Controller
             })
             ->get();
 
-        $postUrl = route('posts.show', $post->id);
+        $postUrl = config('app.frontend_url') . '/posts/' . $post->id;
 
         foreach ($chats as $chat) {
             Message::create([
