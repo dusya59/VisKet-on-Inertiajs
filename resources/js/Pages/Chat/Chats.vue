@@ -2008,6 +2008,9 @@ watch(
             if (!exists) {
               localMessages.value.push(msg)
               scrollToBottom(true)
+
+              const ids = extractPostIds(e.message.content)
+              ids.forEach(id => fetchPostPreview(id))
             }
           }
         })
