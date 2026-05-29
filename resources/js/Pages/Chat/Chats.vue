@@ -2003,7 +2003,10 @@ watch(
               user: e.user,
             }
             const exists = localMessages.value.some(m => m.id === msg.id)
-            if (!exists) localMessages.value.push(msg)
+            if (!exists) {
+              localMessages.value.push(msg)
+              scrollToBottom(true)
+            }
           }
         })
         .listen('.message.updated', (e) => {
