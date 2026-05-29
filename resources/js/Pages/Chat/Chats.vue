@@ -1995,9 +1995,11 @@ watch(
       window.Echo.private(`chat.${newChatId}`)
         .listen('.message.sent', (e) => {
           if (e.message && e.message.id) {
+            if (e.message.user_id === page.props.auth?.user?.id) return
+
             const msg = {
               ...e.message,
-              is_mine: e.message.user_id === page.props.auth?.user?.id,
+              is_mine: false,
               time: new Date(e.message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
               _clientId: e.message.id,
               user: e.user,
