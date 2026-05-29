@@ -2015,7 +2015,7 @@ watch(
           router.reload({ only: ['activeChat'] })
         })
         .listen('.message.deleted', (e) => {
-          localMessages.value = localMessages.value.filter(m => m.id !== e.message_id)
+          localMessages.value = localMessages.value.filter(m => Number(m.id) !== Number(e.message_id))
         })
         .listen('.messages.read', (e) => {
           const otherUser = otherUsers.value[0]
@@ -3434,7 +3434,7 @@ watch(() => props.activeChat?.messages, (msgs) => {
   align-items: end;
   gap: 10px;
   padding: 0;
-  background: transparent;
+  background: transparent !important;
 }
 
 .shared-post-card {
