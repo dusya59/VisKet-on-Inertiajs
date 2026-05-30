@@ -192,7 +192,9 @@ class BalanceController extends Controller
             Log::info('Withdraw YooKassa API success', ['yookassa_payout_id' => $yooPayout->yookassa_payout_id]);
 
             return back()->with('success', 'Заявка на вывод создана и обрабатывается.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            report($e);
+
             Log::error('Withdraw exception caught', [
                 'committed' => $committed,
                 'error' => $e->getMessage(),
