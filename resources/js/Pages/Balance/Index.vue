@@ -457,8 +457,16 @@ const submitBalance = () => {
       formError.value = ''
       selectedMethodId.value = null
     },
+    onFinish: () => {
+      form.processing = false
+    },
     onError: (errors) => {
-      if (errors?.error) formError.value = errors.error
+      if (errors?.amount) {
+        form.setError('amount', errors.amount)
+      }
+      if (errors?.error) {
+        form.setError('amount', errors.error)
+      }
     }
   })
 }

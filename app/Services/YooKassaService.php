@@ -192,11 +192,15 @@ class YooKassaService
 
     private function getPayoutClient(): Client
     {
+        $shopId = config('services.yookassa_payout.shop_id');
+        $secretKey = config('services.yookassa_payout.secret_key');
+
+        if (empty($shopId) || empty($secretKey)) {
+            throw new \RuntimeException('YooKassa payout credentials are not configured.');
+        }
+
         $client = new Client();
-        $client->setAuth(
-            config('services.yookassa_payout.shop_id'),
-            config('services.yookassa_payout.secret_key')
-        );
+        $client->setAuth($shopId, $secretKey);
 
         return $client;
     }

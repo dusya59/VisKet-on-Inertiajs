@@ -83,6 +83,8 @@ class BalanceController extends Controller
 
     public function withdraw(Request $request, YooKassaService $yooKassaService)
     {
+        Log::info('Withdraw request started', ['data' => $request->all()]);
+
         $validated = $request->validate([
             'amount' => 'required|numeric|min:100|max:100000',
             'destination_type' => 'required|in:bank_card,sbp',
@@ -94,6 +96,7 @@ class BalanceController extends Controller
         ]);
 
         $user = auth()->user();
+        Log::info('Withdraw validated', ['user_id' => $user->id, 'amount' => $validated['amount']]);
 
         // Определяем реквизиты
         $type = $validated['destination_type'];
@@ -132,14 +135,17 @@ class BalanceController extends Controller
 
         try {
             $lockedUser = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+            Log::info('Withdraw locked user', ['balance' => $lockedUser->balance]);
 
             if ($lockedUser->balance < $validated['amount']) {
                 DB::rollBack();
+                Log::warning('Withdraw insufficient funds', ['balance' => $lockedUser->balance, 'amount' => $validated['amount']]);
 
                 return back()->with('error', 'Недостаточно средств на балансе! Максимум: ' . number_format($lockedUser->balance, 0, ',', ' ') . ' ₽');
             }
 
             $lockedUser->decrement('balance', $validated['amount']);
+            Log::info('Withdraw balance decremented', ['new_balance' => $lockedUser->fresh()->balance]);
 
             $transaction = Transaction::create([
                 'from_user_id' => $lockedUser->id,
@@ -149,6 +155,7 @@ class BalanceController extends Controller
                 'status' => 'pending',
                 'description' => 'Вывод средств' . ($masked ? ' (' . $masked . ')' : ''),
             ]);
+            Log::info('Withdraw transaction created', ['transaction_id' => $transaction->id]);
 
             $payout = Payout::create([
                 'user_id' => $lockedUser->id,
@@ -159,9 +166,11 @@ class BalanceController extends Controller
                 'status' => 'pending',
                 'description' => $transaction->description,
             ]);
+            Log::info('Withdraw payout record created', ['payout_id' => $payout->id]);
 
             DB::commit();
             $committed = true;
+            Log::info('Withdraw DB committed');
 
             // Сохранение нового метода вывода (не критично для транзакции)
             if (empty($validated['payout_method_id']) && ! empty($validated['save_method'])) {
@@ -173,16 +182,26 @@ class BalanceController extends Controller
                     'bank_id' => $validated['bank_id'] ?? null,
                     'is_default' => $lockedUser->payoutMethods()->count() === 0,
                 ]);
+                Log::info('Withdraw payout method saved');
             }
 
             // Вызов API ЮKassa
+            Log::info('Withdraw calling YooKassa API', ['destination_type' => $type]);
             $yooPayout = $yooKassaService->createPayout($lockedUser, $validated['amount'], $type, $destination, $method);
             $payout->update(['yookassa_payout_id' => $yooPayout->yookassa_payout_id]);
+            Log::info('Withdraw YooKassa API success', ['yookassa_payout_id' => $yooPayout->yookassa_payout_id]);
 
             return back()->with('success', 'Заявка на вывод создана и обрабатывается.');
         } catch (\Exception $e) {
+            Log::error('Withdraw exception caught', [
+                'committed' => $committed,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             if (! $committed) {
                 DB::rollBack();
+                Log::info('Withdraw rolled back (not committed)');
             } else {
                 // Компенсация: возвращаем баланс, отменяем записи
                 DB::transaction(function () use ($payout, $transaction) {
@@ -200,15 +219,12 @@ class BalanceController extends Controller
                     $refundUser = \App\Models\User::where('id', $payout->user_id)->lockForUpdate()->first();
                     $refundUser->increment('balance', $payout->amount);
                 });
+                Log::info('Withdraw compensation applied (committed then failed)');
             }
 
-            Log::error('Payout creation failed', [
-                'user_id' => $user->id,
-                'amount' => $validated['amount'],
-                'error' => $e->getMessage(),
+            return back()->withErrors([
+                'amount' => 'Ошибка при создании выплаты: ' . $e->getMessage(),
             ]);
-
-            return back()->with('error', 'Ошибка при создании выплаты. Средства возвращены на баланс.');
         }
     }
 
