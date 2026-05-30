@@ -121,7 +121,6 @@
             :style="{ right: optionsMenu.x + 'px', top: optionsMenu.y + 'px' }"
           >
             <div class="options-menu-item" @click="handleChatFiles">Файлы чата</div>
-            <div class="options-menu-item" @click="handleAddParticipant">Добавить участника в чат</div>
             <div class="options-menu-item" @click="handleSearchChat">Поиск по чату</div>
             <div class="options-menu-item delete" @click="handleDeleteChat">Удалить чат</div>
           </div>
@@ -1829,11 +1828,6 @@ const handleChatFiles = () => {
 
 const closeChatFiles = () => {
   showChatFiles.value = false
-}
-
-const handleAddParticipant = () => {
-  console.log('Добавить участника')
-  hideOptionsMenu()
 }
 
 const handleSearchChat = () => {
