@@ -1197,7 +1197,6 @@ h3 {
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
@@ -1497,7 +1496,6 @@ h3 {
     height: 36px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid white;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   }
   

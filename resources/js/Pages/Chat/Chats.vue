@@ -2626,7 +2626,13 @@ watch(() => props.activeChat?.messages, (msgs) => {
     resize: none;
     min-height: 45px;
     max-height: 150px;
-    font-size: 1.5em
+    font-size: 1.5em;
+    outline: none;
+}
+
+.message-form textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .message-form button {
@@ -4162,6 +4168,11 @@ html.dark .message-form textarea {
   background: #334155;
   border-color: #475569;
   color: #f1f5f9;
+}
+
+html.dark .message-form textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
 }
 
 html.dark .chat-placeholder {
