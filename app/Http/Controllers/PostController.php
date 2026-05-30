@@ -86,7 +86,7 @@ class PostController extends Controller
             abort(404);
         }
 
-        $post->load(['user', 'likes', 'comments.user', 'vacancy.skills']);
+        $post->load(['comments' => fn($q) => $q->orderByDesc('created_at'), 'comments.user', 'user', 'likes', 'vacancy.skills']);
 
         $vacancyData = null;
         if ($post->vacancy) {

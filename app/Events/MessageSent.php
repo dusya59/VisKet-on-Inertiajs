@@ -22,7 +22,7 @@ class MessageSent implements ShouldBroadcastNow
     public function __construct(User $user, Message $message)
     {
         $this->user = $user;
-        $this->message = $message;
+        $this->message = $message->load('replyTo.user');
     }
 
     public function broadcastOn(): array
@@ -58,9 +58,19 @@ class MessageSent implements ShouldBroadcastNow
             'image_url' => $this->message->image_path ? asset('storage/' . $this->message->image_path) : null,
             'video_url' => $this->message->video_path ? asset('storage/' . $this->message->video_path) : null,
             'file_url' => $this->message->file_path ? asset('storage/' . $this->message->file_path) : null,
+            'file_name' => $this->message->original_file_name ?? ($this->message->file_path ? basename($this->message->file_path) : null),
             'chat_id' => $this->message->chat_id,
             'user_id' => $this->message->user_id,
             'created_at' => $this->message->created_at->toISOString(),
+            'reply_to_id' => $this->message->reply_to_id,
+            'reply_to' => $this->message->reply_to_id && $this->message->replyTo ? [
+                'id' => $this->message->replyTo->id,
+                'content' => $this->message->replyTo->content,
+                'user' => [
+                    'id' => $this->message->replyTo->user->id,
+                    'name' => $this->message->replyTo->user->name,
+                ],
+            ] : null,
         ],
     ];
 }

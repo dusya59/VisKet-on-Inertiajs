@@ -335,6 +335,10 @@
                         <button type="button" class="change-price-btn" @click.stop="openPriceChangeModal(message)">Изменить</button>
                       </div>
                     </div>
+                    <div v-if="message.reply_to" class="reply-quote">
+                      <div class="reply-quote-author">{{ message.reply_to.user.name }}</div>
+                      <div class="reply-quote-text">{{ message.reply_to.content?.slice(0, 100) }}</div>
+                    </div>
                     <div class="message-time">
                       <span>{{ message.time }}</span>
                       <span v-if="getMessageStatus(message)" class="message-status" :class="getMessageStatus(message)">
@@ -374,6 +378,13 @@
             <div v-if="editingMessage" class="editing-indicator">
               <span>Редактирование сообщения</span>
               <button type="button" class="cancel-edit-btn" @click="cancelEdit">✕</button>
+            </div>
+            <div v-if="replyingTo" class="reply-indicator">
+              <div class="reply-preview">
+                <span class="reply-name">{{ replyingTo.user.name }}</span>
+                <span class="reply-text">{{ replyingTo.content?.slice(0, 100) }}</span>
+              </div>
+              <button type="button" class="cancel-reply-btn" @click="cancelReply">✕</button>
             </div>
             <div
               v-if="photoPreviewUrl || videoPreviewUrl || documentPreviewName"
@@ -572,8 +583,11 @@
       <div v-if="contextMenu.message?.is_mine" class="context-menu-item" @click="editMessage(contextMenu.message)">
         Редактировать
       </div>
-      <div v-if="contextMenu.message?.is_mine" class="context-menu-item delete" @click="deleteMessage(contextMenu.message)">
-        Удалить
+      <div v-if="contextMenu.message?.is_mine" class="context-menu-item" @click="deleteMessage(contextMenu.message, 'me')">
+        Удалить у меня
+      </div>
+      <div v-if="contextMenu.message?.is_mine" class="context-menu-item delete" @click="deleteMessage(contextMenu.message, 'everyone')">
+        Удалить у всех
       </div>
     </div>
 
@@ -730,7 +744,8 @@ const form = useForm({
   photo: null,
   video: null,
   document: null,
-  file_name: null
+  file_name: null,
+  reply_to_id: null,
 })
 
 function toLocalPath(url) {
@@ -810,6 +825,7 @@ const contextMenu = ref({
 })
 const rightClickedMessage = ref(null)
 const editingMessage = ref(null)
+const replyingTo = ref(null)
 const selectedMessages = ref([])
 const optionsMenu = ref({
   show: false,
@@ -1200,11 +1216,12 @@ const autoResize = () => {
 const isMobile = () => window.innerWidth <= 1000
 
 const resetForm = () => {
-  form.reset('content', 'photo', 'video', 'document', 'file_name')
+  form.reset('content', 'photo', 'video', 'document', 'file_name', 'reply_to_id')
   photoPreviewUrl.value = null
   videoPreviewUrl.value = null
   documentPreviewName.value = null
   editingMessage.value = null
+  replyingTo.value = null
 }
 
 const acceptApplication = () => {
@@ -1598,6 +1615,12 @@ const sendMessage = () => {
   const currentUser = page.props.auth?.user
 
   if (!editingMessage.value && currentUser) {
+    const replyTo = replyingTo.value ? {
+      id: replyingTo.value.id,
+      content: replyingTo.value.content,
+      user: { id: replyingTo.value.user.id, name: replyingTo.value.user.name },
+    } : null
+
     localMessages.value.push({
       id: tempId,
       _clientId: tempId,
@@ -1613,12 +1636,15 @@ const sendMessage = () => {
       image_url: photoPreviewUrl.value,
       video_url: videoPreviewUrl.value,
       file_name: documentPreviewName.value,
+      reply_to: replyTo,
       _status: 'sending'
     })
 
     pendingTempIds.add(tempId)
     scrollToBottom(true)
   }
+
+  form.reply_to_id = replyingTo.value?.id ?? null
 
   const url = editingMessage.value
     ? `/chats/${props.activeChat.id}/messages/${editingMessage.value.id}`
@@ -1687,11 +1713,16 @@ const hideContextMenu = () => {
   rightClickedMessage.value = null
 }
 
-const deleteMessage = (message) => {
-  if (confirm('Вы уверены, что хотите удалить это сообщение?')) {
+const deleteMessage = (message, mode) => {
+  const label = mode === 'everyone' ? 'удалить это сообщение у всех' : 'скрыть это сообщение'
+  if (confirm(`Вы уверены, что хотите ${label}?`)) {
     router.delete(`/chats/${props.activeChat.id}/messages/${message.id}`, {
+      data: { mode },
       preserveScroll: true,
       onSuccess: () => {
+        if (mode === 'me') {
+          localMessages.value = localMessages.value.filter(m => m.id !== message.id)
+        }
         hideContextMenu()
       }
     })
@@ -1722,6 +1753,10 @@ const cancelEdit = () => {
   resetForm()
 }
 
+const cancelReply = () => {
+  replyingTo.value = null
+}
+
 const toggleMessageSelection = (message, event) => {
   if (event?.target.closest('a')) return
   const index = selectedMessages.value.findIndex(m => m.id === message.id)
@@ -1733,15 +1768,11 @@ const toggleMessageSelection = (message, event) => {
 }
 
 const replyToMessage = (message) => {
-  const prefix = message.content
-    ? `>> ${message.user.name}: ${message.content.slice(0, 50)}${message.content.length > 50 ? '…' : ''}\n`
-    : `>> ${message.user.name}\n`
-  form.content = prefix
+  replyingTo.value = message
   hideContextMenu()
   nextTick(() => {
     if (textareaRef.value) {
       textareaRef.value.focus()
-      autoResize()
     }
   })
 }
@@ -2909,6 +2940,75 @@ watch(() => props.activeChat?.messages, (msgs) => {
     font-size: 14px;
     color: #856404;
   }
+
+.reply-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 15px;
+  background-color: #f0f7ff;
+  border-bottom: 1px solid #cce5ff;
+  font-size: 14px;
+  gap: 10px;
+}
+
+.reply-preview {
+  overflow: hidden;
+  flex: 1;
+}
+
+.reply-name {
+  font-weight: 600;
+  color: #0056b3;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reply-text {
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.cancel-reply-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #999;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.cancel-reply-btn:hover {
+  color: #333;
+}
+
+.reply-quote {
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: #f5f5f5;
+  border-left: 3px solid #007bff;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.reply-quote-author {
+  font-weight: 600;
+  color: #0056b3;
+  margin-bottom: 2px;
+}
+
+.reply-quote-text {
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .application-block {
   display: flex;
@@ -4105,6 +4205,40 @@ html.dark .editing-indicator {
   background-color: #451a03;
   border-bottom-color: #78350f;
   color: #fbbf24;
+}
+
+html.dark .reply-indicator {
+  background-color: #0c1e3a;
+  border-bottom-color: #1e3a5f;
+}
+
+html.dark .reply-name {
+  color: #60a5fa;
+}
+
+html.dark .reply-text {
+  color: #94a3b8;
+}
+
+html.dark .cancel-reply-btn {
+  color: #64748b;
+}
+
+html.dark .cancel-reply-btn:hover {
+  color: #f1f5f9;
+}
+
+html.dark .reply-quote {
+  background: #1e293b;
+  border-left-color: #3b82f6;
+}
+
+html.dark .reply-quote-author {
+  color: #60a5fa;
+}
+
+html.dark .reply-quote-text {
+  color: #94a3b8;
 }
 
 html.dark .application-block {

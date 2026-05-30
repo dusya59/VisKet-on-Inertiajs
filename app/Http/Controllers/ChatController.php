@@ -110,7 +110,6 @@ class ChatController extends Controller
         }
 
         $activeChat = $chat->load([
-            'messages.user',
             'users',
             'application.user',
             'application.vacancy',
@@ -119,9 +118,15 @@ class ChatController extends Controller
             'application.dispute',
         ]);
 
+        $messages = $chat->messages()
+            ->visibleFor($user)
+            ->with('user', 'replyTo.user')
+            ->orderBy('created_at')
+            ->get();
+
         $chats = $user->chats()
             ->with(['users' => fn ($q) => $q->where('id', '!=', $user->id)])
-            ->with(['messages' => fn ($q) => $q->latest()->limit(1)])
+            ->with(['messages' => fn ($q) => $q->visibleFor($user)->latest()->limit(1)])
             ->withCount('messages')
             ->withPivot('last_read_at')
             ->orderByDesc('updated_at')
@@ -131,6 +136,7 @@ class ChatController extends Controller
 
                 $lastReadAt = $c->pivot?->last_read_at ?? $user->created_at;
                 $unreadCount = $c->messages()
+                    ->visibleFor($user)
                     ->where('user_id', '!=', $user->id)
                     ->where('created_at', '>', $lastReadAt)
                     ->count();
@@ -207,7 +213,7 @@ class ChatController extends Controller
                         : asset('images/User-avatar.png'),
                 ];
             }),
-            'messages' => $activeChat->messages->map(function ($m) {
+            'messages' => $messages->map(function ($m) {
                 return [
                     'id' => $m->id,
                     'content' => $m->content,
@@ -220,6 +226,14 @@ class ChatController extends Controller
                     'is_price_proposal' => $m->is_price_proposal,
                     'proposed_price' => $m->proposed_price,
                     'price_proposal_status' => $m->price_proposal_status,
+                    'reply_to' => $m->reply_to_id && $m->replyTo ? [
+                        'id' => $m->replyTo->id,
+                        'content' => $m->replyTo->content,
+                        'user' => [
+                            'id' => $m->replyTo->user->id,
+                            'name' => $m->replyTo->user->name,
+                        ],
+                    ] : null,
                     'user' => [
                         'id' => $m->user->id,
                         'name' => $m->user->name,
@@ -255,6 +269,7 @@ class ChatController extends Controller
             'photo' => 'nullable|image|max:5120',
             'video' => 'nullable|mimes:mp4,avi,mov,wmv,flv,webm|max:51200',
             'document' => 'nullable|file|max:10240',
+            'reply_to_id' => 'nullable|exists:messages,id',
         ]);
 
         if (
@@ -288,6 +303,7 @@ class ChatController extends Controller
             'video_path' => $videoPath,
             'file_path' => $filePath,
             'original_file_name' => $originalFileName,
+            'reply_to_id' => $validated['reply_to_id'] ?? null,
         ]);
 
         $chat->touch();
@@ -396,11 +412,9 @@ class ChatController extends Controller
         return redirect()->back();
     }
 
-    public function deleteMessage(Chat $chat, Message $message)
+    public function deleteMessage(Request $request, Chat $chat, Message $message)
     {
         $user = auth()->user();
-        $messageId = $message->id;
-        $chatId = $chat->id;
 
         if (! $chat->users->contains($user->id)) {
             abort(403, 'У вас нет доступа к этому чату.');
@@ -410,19 +424,24 @@ class ChatController extends Controller
             abort(403, 'Вы можете удалять только свои сообщения.');
         }
 
-        if ($message->image_path && Storage::disk('public')->exists($message->image_path)) {
-            Storage::disk('public')->delete($message->image_path);
-        }
-        if ($message->video_path && Storage::disk('public')->exists($message->video_path)) {
-            Storage::disk('public')->delete($message->video_path);
-        }
-        if ($message->file_path && Storage::disk('public')->exists($message->file_path)) {
-            Storage::disk('public')->delete($message->file_path);
-        }
+        $mode = $request->input('mode', 'me');
 
-        $message->delete();
+        if ($mode === 'everyone') {
+            $message->update([
+                'deleted_for_everyone' => true,
+                'deleted_by_id' => $user->id,
+                'hidden_at' => now(),
+            ]);
 
-        event(new \App\Events\MessageDeleted($messageId, $chatId));
+            event(new \App\Events\MessageDeleted($message->id, $chat->id));
+        } else {
+            $ids = $message->deleted_for_user_ids ?? [];
+            $ids[] = $user->id;
+            $message->update([
+                'deleted_for_user_ids' => array_values(array_unique($ids)),
+                'hidden_at' => now(),
+            ]);
+        }
 
         return redirect()->back();
     }
@@ -446,16 +465,12 @@ class ChatController extends Controller
             ->get();
 
         foreach ($messages as $message) {
-            if ($message->image_path && Storage::disk('public')->exists($message->image_path)) {
-                Storage::disk('public')->delete($message->image_path);
-            }
-            if ($message->video_path && Storage::disk('public')->exists($message->video_path)) {
-                Storage::disk('public')->delete($message->video_path);
-            }
-            if ($message->file_path && Storage::disk('public')->exists($message->file_path)) {
-                Storage::disk('public')->delete($message->file_path);
-            }
-            $message->delete();
+            $userIds = $message->deleted_for_user_ids ?? [];
+            $userIds[] = $user->id;
+            $message->update([
+                'deleted_for_user_ids' => array_values(array_unique($userIds)),
+                'hidden_at' => now(),
+            ]);
         }
 
         $chat->touch();
