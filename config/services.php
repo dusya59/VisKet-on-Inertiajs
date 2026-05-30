@@ -55,4 +55,9 @@ return [
         'secret_key' => env('YOOKASSA_SECRET_KEY'),
     ],
 
+    'yookassa_payout' => [
+        'shop_id' => env('YOOKASSA_PAYOUT_SHOP_ID', env('YOOKASSA_SHOP_ID')),
+        'secret_key' => env('YOOKASSA_PAYOUT_SECRET_KEY', env('YOOKASSA_SECRET_KEY')),
+    ],
+
 ];

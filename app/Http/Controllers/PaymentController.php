@@ -36,16 +36,36 @@ class PaymentController extends Controller
         $requestBody = $request->getContent();
         $signatureHeader = $request->header('X-Signature');
 
-        if (!$this->yooKassaService->verifyWebhookSignature($requestBody, $signatureHeader)) {
+        // Пробуем основной secret_key
+        $verified = $this->yooKassaService->verifyWebhookSignature($requestBody, $signatureHeader);
+
+        // Пробуем payout secret_key
+        if (! $verified) {
+            $verified = $this->yooKassaService->verifyWebhookSignature(
+                $requestBody,
+                $signatureHeader,
+                config('services.yookassa_payout.secret_key')
+            );
+        }
+
+        if (! $verified) {
             Log::warning('YooKassa webhook: signature verification failed', [
                 'ip' => $request->ip(),
             ]);
+
             return response('Invalid signature', 403);
         }
 
         $payload = $request->all();
+        $event = $payload['event'] ?? '';
 
-        $this->yooKassaService->processNotification($payload);
+        if (str_starts_with($event, 'payment.')) {
+            $this->yooKassaService->processNotification($payload);
+        } elseif (str_starts_with($event, 'payout.')) {
+            $this->yooKassaService->processPayoutNotification($payload);
+        } else {
+            Log::warning('YooKassa webhook: unknown event type', ['event' => $event]);
+        }
 
         return response('OK', 200);
     }

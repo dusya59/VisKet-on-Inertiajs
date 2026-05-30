@@ -63,6 +63,99 @@
               </button>
             </div>
 
+            <!-- Payout destination form -->
+            <div v-if="isWithdrawal" class="payout-form">
+              <label class="input-label">Способ вывода:</label>
+              <div v-if="payoutMethods.length > 0" class="saved-methods">
+                <button
+                  v-for="m in payoutMethods"
+                  :key="m.id"
+                  type="button"
+                  class="method-btn"
+                  :class="{ active: selectedMethodId === m.id }"
+                  @click="selectedMethodId = m.id"
+                >
+                  {{ m.type === 'bank_card' ? 'Карта' : 'СБП' }} {{ m.masked_number }}
+                </button>
+                <button
+                  type="button"
+                  class="method-btn"
+                  :class="{ active: !selectedMethodId }"
+                  @click="selectedMethodId = null"
+                >
+                  Новый способ
+                </button>
+              </div>
+
+              <div v-if="!selectedMethodId" class="new-method">
+                <div class="toggle-row">
+                  <button
+                    type="button"
+                    class="toggle-btn"
+                    :class="{ active: form.destination_type === 'bank_card' }"
+                    @click="form.destination_type = 'bank_card'"
+                  >
+                    Банковская карта
+                  </button>
+                  <button
+                    type="button"
+                    class="toggle-btn"
+                    :class="{ active: form.destination_type === 'sbp' }"
+                    @click="form.destination_type = 'sbp'; loadSbpBanks()"
+                  >
+                    СБП
+                  </button>
+                </div>
+
+                <div v-if="form.destination_type === 'bank_card'" class="input-group">
+                  <label class="input-label">Номер карты:</label>
+                  <div class="input-wrapper">
+                    <input
+                      v-model="form.card_number"
+                      type="text"
+                      inputmode="numeric"
+                      placeholder="0000 0000 0000 0000"
+                      maxlength="19"
+                    />
+                  </div>
+                  <p v-if="form.errors.card_number" class="error-text">{{ form.errors.card_number }}</p>
+                </div>
+
+                <div v-if="form.destination_type === 'sbp'" class="input-group">
+                  <label class="input-label">Телефон:</label>
+                  <div class="input-wrapper">
+                    <input
+                      v-model="form.phone"
+                      type="text"
+                      inputmode="tel"
+                      placeholder="79000000000"
+                      maxlength="11"
+                    />
+                  </div>
+                  <p v-if="form.errors.phone" class="error-text">{{ form.errors.phone }}</p>
+
+                  <label class="input-label">Банк:</label>
+                  <div class="input-wrapper">
+                    <select v-model="form.bank_id">
+                      <option value="">— Выберите банк —</option>
+                      <option v-for="bank in sbpBanks" :key="bank.id" :value="bank.id">
+                        {{ bank.name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <label class="save-method-label">
+                  <input v-model="form.save_method" type="checkbox" />
+                  Сохранить реквизиты для следующих выводов
+                </label>
+              </div>
+
+              <div v-else class="saved-method-info">
+                <p class="method-info">Вывод на сохранённый реквизит</p>
+              </div>
+            </div>
+
             <button class="btn-cta" :disabled="form.processing" @click="submitBalance">
               {{ form.processing ? (isWithdrawal ? 'Снятие...' : 'Пополнение...') : (isWithdrawal ? 'Вывести средства' : 'Пополнить баланс') }}
             </button>
@@ -278,7 +371,8 @@ import { useDarkMode } from '@/composables/useDarkMode'
 const props = defineProps({
   balance: { type: [Number, String], default: 0 },
   pendingTransactions: { type: Array, default: () => [] },
-  transactions: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1 }) }
+  transactions: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1 }) },
+  payoutMethods: { type: Array, default: () => [] }
 })
 
 useDarkMode()
@@ -292,9 +386,19 @@ const withdrawalAmounts = [100, 300, 500, 1000, 3000, 5000]
 const isWithdrawal = ref(false)
 const historyTab = ref('received')
 
-const form = useForm({ amount: '' })
+const form = useForm({
+  amount: '',
+  destination_type: 'bank_card',
+  card_number: '',
+  phone: '',
+  bank_id: '',
+  save_method: false,
+  payout_method_id: null,
+})
 const displayAmount = ref('')
 const formError = ref('')
+const selectedMethodId = ref(null)
+const sbpBanks = ref([])
 
 const withdrawError = computed(() => {
   if (formError.value) return formError.value
@@ -318,6 +422,7 @@ const setAmount = (amount) => {
 
 const submitBalance = () => {
   formError.value = ''
+  form.clearErrors()
 
   if (isWithdrawal.value) {
     const balanceVal = typeof props.balance === 'number' ? props.balance : parseFloat(props.balance) || 0
@@ -326,6 +431,21 @@ const submitBalance = () => {
       formError.value = 'Недостаточно средств на балансе! Максимум: ' + balanceVal.toLocaleString('ru-RU') + ' ₽'
       return
     }
+    if (amount < 100) {
+      formError.value = 'Минимальная сумма вывода — 100 ₽'
+      return
+    }
+    if (!selectedMethodId.value) {
+      if (form.destination_type === 'bank_card' && !form.card_number) {
+        formError.value = 'Введите номер банковской карты'
+        return
+      }
+      if (form.destination_type === 'sbp' && !form.phone) {
+        formError.value = 'Введите номер телефона для СБП'
+        return
+      }
+    }
+    form.payout_method_id = selectedMethodId.value
   }
 
   const url = isWithdrawal.value ? '/balance/withdraw' : '/balance/add'
@@ -335,11 +455,21 @@ const submitBalance = () => {
       form.reset()
       displayAmount.value = ''
       formError.value = ''
+      selectedMethodId.value = null
     },
     onError: (errors) => {
       if (errors?.error) formError.value = errors.error
     }
   })
+}
+
+const loadSbpBanks = async () => {
+  try {
+    const response = await fetch('/balance/sbp-banks')
+    sbpBanks.value = await response.json()
+  } catch (e) {
+    sbpBanks.value = []
+  }
 }
 
 const getDaysRemaining = (transaction) => {
@@ -411,7 +541,7 @@ const chartData = computed(() => {
 
 const chartMax = computed(() => {
   const max = Math.max(...chartData.value, 1)
-  return Math.ceil(max / 5000) * 5000
+  return Math.ceil(max / 1000) * 1000
 })
 
 const yAxisValues = computed(() => {
@@ -639,6 +769,100 @@ const hideTooltip = () => {
   color: var(--success);
   font-size: 13px;
   font-weight: 600;
+}
+
+.payout-form {
+  margin-bottom: 24px;
+}
+
+.saved-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.method-btn {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.method-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.method-btn:hover:not(.active) {
+  border-color: var(--muted);
+}
+
+.new-method {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.save-method-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.save-method-label input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.saved-method-info {
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.method-info {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.input-wrapper select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.input-wrapper select:focus {
+  border-color: var(--accent);
 }
 
 /* Chart */
@@ -881,6 +1105,7 @@ const hideTooltip = () => {
 }
 .tx-status.completed { background: var(--success-bg); color: var(--success); }
 .tx-status.pending { background: oklch(95% 0.04 80); color: oklch(75% 0.16 80); }
+.tx-status.cancelled { background: oklch(95% 0.02 10); color: oklch(60% 0.15 10); }
 
 .pending-section { margin-bottom: 32px; }
 

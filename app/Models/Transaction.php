@@ -9,7 +9,7 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['from_user_id', 'to_user_id', 'amount', 'type', 'status', 'description', 'application_id', 'completed_at'];
+    protected $fillable = ['from_user_id', 'to_user_id', 'amount', 'type', 'status', 'description', 'application_id', 'payout_id', 'completed_at'];
 
     protected $casts = [
         'completed_at' => 'datetime',
@@ -28,6 +28,11 @@ class Transaction extends Model
     public function application()
     {
         return $this->belongsTo(Application::class);
+    }
+
+    public function payout()
+    {
+        return $this->belongsTo(Payout::class);
     }
 
     public function isPending(): bool

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Payout;
+use App\Models\PayoutMethod;
 use App\Models\Transaction;
 use App\Services\YooKassaService;
 use Illuminate\Http\Request;
@@ -25,14 +27,20 @@ class BalanceController extends Controller
             $query->where('from_user_id', $user->id)
                 ->orWhere('to_user_id', $user->id);
         })
-            ->with(['fromUser', 'toUser', 'application.vacancy'])
+            ->with(['fromUser', 'toUser', 'application.vacancy', 'payout'])
             ->orderByDesc('created_at')
             ->paginate(20);
+
+        $payoutMethods = $user->payoutMethods()
+            ->orderByDesc('is_default')
+            ->orderByDesc('created_at')
+            ->get();
 
         return Inertia::render('Balance/Index', [
             'balance' => (float) $user->balance,
             'pendingTransactions' => $pendingTransactions,
             'transactions' => $allTransactions,
+            'payoutMethods' => $payoutMethods,
         ]);
     }
 
@@ -73,45 +81,139 @@ class BalanceController extends Controller
         return Inertia::location($payment->confirmation_url);
     }
 
-    public function withdraw(Request $request)
+    public function withdraw(Request $request, YooKassaService $yooKassaService)
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric|min:100|max:100000',
+            'destination_type' => 'required|in:bank_card,sbp',
+            'card_number' => 'required_if:destination_type,bank_card|string|min:13|max:19',
+            'phone' => 'required_if:destination_type,sbp|string|regex:/^7\d{10}$/',
+            'bank_id' => 'nullable|string',
+            'save_method' => 'boolean',
+            'payout_method_id' => 'nullable|exists:payout_methods,id',
         ]);
 
         $user = auth()->user();
 
-        $result = DB::transaction(function () use ($user, $validated) {
+        // Определяем реквизиты
+        $type = $validated['destination_type'];
+        $method = null;
+        $destination = [];
+        $masked = '';
+
+        if (! empty($validated['payout_method_id'])) {
+            $method = $user->payoutMethods()->where('id', $validated['payout_method_id'])->firstOrFail();
+            $type = $method->type;
+
+            if ($type === 'bank_card') {
+                $destination = ['type' => 'bank_card', 'card' => ['number' => $method->full_number]];
+                $masked = $method->masked_number;
+            } else {
+                $destination = ['type' => 'sbp', 'phone' => $method->full_number, 'bank_id' => $method->bank_id];
+                $masked = $method->masked_number;
+            }
+        } else {
+            if ($type === 'bank_card') {
+                $cardNumber = preg_replace('/\D/', '', $validated['card_number']);
+                $destination = ['type' => 'bank_card', 'card' => ['number' => $cardNumber]];
+                $masked = '•••• ' . substr($cardNumber, -4);
+            } else {
+                $phone = preg_replace('/\D/', '', $validated['phone']);
+                $destination = ['type' => 'sbp', 'phone' => $phone, 'bank_id' => $validated['bank_id'] ?? null];
+                $masked = '+7 ••• •••-' . substr($phone, -4, 2) . '-' . substr($phone, -2);
+            }
+        }
+
+        $payout = null;
+        $transaction = null;
+        $committed = false;
+
+        DB::beginTransaction();
+
+        try {
             $lockedUser = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
 
             if ($lockedUser->balance < $validated['amount']) {
-                return false;
+                DB::rollBack();
+
+                return back()->with('error', 'Недостаточно средств на балансе! Максимум: ' . number_format($lockedUser->balance, 0, ',', ' ') . ' ₽');
             }
 
             $lockedUser->decrement('balance', $validated['amount']);
 
-            Transaction::create([
+            $transaction = Transaction::create([
                 'from_user_id' => $lockedUser->id,
                 'to_user_id' => $lockedUser->id,
                 'amount' => $validated['amount'],
                 'type' => 'withdrawal',
-                'status' => 'completed',
-                'description' => 'Снятие средств',
+                'status' => 'pending',
+                'description' => 'Вывод средств' . ($masked ? ' (' . $masked . ')' : ''),
             ]);
 
-            Log::info('Balance withdrawal', [
+            $payout = Payout::create([
                 'user_id' => $lockedUser->id,
+                'payout_method_id' => $method?->id,
+                'transaction_id' => $transaction->id,
                 'amount' => $validated['amount'],
-                'new_balance' => $lockedUser->fresh()->balance,
+                'currency' => 'RUB',
+                'status' => 'pending',
+                'description' => $transaction->description,
             ]);
 
-            return true;
-        });
+            DB::commit();
+            $committed = true;
 
-        if (!$result) {
-            return back()->with('error', 'Недостаточно средств на балансе!');
+            // Сохранение нового метода вывода (не критично для транзакции)
+            if (empty($validated['payout_method_id']) && ! empty($validated['save_method'])) {
+                PayoutMethod::create([
+                    'user_id' => $lockedUser->id,
+                    'type' => $type,
+                    'masked_number' => $masked,
+                    'full_number' => $type === 'bank_card' ? preg_replace('/\D/', '', $validated['card_number']) : preg_replace('/\D/', '', $validated['phone']),
+                    'bank_id' => $validated['bank_id'] ?? null,
+                    'is_default' => $lockedUser->payoutMethods()->count() === 0,
+                ]);
+            }
+
+            // Вызов API ЮKassa
+            $yooPayout = $yooKassaService->createPayout($lockedUser, $validated['amount'], $type, $destination, $method);
+            $payout->update(['yookassa_payout_id' => $yooPayout->yookassa_payout_id]);
+
+            return back()->with('success', 'Заявка на вывод создана и обрабатывается.');
+        } catch (\Exception $e) {
+            if (! $committed) {
+                DB::rollBack();
+            } else {
+                // Компенсация: возвращаем баланс, отменяем записи
+                DB::transaction(function () use ($payout, $transaction) {
+                    if ($payout) {
+                        $payout->update([
+                            'status' => 'canceled',
+                            'canceled_at' => now(),
+                        ]);
+                    }
+
+                    if ($transaction) {
+                        $transaction->update(['status' => 'cancelled']);
+                    }
+
+                    $refundUser = \App\Models\User::where('id', $payout->user_id)->lockForUpdate()->first();
+                    $refundUser->increment('balance', $payout->amount);
+                });
+            }
+
+            Log::error('Payout creation failed', [
+                'user_id' => $user->id,
+                'amount' => $validated['amount'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Ошибка при создании выплаты. Средства возвращены на баланс.');
         }
+    }
 
-        return back()->with('success', 'Средства успешно сняты!');
+    public function sbpBanks(YooKassaService $yooKassaService)
+    {
+        return response()->json($yooKassaService->getSbpBanks());
     }
 }

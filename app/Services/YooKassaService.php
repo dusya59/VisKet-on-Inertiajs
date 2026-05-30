@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Payment;
+use App\Models\Payout;
+use App\Models\PayoutMethod;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,14 +20,14 @@ class YooKassaService
         $this->client->setAuth(config('services.yookassa.shop_id'), config('services.yookassa.secret_key'));
     }
 
-    public function verifyWebhookSignature(string $requestBody, ?string $signatureHeader): bool
+    public function verifyWebhookSignature(string $requestBody, ?string $signatureHeader, ?string $secretKey = null): bool
     {
         if (empty($signatureHeader)) {
             Log::warning('YooKassa webhook: missing signature header');
             return false;
         }
 
-        $secretKey = config('services.yookassa.secret_key');
+        $secretKey ??= config('services.yookassa.secret_key');
         $expectedSignature = base64_encode(hash('sha256', $requestBody . $secretKey, true));
 
         if (!hash_equals($expectedSignature, $signatureHeader)) {
@@ -182,5 +184,155 @@ class YooKassaService
                 'amount' => $payment->amount,
             ]);
         });
+    }
+
+    /* ================================================================
+     * Payouts
+     * ================================================================ */
+
+    private function getPayoutClient(): Client
+    {
+        $client = new Client();
+        $client->setAuth(
+            config('services.yookassa_payout.shop_id'),
+            config('services.yookassa_payout.secret_key')
+        );
+
+        return $client;
+    }
+
+    public function createPayout(User $user, float $amount, string $type, array $destination, ?PayoutMethod $method = null): Payout
+    {
+        $idempotenceKey = 'payout_' . $user->id . '_' . \Illuminate\Support\Str::uuid()->toString();
+
+        $payoutData = [
+            'amount' => [
+                'value' => number_format($amount, 2, '.', ''),
+                'currency' => 'RUB',
+            ],
+            'payout_destination_data' => $destination,
+            'description' => 'Вывод средств пользователем #' . $user->id,
+            'metadata' => [
+                'user_id' => $user->id,
+            ],
+        ];
+
+        $client = $this->getPayoutClient();
+        $response = $client->createPayout($payoutData, $idempotenceKey);
+
+        return Payout::create([
+            'user_id' => $user->id,
+            'payout_method_id' => $method?->id,
+            'amount' => $amount,
+            'currency' => 'RUB',
+            'yookassa_payout_id' => $response->getId(),
+            'status' => $response->getStatus(),
+            'description' => $payoutData['description'],
+            'metadata' => $payoutData['metadata'],
+        ]);
+    }
+
+    public function getPayoutInfo(string $yookassaPayoutId): \YooKassa\Request\Payouts\PayoutResponse
+    {
+        return $this->getPayoutClient()->getPayoutInfo($yookassaPayoutId);
+    }
+
+    public function processPayoutNotification(array $payload): ?Payout
+    {
+        $event = $payload['event'] ?? null;
+        $object = $payload['object'] ?? null;
+
+        if (!$event || !$object || !isset($object['id'])) {
+            return null;
+        }
+
+        $yookassaPayoutId = $object['id'];
+
+        /** @var Payout|null $payout */
+        $payout = Payout::where('yookassa_payout_id', $yookassaPayoutId)->first();
+
+        if (!$payout) {
+            return null;
+        }
+
+        $newStatus = match ($event) {
+            'payout.succeeded' => 'succeeded',
+            'payout.canceled' => 'canceled',
+            default => $payout->status,
+        };
+
+        if ($newStatus === 'succeeded' && $payout->isPending()) {
+            DB::transaction(function () use ($payout) {
+                $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
+
+                if (!$lockedPayout->isPending()) {
+                    return;
+                }
+
+                $lockedPayout->update([
+                    'status' => 'succeeded',
+                    'succeeded_at' => now(),
+                ]);
+
+                if ($lockedPayout->transaction) {
+                    $lockedPayout->transaction->update(['status' => 'completed']);
+                }
+
+                Log::info('Payout succeeded', [
+                    'payout_id' => $lockedPayout->id,
+                    'user_id' => $lockedPayout->user_id,
+                    'amount' => $lockedPayout->amount,
+                ]);
+            });
+        } elseif ($newStatus === 'canceled' && $payout->isPending()) {
+            DB::transaction(function () use ($payout) {
+                $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
+
+                if (!$lockedPayout->isPending()) {
+                    return;
+                }
+
+                $lockedPayout->update([
+                    'status' => 'canceled',
+                    'canceled_at' => now(),
+                ]);
+
+                if ($lockedPayout->transaction) {
+                    $lockedPayout->transaction->update(['status' => 'cancelled']);
+                }
+
+                $user = User::where('id', $lockedPayout->user_id)->lockForUpdate()->first();
+                $user->increment('balance', $lockedPayout->amount);
+
+                Log::info('Payout canceled, balance refunded', [
+                    'payout_id' => $lockedPayout->id,
+                    'user_id' => $user->id,
+                    'amount' => $lockedPayout->amount,
+                ]);
+            });
+        }
+
+        return $payout->fresh();
+    }
+
+    public function getSbpBanks(): array
+    {
+        try {
+            $response = $this->getPayoutClient()->getSbpBanks();
+            $banks = [];
+
+            foreach ($response->getItems() as $bank) {
+                $banks[] = [
+                    'id' => $bank->getId(),
+                    'name' => $bank->getName(),
+                ];
+            }
+
+            return $banks;
+        } catch (\Exception $e) {
+            Log::warning('Failed to fetch SBP banks from YooKassa', ['error' => $e->getMessage()]);
+
+            return [];
+        }
     }
 }

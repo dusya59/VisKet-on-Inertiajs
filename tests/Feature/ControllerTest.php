@@ -638,8 +638,20 @@ test('add balance requires positive amount', function () {
 test('user can withdraw balance', function () {
     $user = User::factory()->create(['balance' => 1000]);
 
+    $fakePayout = new \App\Models\Payout([
+        'yookassa_payout_id' => 'po-test-123',
+        'status' => 'pending',
+    ]);
+    $fakePayout->id = 999;
+
+    $this->mock(\App\Services\YooKassaService::class, function ($mock) use ($fakePayout) {
+        $mock->shouldReceive('createPayout')->andReturn($fakePayout);
+    });
+
     $response = $this->actingAs($user)->post(route('balance.withdraw'), [
         'amount' => 300,
+        'destination_type' => 'bank_card',
+        'card_number' => '5555555555554477',
     ]);
 
     expect((float) $user->fresh()->balance)->toBe(700.0);
@@ -647,7 +659,7 @@ test('user can withdraw balance', function () {
         'from_user_id' => $user->id,
         'amount' => 300,
         'type' => 'withdrawal',
-        'status' => 'completed',
+        'status' => 'pending',
     ]);
     $response->assertRedirect();
 });
@@ -657,6 +669,8 @@ test('cannot withdraw more than balance', function () {
 
     $response = $this->actingAs($user)->post(route('balance.withdraw'), [
         'amount' => 200,
+        'destination_type' => 'bank_card',
+        'card_number' => '5555555555554477',
     ]);
 
     expect((float) $user->fresh()->balance)->toBe(100.0);
