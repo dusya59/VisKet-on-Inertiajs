@@ -319,6 +319,22 @@ class YooKassaService
         return $payout->fresh();
     }
 
+    private function getDefaultSbpBanks(): array
+    {
+        return [
+            ['bank_id' => '100000000001', 'name' => 'Сбербанк'],
+            ['bank_id' => '100000000004', 'name' => 'Тинькофф'],
+            ['bank_id' => '100000000003', 'name' => 'ВТБ'],
+            ['bank_id' => '100000000005', 'name' => 'Альфа-Банк'],
+            ['bank_id' => '100000000007', 'name' => 'Райффайзен Банк'],
+            ['bank_id' => '100000000008', 'name' => 'Газпромбанк'],
+            ['bank_id' => '100000000009', 'name' => 'Банк Открытие'],
+            ['bank_id' => '100000000010', 'name' => 'Россельхозбанк'],
+            ['bank_id' => '100000000011', 'name' => 'Промсвязьбанк'],
+            ['bank_id' => '100000000014', 'name' => 'МТС Банк'],
+        ];
+    }
+
     public function getSbpBanks(): array
     {
         try {
@@ -332,14 +348,22 @@ class YooKassaService
                 ];
             }
 
+            if (empty($banks)) {
+                Log::info('SBP banks API returned empty list, using fallback', [
+                    'agent_id' => config('services.yookassa_payout.shop_id'),
+                ]);
+
+                return $this->getDefaultSbpBanks();
+            }
+
             return $banks;
         } catch (\Exception $e) {
-            Log::warning('Failed to fetch SBP banks from YooKassa', [
+            Log::warning('Failed to fetch SBP banks from YooKassa, using fallback', [
                 'error' => $e->getMessage(),
                 'agent_id' => config('services.yookassa_payout.shop_id'),
             ]);
 
-            return [];
+            return $this->getDefaultSbpBanks();
         }
     }
 }

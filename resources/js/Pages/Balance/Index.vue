@@ -463,9 +463,15 @@ const submitBalance = () => {
           return
         }
       }
-      if (form.destination_type === 'sbp' && !form.phone) {
-        formError.value = 'Введите номер телефона для СБП'
-        return
+      if (form.destination_type === 'sbp') {
+        if (!form.phone) {
+          formError.value = 'Введите номер телефона для СБП'
+          return
+        }
+        if (!form.bank_id) {
+          formError.value = 'Выберите банк для СБП'
+          return
+        }
       }
     }
     form.payout_method_id = selectedMethodId.value

@@ -131,7 +131,7 @@ class BalanceController extends Controller
             'destination_type' => 'required|in:bank_card,sbp',
             'card_number' => 'required_if:destination_type,bank_card|nullable|string|min:13|max:19',
             'phone' => 'required_if:destination_type,sbp|nullable|string|regex:/^7\d{10}$/',
-            'bank_id' => 'nullable|string',
+            'bank_id' => 'required_if:destination_type,sbp|nullable|string',
             'save_method' => 'boolean',
             'payout_method_id' => 'nullable|exists:payout_methods,id',
         ]);
