@@ -638,15 +638,22 @@ test('add balance requires positive amount', function () {
 test('user can withdraw balance', function () {
     $user = User::factory()->create(['balance' => 1000]);
 
-    $this->mock(\App\Services\YooKassaService::class, function ($mock) {
-        $mock->shouldReceive('createPayout');
+    app()->bind(\App\Services\YooKassaService::class, function () {
+        $mock = \Mockery::mock(\App\Services\YooKassaService::class);
+        $mock->shouldReceive('createPayout')->once();
+        return $mock;
     });
 
-    $response = $this->actingAs($user)->post(route('balance.withdraw'), [
-        'amount' => 300,
-        'destination_type' => 'bank_card',
-        'card_number' => '5555555555554477',
-    ]);
+    $response = $this->actingAs($user)
+        ->withSession(['_token' => 'test'])
+        ->post(route('balance.withdraw'), [
+            '_token' => 'test',
+            'amount' => 300,
+            'destination_type' => 'bank_card',
+            'card_number' => '5555555555554477',
+        ]);
+
+    $response->assertStatus(302);
 
     expect((float) $user->fresh()->balance)->toBe(700.0);
     $this->assertDatabaseHas('transactions', [
