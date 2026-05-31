@@ -420,6 +420,23 @@ const setAmount = (amount) => {
   form.amount = String(amount)
 }
 
+const luhnCheck = (cardNumber) => {
+  const clean = cardNumber.replace(/\D/g, '')
+  if (clean.length < 13) return false
+  let sum = 0
+  let alternate = false
+  for (let i = clean.length - 1; i >= 0; i--) {
+    let n = parseInt(clean.substring(i, i + 1), 10)
+    if (alternate) {
+      n *= 2
+      if (n > 9) n -= 9
+    }
+    sum += n
+    alternate = !alternate
+  }
+  return sum % 10 === 0
+}
+
 const submitBalance = () => {
   formError.value = ''
   form.clearErrors()
@@ -436,9 +453,15 @@ const submitBalance = () => {
       return
     }
     if (!selectedMethodId.value) {
-      if (form.destination_type === 'bank_card' && !form.card_number) {
-        formError.value = 'Введите номер банковской карты'
-        return
+      if (form.destination_type === 'bank_card') {
+        if (!form.card_number) {
+          formError.value = 'Введите номер банковской карты'
+          return
+        }
+        if (!luhnCheck(form.card_number)) {
+          formError.value = 'Неверный номер банковской карты. Проверьте правильность ввода.'
+          return
+        }
       }
       if (form.destination_type === 'sbp' && !form.phone) {
         formError.value = 'Введите номер телефона для СБП'

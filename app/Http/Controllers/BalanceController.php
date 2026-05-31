@@ -81,6 +81,47 @@ class BalanceController extends Controller
         return Inertia::location($payment->confirmation_url);
     }
 
+    private function mapYooKassaError(string $message): string
+    {
+        if (str_contains($message, 'Error code: invalid_request') && str_contains($message, 'card.number')) {
+            return 'Неверный номер банковской карты. Проверьте правильность ввода.';
+        }
+
+        if (str_contains($message, 'Error code: invalid_request') && str_contains($message, 'phone')) {
+            return 'Неверный номер телефона для СБП. Укажите номер в формате 79000000000.';
+        }
+
+        if (str_contains($message, 'Error code: invalid_credentials')) {
+            return 'Ошибка авторизации в платёжной системе. Обратитесь в поддержку.';
+        }
+
+        if (str_contains($message, 'Error code: forbidden')) {
+            return 'Выплаты не подключены для этого магазина. Обратитесь в поддержку.';
+        }
+
+        if (str_contains($message, 'Error code: not_found')) {
+            return 'Реквизиты получателя не найдены. Проверьте данные и попробуйте снова.';
+        }
+
+        if (str_contains($message, 'Error code: insufficient_funds')) {
+            return 'Недостаточно средств на счёте для выполнения выплаты. Обратитесь в поддержку.';
+        }
+
+        if (str_contains($message, 'Error code: too_many_requests')) {
+            return 'Слишком много запросов. Подождите минуту и попробуйте снова.';
+        }
+
+        if (str_contains($message, 'Error code: internal_server_error')) {
+            return 'Временная ошибка платёжной системы. Попробуйте позже.';
+        }
+
+        if (str_contains($message, 'Error code: idempotency_key_reuse')) {
+            return 'Дублирующий запрос. Проверьте статус операции в истории.';
+        }
+
+        return 'Ошибка при создании выплаты: ' . $message;
+    }
+
     public function withdraw(Request $request, YooKassaService $yooKassaService)
     {
         Log::info('Withdraw request started', ['data' => $request->all()]);
@@ -225,7 +266,7 @@ class BalanceController extends Controller
             }
 
             return back()->withErrors([
-                'amount' => 'Ошибка при создании выплаты: ' . $e->getMessage(),
+                'amount' => $this->mapYooKassaError($e->getMessage()),
             ]);
         }
     }
