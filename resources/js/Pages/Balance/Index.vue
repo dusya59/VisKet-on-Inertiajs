@@ -338,7 +338,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const props = defineProps({
@@ -559,6 +559,45 @@ const yAxisValues = computed(() => {
   const step = chartMax.value / 5
   return [5, 4, 3, 2, 1, 0].map(i => Math.round(step * i))
 })
+
+// Polling: автообновление статуса pending выплат
+const hasPendingWithdrawals = computed(() =>
+  allTransactions.value.some(tx => tx.type === 'withdrawal' && tx.status === 'pending')
+)
+
+let pollInterval = null
+
+const startPolling = () => {
+  if (pollInterval) return
+  pollInterval = setInterval(() => {
+    if (hasPendingWithdrawals.value) {
+      router.reload({ only: ['transactions', 'balance'], preserveScroll: true })
+    }
+  }, 10000)
+}
+
+const stopPolling = () => {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+    pollInterval = null
+  }
+}
+
+onMounted(() => {
+  if (hasPendingWithdrawals.value) startPolling()
+  document.addEventListener('visibilitychange', handleVisibility)
+})
+
+onUnmounted(() => {
+  stopPolling()
+  document.removeEventListener('visibilitychange', handleVisibility)
+})
+
+const handleVisibility = () => {
+  if (document.visibilityState === 'visible') {
+    router.reload({ only: ['transactions', 'balance'], preserveScroll: true })
+  }
+}
 
 const refreshPayout = (transactionId) => {
   router.post('/balance/refresh-payout', {

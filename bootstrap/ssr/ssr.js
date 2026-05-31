@@ -2173,6 +2173,37 @@ var _sfc_main$16 = {
 				0
 			].map((i) => Math.round(step * i));
 		});
+		const hasPendingWithdrawals = computed(() => allTransactions.value.some((tx) => tx.type === "withdrawal" && tx.status === "pending"));
+		let pollInterval = null;
+		const startPolling = () => {
+			if (pollInterval) return;
+			pollInterval = setInterval(() => {
+				if (hasPendingWithdrawals.value) router.reload({
+					only: ["transactions", "balance"],
+					preserveScroll: true
+				});
+			}, 1e4);
+		};
+		const stopPolling = () => {
+			if (pollInterval) {
+				clearInterval(pollInterval);
+				pollInterval = null;
+			}
+		};
+		onMounted(() => {
+			if (hasPendingWithdrawals.value) startPolling();
+			document.addEventListener("visibilitychange", handleVisibility);
+		});
+		onUnmounted(() => {
+			stopPolling();
+			document.removeEventListener("visibilitychange", handleVisibility);
+		});
+		const handleVisibility = () => {
+			if (document.visibilityState === "visible") router.reload({
+				only: ["transactions", "balance"],
+				preserveScroll: true
+			});
+		};
 		const refreshPayout = (transactionId) => {
 			router.post("/balance/refresh-payout", { transaction_id: transactionId }, {
 				preserveScroll: true,
@@ -2218,96 +2249,96 @@ var _sfc_main$16 = {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
 						_push(ssrRenderComponent(unref(Head), { title: "Баланс" }, null, _parent, _scopeId));
-						_push(`<div class="balance-page" data-v-dc607be3${_scopeId}><div class="main" data-v-dc607be3${_scopeId}><section class="top-row" data-v-dc607be3${_scopeId}><div class="card" data-v-dc607be3${_scopeId}><h2 class="funding-card-title" data-v-dc607be3${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Снятие средств" : "Пополнение баланса")}</h2><div class="balance-row" data-v-dc607be3${_scopeId}><span class="balance-row-label" data-v-dc607be3${_scopeId}>Текущий баланс:</span><span class="balance-row-amount" data-v-dc607be3${_scopeId}>${ssrInterpolate(Number(__props.balance).toLocaleString("ru-RU"))} ₽</span></div><div class="toggle-row" data-v-dc607be3${_scopeId}><button type="button" class="${ssrRenderClass([{ active: !isWithdrawal.value }, "toggle-btn"])}" data-v-dc607be3${_scopeId}> Пополнение </button><button type="button" class="${ssrRenderClass([{ active: isWithdrawal.value }, "toggle-btn"])}"${ssrIncludeBooleanAttr(Number(__props.balance) <= 0) ? " disabled" : ""} data-v-dc607be3${_scopeId}> Снятие </button></div><label class="input-label" data-v-dc607be3${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Сумма снятия:" : "Сумма пополнения:")}</label><div class="input-wrapper" data-v-dc607be3${_scopeId}><input${ssrRenderAttr("value", formattedAmount.value)} type="text" inputmode="numeric" placeholder="Введите сумму" data-v-dc607be3${_scopeId}><span class="currency-suffix" data-v-dc607be3${_scopeId}>₽</span></div><div class="${ssrRenderClass([{ visible: unref(form).errors.amount || withdrawError.value || flashMessage.value }, "message-wrapper"])}" data-v-dc607be3${_scopeId}>`);
-						if (unref(form).errors.amount) _push(`<p class="error-text" data-v-dc607be3${_scopeId}>${ssrInterpolate(unref(form).errors.amount)}</p>`);
+						_push(`<div class="balance-page" data-v-c01b0703${_scopeId}><div class="main" data-v-c01b0703${_scopeId}><section class="top-row" data-v-c01b0703${_scopeId}><div class="card" data-v-c01b0703${_scopeId}><h2 class="funding-card-title" data-v-c01b0703${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Снятие средств" : "Пополнение баланса")}</h2><div class="balance-row" data-v-c01b0703${_scopeId}><span class="balance-row-label" data-v-c01b0703${_scopeId}>Текущий баланс:</span><span class="balance-row-amount" data-v-c01b0703${_scopeId}>${ssrInterpolate(Number(__props.balance).toLocaleString("ru-RU"))} ₽</span></div><div class="toggle-row" data-v-c01b0703${_scopeId}><button type="button" class="${ssrRenderClass([{ active: !isWithdrawal.value }, "toggle-btn"])}" data-v-c01b0703${_scopeId}> Пополнение </button><button type="button" class="${ssrRenderClass([{ active: isWithdrawal.value }, "toggle-btn"])}"${ssrIncludeBooleanAttr(Number(__props.balance) <= 0) ? " disabled" : ""} data-v-c01b0703${_scopeId}> Снятие </button></div><label class="input-label" data-v-c01b0703${_scopeId}>${ssrInterpolate(isWithdrawal.value ? "Сумма снятия:" : "Сумма пополнения:")}</label><div class="input-wrapper" data-v-c01b0703${_scopeId}><input${ssrRenderAttr("value", formattedAmount.value)} type="text" inputmode="numeric" placeholder="Введите сумму" data-v-c01b0703${_scopeId}><span class="currency-suffix" data-v-c01b0703${_scopeId}>₽</span></div><div class="${ssrRenderClass([{ visible: unref(form).errors.amount || withdrawError.value || flashMessage.value }, "message-wrapper"])}" data-v-c01b0703${_scopeId}>`);
+						if (unref(form).errors.amount) _push(`<p class="error-text" data-v-c01b0703${_scopeId}>${ssrInterpolate(unref(form).errors.amount)}</p>`);
 						else _push(`<!---->`);
-						if (withdrawError.value) _push(`<p class="error-text" data-v-dc607be3${_scopeId}>${ssrInterpolate(withdrawError.value)}</p>`);
+						if (withdrawError.value) _push(`<p class="error-text" data-v-c01b0703${_scopeId}>${ssrInterpolate(withdrawError.value)}</p>`);
 						else _push(`<!---->`);
-						if (flashMessage.value) _push(`<p class="success-text" data-v-dc607be3${_scopeId}>${ssrInterpolate(flashMessage.value)}</p>`);
+						if (flashMessage.value) _push(`<p class="success-text" data-v-c01b0703${_scopeId}>${ssrInterpolate(flashMessage.value)}</p>`);
 						else _push(`<!---->`);
-						_push(`</div><div class="quick-amounts" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`</div><div class="quick-amounts" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(isWithdrawal.value ? withdrawalAmounts : quickAmounts, (amount) => {
-							_push(`<button type="button" class="quick-amount-btn" data-v-dc607be3${_scopeId}>${ssrInterpolate(amount.toLocaleString("ru-RU"))} ₽ </button>`);
+							_push(`<button type="button" class="quick-amount-btn" data-v-c01b0703${_scopeId}>${ssrInterpolate(amount.toLocaleString("ru-RU"))} ₽ </button>`);
 						});
 						_push(`<!--]--></div>`);
 						if (isWithdrawal.value) {
-							_push(`<div class="payout-form" data-v-dc607be3${_scopeId}><label class="input-label" data-v-dc607be3${_scopeId}>Способ вывода:</label>`);
+							_push(`<div class="payout-form" data-v-c01b0703${_scopeId}><label class="input-label" data-v-c01b0703${_scopeId}>Способ вывода:</label>`);
 							if (__props.payoutMethods.length > 0) {
-								_push(`<div class="saved-methods" data-v-dc607be3${_scopeId}><!--[-->`);
+								_push(`<div class="saved-methods" data-v-c01b0703${_scopeId}><!--[-->`);
 								ssrRenderList(__props.payoutMethods, (m) => {
-									_push(`<button type="button" class="${ssrRenderClass([{ active: selectedMethodId.value === m.id }, "method-btn"])}" data-v-dc607be3${_scopeId}> Карта ${ssrInterpolate(m.masked_number)}</button>`);
+									_push(`<button type="button" class="${ssrRenderClass([{ active: selectedMethodId.value === m.id }, "method-btn"])}" data-v-c01b0703${_scopeId}> Карта ${ssrInterpolate(m.masked_number)}</button>`);
 								});
-								_push(`<!--]--><button type="button" class="${ssrRenderClass([{ active: !selectedMethodId.value }, "method-btn"])}" data-v-dc607be3${_scopeId}> Новый способ </button></div>`);
+								_push(`<!--]--><button type="button" class="${ssrRenderClass([{ active: !selectedMethodId.value }, "method-btn"])}" data-v-c01b0703${_scopeId}> Новый способ </button></div>`);
 							} else _push(`<!---->`);
 							if (!selectedMethodId.value) {
-								_push(`<div class="new-method" data-v-dc607be3${_scopeId}><div class="input-group" data-v-dc607be3${_scopeId}><label class="input-label" data-v-dc607be3${_scopeId}>Номер карты:</label><div class="input-wrapper" data-v-dc607be3${_scopeId}><input${ssrRenderAttr("value", unref(form).card_number)} type="text" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="19" data-v-dc607be3${_scopeId}></div>`);
-								if (unref(form).errors.card_number) _push(`<p class="error-text" data-v-dc607be3${_scopeId}>${ssrInterpolate(unref(form).errors.card_number)}</p>`);
+								_push(`<div class="new-method" data-v-c01b0703${_scopeId}><div class="input-group" data-v-c01b0703${_scopeId}><label class="input-label" data-v-c01b0703${_scopeId}>Номер карты:</label><div class="input-wrapper" data-v-c01b0703${_scopeId}><input${ssrRenderAttr("value", unref(form).card_number)} type="text" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="19" data-v-c01b0703${_scopeId}></div>`);
+								if (unref(form).errors.card_number) _push(`<p class="error-text" data-v-c01b0703${_scopeId}>${ssrInterpolate(unref(form).errors.card_number)}</p>`);
 								else _push(`<!---->`);
-								_push(`</div><label class="save-method-label" data-v-dc607be3${_scopeId}><input${ssrIncludeBooleanAttr(Array.isArray(unref(form).save_method) ? ssrLooseContain(unref(form).save_method, null) : unref(form).save_method) ? " checked" : ""} type="checkbox" data-v-dc607be3${_scopeId}> Сохранить реквизиты для следующих выводов </label></div>`);
-							} else _push(`<div class="saved-method-info" data-v-dc607be3${_scopeId}><p class="method-info" data-v-dc607be3${_scopeId}>Вывод на сохранённый реквизит</p><button type="button" class="remove-method-btn" data-v-dc607be3${_scopeId}> Нажмите сюда, чтобы убрать </button></div>`);
+								_push(`</div><label class="save-method-label" data-v-c01b0703${_scopeId}><input${ssrIncludeBooleanAttr(Array.isArray(unref(form).save_method) ? ssrLooseContain(unref(form).save_method, null) : unref(form).save_method) ? " checked" : ""} type="checkbox" data-v-c01b0703${_scopeId}> Сохранить реквизиты для следующих выводов </label></div>`);
+							} else _push(`<div class="saved-method-info" data-v-c01b0703${_scopeId}><p class="method-info" data-v-c01b0703${_scopeId}>Вывод на сохранённый реквизит</p><button type="button" class="remove-method-btn" data-v-c01b0703${_scopeId}> Нажмите сюда, чтобы убрать </button></div>`);
 							_push(`</div>`);
 						} else _push(`<!---->`);
-						_push(`<button class="btn-cta"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-dc607be3${_scopeId}>${ssrInterpolate(unref(form).processing ? isWithdrawal.value ? "Снятие..." : "Пополнение..." : isWithdrawal.value ? "Вывести средства" : "Пополнить баланс")}</button></div><div class="card chart-card" data-v-dc607be3${_scopeId}><div class="chart-header" data-v-dc607be3${_scopeId}><h2 class="chart-title" data-v-dc607be3${_scopeId}>Аналитика</h2><div class="toggle-row" data-v-dc607be3${_scopeId}><button type="button" class="${ssrRenderClass([{ active: chartView.value === "received" }, "toggle-btn"])}" data-v-dc607be3${_scopeId}> Получено </button><button type="button" class="${ssrRenderClass([{ active: chartView.value === "spent" }, "toggle-btn"])}" data-v-dc607be3${_scopeId}> Выведено </button></div></div><div class="chart-wrapper" data-v-dc607be3${_scopeId}><div class="chart-container" data-v-dc607be3${_scopeId}><div class="y-axis" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`<button class="btn-cta"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""} data-v-c01b0703${_scopeId}>${ssrInterpolate(unref(form).processing ? isWithdrawal.value ? "Снятие..." : "Пополнение..." : isWithdrawal.value ? "Вывести средства" : "Пополнить баланс")}</button></div><div class="card chart-card" data-v-c01b0703${_scopeId}><div class="chart-header" data-v-c01b0703${_scopeId}><h2 class="chart-title" data-v-c01b0703${_scopeId}>Аналитика</h2><div class="toggle-row" data-v-c01b0703${_scopeId}><button type="button" class="${ssrRenderClass([{ active: chartView.value === "received" }, "toggle-btn"])}" data-v-c01b0703${_scopeId}> Получено </button><button type="button" class="${ssrRenderClass([{ active: chartView.value === "spent" }, "toggle-btn"])}" data-v-c01b0703${_scopeId}> Выведено </button></div></div><div class="chart-wrapper" data-v-c01b0703${_scopeId}><div class="chart-container" data-v-c01b0703${_scopeId}><div class="y-axis" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(yAxisValues.value, (val) => {
-							_push(`<span data-v-dc607be3${_scopeId}>${ssrInterpolate(val.toLocaleString("ru-RU"))}</span>`);
+							_push(`<span data-v-c01b0703${_scopeId}>${ssrInterpolate(val.toLocaleString("ru-RU"))}</span>`);
 						});
-						_push(`<!--]--></div><div class="grid-lines" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`<!--]--></div><div class="grid-lines" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(5, (i) => {
-							_push(`<div class="grid-line" style="${ssrRenderStyle({ top: (i - 1) * 20 + "%" })}" data-v-dc607be3${_scopeId}></div>`);
+							_push(`<div class="grid-line" style="${ssrRenderStyle({ top: (i - 1) * 20 + "%" })}" data-v-c01b0703${_scopeId}></div>`);
 						});
-						_push(`<!--]--></div><div class="chart-bars" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`<!--]--></div><div class="chart-bars" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(chartData.value, (val, i) => {
-							_push(`<div class="bar-group" data-v-dc607be3${_scopeId}><div class="${ssrRenderClass([chartView.value, "bar"])}" style="${ssrRenderStyle({ height: val / chartMax.value * 100 + "%" })}" data-v-dc607be3${_scopeId}></div></div>`);
+							_push(`<div class="bar-group" data-v-c01b0703${_scopeId}><div class="${ssrRenderClass([chartView.value, "bar"])}" style="${ssrRenderStyle({ height: val / chartMax.value * 100 + "%" })}" data-v-c01b0703${_scopeId}></div></div>`);
 						});
-						_push(`<!--]--></div></div><div class="x-axis" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`<!--]--></div></div><div class="x-axis" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(months, (m, i) => {
-							_push(`<span data-v-dc607be3${_scopeId}>${ssrInterpolate(m)}</span>`);
+							_push(`<span data-v-c01b0703${_scopeId}>${ssrInterpolate(m)}</span>`);
 						});
 						_push(`<!--]--></div><div class="${ssrRenderClass([{ visible: tooltip.value.visible }, "chart-tooltip"])}" style="${ssrRenderStyle({
 							left: tooltip.value.x + "px",
 							top: tooltip.value.y + "px"
-						})}" data-v-dc607be3${_scopeId}>${tooltip.value.text ?? ""}</div></div></div></section>`);
+						})}" data-v-c01b0703${_scopeId}>${tooltip.value.text ?? ""}</div></div></div></section>`);
 						if (__props.pendingTransactions && __props.pendingTransactions.length > 0) {
-							_push(`<div class="card pending-section" data-v-dc607be3${_scopeId}><h2 class="funding-card-title" data-v-dc607be3${_scopeId}>Ожидающие зачисления</h2><div class="tx-list" data-v-dc607be3${_scopeId}><!--[-->`);
+							_push(`<div class="card pending-section" data-v-c01b0703${_scopeId}><h2 class="funding-card-title" data-v-c01b0703${_scopeId}>Ожидающие зачисления</h2><div class="tx-list" data-v-c01b0703${_scopeId}><!--[-->`);
 							ssrRenderList(__props.pendingTransactions, (tx) => {
-								_push(`<div class="tx-item pending" data-v-dc607be3${_scopeId}><div class="tx-top" data-v-dc607be3${_scopeId}><span class="tx-amount positive" data-v-dc607be3${_scopeId}>+${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="tx-status pending" data-v-dc607be3${_scopeId}>Ожидание</span></div><div class="tx-desc" data-v-dc607be3${_scopeId}>${ssrInterpolate(tx.type === "payment" ? "Оплата за работу" : tx.description)} `);
-								if (tx.from_user) _push(`<span data-v-dc607be3${_scopeId}> — ${ssrInterpolate(tx.from_user.name)}</span>`);
+								_push(`<div class="tx-item pending" data-v-c01b0703${_scopeId}><div class="tx-top" data-v-c01b0703${_scopeId}><span class="tx-amount positive" data-v-c01b0703${_scopeId}>+${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="tx-status pending" data-v-c01b0703${_scopeId}>Ожидание</span></div><div class="tx-desc" data-v-c01b0703${_scopeId}>${ssrInterpolate(tx.type === "payment" ? "Оплата за работу" : tx.description)} `);
+								if (tx.from_user) _push(`<span data-v-c01b0703${_scopeId}> — ${ssrInterpolate(tx.from_user.name)}</span>`);
 								else _push(`<!---->`);
-								_push(`</div><div class="tx-date" data-v-dc607be3${_scopeId}>Осталось: ${ssrInterpolate(getDaysRemaining(tx))} дн.</div></div>`);
+								_push(`</div><div class="tx-date" data-v-c01b0703${_scopeId}>Осталось: ${ssrInterpolate(getDaysRemaining(tx))} дн.</div></div>`);
 							});
 							_push(`<!--]--></div></div>`);
 						} else _push(`<!---->`);
-						_push(`<section class="history-section card" data-v-dc607be3${_scopeId}><div class="history-header" data-v-dc607be3${_scopeId}><h2 class="history-title" data-v-dc607be3${_scopeId}>История транзакций</h2></div><div class="history-tabs" data-v-dc607be3${_scopeId}><button class="${ssrRenderClass([{ active: historyTab.value === "received" }, "history-tab"])}" data-v-dc607be3${_scopeId}> Получено </button><button class="${ssrRenderClass([{ active: historyTab.value === "sent" }, "history-tab"])}" data-v-dc607be3${_scopeId}> Отправлено </button><button class="${ssrRenderClass([{ active: historyTab.value === "withdrawn" }, "history-tab"])}" data-v-dc607be3${_scopeId}> Вывод </button></div><div class="history-columns" data-v-dc607be3${_scopeId}><div class="${ssrRenderClass([{ active: historyTab.value === "received" }, "history-col"])}" data-v-dc607be3${_scopeId}><div class="history-column-title" data-v-dc607be3${_scopeId}><span class="dot dot-received" data-v-dc607be3${_scopeId}></span> Получено </div><div class="tx-list" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`<section class="history-section card" data-v-c01b0703${_scopeId}><div class="history-header" data-v-c01b0703${_scopeId}><h2 class="history-title" data-v-c01b0703${_scopeId}>История транзакций</h2></div><div class="history-tabs" data-v-c01b0703${_scopeId}><button class="${ssrRenderClass([{ active: historyTab.value === "received" }, "history-tab"])}" data-v-c01b0703${_scopeId}> Получено </button><button class="${ssrRenderClass([{ active: historyTab.value === "sent" }, "history-tab"])}" data-v-c01b0703${_scopeId}> Отправлено </button><button class="${ssrRenderClass([{ active: historyTab.value === "withdrawn" }, "history-tab"])}" data-v-c01b0703${_scopeId}> Вывод </button></div><div class="history-columns" data-v-c01b0703${_scopeId}><div class="${ssrRenderClass([{ active: historyTab.value === "received" }, "history-col"])}" data-v-c01b0703${_scopeId}><div class="history-column-title" data-v-c01b0703${_scopeId}><span class="dot dot-received" data-v-c01b0703${_scopeId}></span> Получено </div><div class="tx-list" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(receivedTransactions.value, (tx) => {
-							_push(`<div class="tx-item" data-v-dc607be3${_scopeId}><div class="tx-top" data-v-dc607be3${_scopeId}><span class="tx-amount positive" data-v-dc607be3${_scopeId}>+${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="${ssrRenderClass(["tx-status", tx.status])}" data-v-dc607be3${_scopeId}>${ssrInterpolate(getStatusLabel(tx.status))}</span></div><div class="tx-desc" data-v-dc607be3${_scopeId}>${ssrInterpolate(getTransactionType(tx))}</div><div class="tx-date" data-v-dc607be3${_scopeId}>${ssrInterpolate(formatDate(tx.created_at))}</div></div>`);
+							_push(`<div class="tx-item" data-v-c01b0703${_scopeId}><div class="tx-top" data-v-c01b0703${_scopeId}><span class="tx-amount positive" data-v-c01b0703${_scopeId}>+${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="${ssrRenderClass(["tx-status", tx.status])}" data-v-c01b0703${_scopeId}>${ssrInterpolate(getStatusLabel(tx.status))}</span></div><div class="tx-desc" data-v-c01b0703${_scopeId}>${ssrInterpolate(getTransactionType(tx))}</div><div class="tx-date" data-v-c01b0703${_scopeId}>${ssrInterpolate(formatDate(tx.created_at))}</div></div>`);
 						});
 						_push(`<!--]-->`);
-						if (receivedTransactions.value.length === 0) _push(`<div class="tx-item empty" data-v-dc607be3${_scopeId}>Нет транзакций</div>`);
+						if (receivedTransactions.value.length === 0) _push(`<div class="tx-item empty" data-v-c01b0703${_scopeId}>Нет транзакций</div>`);
 						else _push(`<!---->`);
-						_push(`</div></div><div class="${ssrRenderClass([{ active: historyTab.value === "sent" }, "history-col"])}" data-v-dc607be3${_scopeId}><div class="history-column-title" data-v-dc607be3${_scopeId}><span class="dot dot-sent" data-v-dc607be3${_scopeId}></span> Отправлено </div><div class="tx-list" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`</div></div><div class="${ssrRenderClass([{ active: historyTab.value === "sent" }, "history-col"])}" data-v-c01b0703${_scopeId}><div class="history-column-title" data-v-c01b0703${_scopeId}><span class="dot dot-sent" data-v-c01b0703${_scopeId}></span> Отправлено </div><div class="tx-list" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(sentTransactions.value, (tx) => {
-							_push(`<div class="tx-item" data-v-dc607be3${_scopeId}><div class="tx-top" data-v-dc607be3${_scopeId}><span class="tx-amount negative" data-v-dc607be3${_scopeId}>−${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="${ssrRenderClass(["tx-status", tx.status])}" data-v-dc607be3${_scopeId}>${ssrInterpolate(getStatusLabel(tx.status))}</span></div><div class="tx-desc" data-v-dc607be3${_scopeId}>${ssrInterpolate(getTransactionType(tx))}</div><div class="tx-date" data-v-dc607be3${_scopeId}>${ssrInterpolate(formatDate(tx.created_at))}</div></div>`);
+							_push(`<div class="tx-item" data-v-c01b0703${_scopeId}><div class="tx-top" data-v-c01b0703${_scopeId}><span class="tx-amount negative" data-v-c01b0703${_scopeId}>−${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="${ssrRenderClass(["tx-status", tx.status])}" data-v-c01b0703${_scopeId}>${ssrInterpolate(getStatusLabel(tx.status))}</span></div><div class="tx-desc" data-v-c01b0703${_scopeId}>${ssrInterpolate(getTransactionType(tx))}</div><div class="tx-date" data-v-c01b0703${_scopeId}>${ssrInterpolate(formatDate(tx.created_at))}</div></div>`);
 						});
 						_push(`<!--]-->`);
-						if (sentTransactions.value.length === 0) _push(`<div class="tx-item empty" data-v-dc607be3${_scopeId}>Нет транзакций</div>`);
+						if (sentTransactions.value.length === 0) _push(`<div class="tx-item empty" data-v-c01b0703${_scopeId}>Нет транзакций</div>`);
 						else _push(`<!---->`);
-						_push(`</div></div><div class="${ssrRenderClass([{ active: historyTab.value === "withdrawn" }, "history-col"])}" data-v-dc607be3${_scopeId}><div class="history-column-title" data-v-dc607be3${_scopeId}><span class="dot dot-withdrawn" data-v-dc607be3${_scopeId}></span> Вывод средств </div><div class="tx-list" data-v-dc607be3${_scopeId}><!--[-->`);
+						_push(`</div></div><div class="${ssrRenderClass([{ active: historyTab.value === "withdrawn" }, "history-col"])}" data-v-c01b0703${_scopeId}><div class="history-column-title" data-v-c01b0703${_scopeId}><span class="dot dot-withdrawn" data-v-c01b0703${_scopeId}></span> Вывод средств </div><div class="tx-list" data-v-c01b0703${_scopeId}><!--[-->`);
 						ssrRenderList(withdrawnTransactions.value, (tx) => {
-							_push(`<div class="tx-item" data-v-dc607be3${_scopeId}><div class="tx-top" data-v-dc607be3${_scopeId}><span class="tx-amount withdrawn" data-v-dc607be3${_scopeId}>−${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="${ssrRenderClass(["tx-status", tx.status])}" data-v-dc607be3${_scopeId}>${ssrInterpolate(getStatusLabel(tx.status))}</span></div><div class="tx-desc" data-v-dc607be3${_scopeId}>${ssrInterpolate(getTransactionType(tx))}</div><div class="tx-date" data-v-dc607be3${_scopeId}>${ssrInterpolate(formatDate(tx.created_at))}</div>`);
-							if (tx.status === "pending" && tx.payout && tx.payout.yookassa_payout_id) _push(`<button type="button" class="refresh-btn" data-v-dc607be3${_scopeId}> Проверить статус </button>`);
+							_push(`<div class="tx-item" data-v-c01b0703${_scopeId}><div class="tx-top" data-v-c01b0703${_scopeId}><span class="tx-amount withdrawn" data-v-c01b0703${_scopeId}>−${ssrInterpolate(Number(tx.amount).toFixed(2))} ₽</span><span class="${ssrRenderClass(["tx-status", tx.status])}" data-v-c01b0703${_scopeId}>${ssrInterpolate(getStatusLabel(tx.status))}</span></div><div class="tx-desc" data-v-c01b0703${_scopeId}>${ssrInterpolate(getTransactionType(tx))}</div><div class="tx-date" data-v-c01b0703${_scopeId}>${ssrInterpolate(formatDate(tx.created_at))}</div>`);
+							if (tx.status === "pending" && tx.payout && tx.payout.yookassa_payout_id) _push(`<button type="button" class="refresh-btn" data-v-c01b0703${_scopeId}> Проверить статус </button>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						});
 						_push(`<!--]-->`);
-						if (withdrawnTransactions.value.length === 0) _push(`<div class="tx-item empty" data-v-dc607be3${_scopeId}>Нет транзакций</div>`);
+						if (withdrawnTransactions.value.length === 0) _push(`<div class="tx-item empty" data-v-c01b0703${_scopeId}>Нет транзакций</div>`);
 						else _push(`<!---->`);
 						_push(`</div></div></div>`);
 						if (__props.transactions && __props.transactions.last_page > 1) {
-							_push(`<div class="pagination" data-v-dc607be3${_scopeId}>`);
-							if (__props.transactions.current_page > 1) _push(`<button class="pagination-btn" data-v-dc607be3${_scopeId}> ← Назад </button>`);
+							_push(`<div class="pagination" data-v-c01b0703${_scopeId}>`);
+							if (__props.transactions.current_page > 1) _push(`<button class="pagination-btn" data-v-c01b0703${_scopeId}> ← Назад </button>`);
 							else _push(`<!---->`);
-							_push(`<span class="pagination-info" data-v-dc607be3${_scopeId}>Страница ${ssrInterpolate(__props.transactions.current_page)} из ${ssrInterpolate(__props.transactions.last_page)}</span>`);
-							if (__props.transactions.current_page < __props.transactions.last_page) _push(`<button class="pagination-btn" data-v-dc607be3${_scopeId}> Вперёд → </button>`);
+							_push(`<span class="pagination-info" data-v-c01b0703${_scopeId}>Страница ${ssrInterpolate(__props.transactions.current_page)} из ${ssrInterpolate(__props.transactions.last_page)}</span>`);
+							if (__props.transactions.current_page < __props.transactions.last_page) _push(`<button class="pagination-btn" data-v-c01b0703${_scopeId}> Вперёд → </button>`);
 							else _push(`<!---->`);
 							_push(`</div>`);
 						} else _push(`<!---->`);
@@ -2570,7 +2601,7 @@ _sfc_main$16.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Balance/Index.vue");
 	return _sfc_setup$16 ? _sfc_setup$16(props, ctx) : void 0;
 };
-var Index_default$2 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$16, [["__scopeId", "data-v-dc607be3"]]);
+var Index_default$2 = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$16, [["__scopeId", "data-v-c01b0703"]]);
 //#endregion
 //#region resources/js/composables/usePostPreviewsCache.js
 var postPreviewsCache = {};
