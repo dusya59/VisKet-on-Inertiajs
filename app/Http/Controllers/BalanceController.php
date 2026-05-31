@@ -19,6 +19,7 @@ class BalanceController extends Controller
 
         $pendingTransactions = Transaction::where('to_user_id', $user->id)
             ->where('status', 'pending')
+            ->whereNotIn('type', ['withdrawal', 'deposit'])
             ->with(['fromUser', 'application.vacancy'])
             ->orderByDesc('created_at')
             ->get();
@@ -128,16 +129,34 @@ class BalanceController extends Controller
 
         $validated = $request->validate([
             'amount' => 'required|numeric|min:100|max:100000',
-            'destination_type' => 'required|in:bank_card,sbp',
-            'card_number' => 'required_if:destination_type,bank_card|nullable|string|min:13|max:19',
-            'phone' => 'required_if:destination_type,sbp|nullable|string|regex:/^7\d{10}$/',
-            'bank_id' => 'required_if:destination_type,sbp|nullable|string',
+            'destination_type' => 'nullable|in:bank_card,sbp',
+            'card_number' => 'nullable|string|min:13|max:19',
+            'phone' => 'nullable|string|regex:/^7\d{10}$/',
+            'bank_id' => 'nullable|string',
             'save_method' => 'boolean',
             'payout_method_id' => 'nullable|exists:payout_methods,id',
         ]);
 
         $user = auth()->user();
         Log::info('Withdraw validated', ['user_id' => $user->id, 'amount' => $validated['amount']]);
+
+        // Ручная валидация реквизитов (если не выбран сохранённый метод)
+        if (empty($validated['payout_method_id'])) {
+            if (empty($validated['destination_type'])) {
+                return back()->withErrors(['destination_type' => 'Выберите способ вывода']);
+            }
+            if ($validated['destination_type'] === 'bank_card' && empty($validated['card_number'])) {
+                return back()->withErrors(['card_number' => 'Введите номер банковской карты']);
+            }
+            if ($validated['destination_type'] === 'sbp') {
+                if (empty($validated['phone'])) {
+                    return back()->withErrors(['phone' => 'Введите номер телефона для СБП']);
+                }
+                if (empty($validated['bank_id'])) {
+                    return back()->withErrors(['bank_id' => 'Выберите банк для СБП']);
+                }
+            }
+        }
 
         // Определяем реквизиты
         $type = $validated['destination_type'];

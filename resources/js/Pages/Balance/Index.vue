@@ -73,7 +73,7 @@
                   type="button"
                   class="method-btn"
                   :class="{ active: selectedMethodId === m.id }"
-                  @click="selectedMethodId = m.id"
+                  @click="selectedMethodId = m.id; form.card_number = ''; form.phone = ''; form.bank_id = ''"
                 >
                   {{ m.type === 'bank_card' ? 'Карта' : 'СБП' }} {{ m.masked_number }}
                 </button>
@@ -116,6 +116,7 @@
                       inputmode="numeric"
                       placeholder="0000 0000 0000 0000"
                       maxlength="19"
+                      @input="e => form.card_number = formatCardNumber(e.target.value)"
                     />
                   </div>
                   <p v-if="form.errors.card_number" class="error-text">{{ form.errors.card_number }}</p>
@@ -143,6 +144,7 @@
                       </option>
                     </select>
                   </div>
+                  <p v-if="form.errors.bank_id" class="error-text">{{ form.errors.bank_id }}</p>
                 </div>
 
                 <label class="save-method-label">
@@ -437,6 +439,15 @@ const luhnCheck = (cardNumber) => {
   return sum % 10 === 0
 }
 
+const formatCardNumber = (value) => {
+  const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
+  const parts = []
+  for (let i = 0; i < v.length; i += 4) {
+    parts.push(v.substring(i, i + 4))
+  }
+  return parts.length ? parts.join(' ') : value
+}
+
 const submitBalance = () => {
   formError.value = ''
   form.clearErrors()
@@ -492,6 +503,18 @@ const submitBalance = () => {
     onError: (errors) => {
       if (errors?.amount) {
         form.setError('amount', errors.amount)
+      }
+      if (errors?.card_number) {
+        form.setError('card_number', errors.card_number)
+      }
+      if (errors?.phone) {
+        form.setError('phone', errors.phone)
+      }
+      if (errors?.bank_id) {
+        form.setError('bank_id', errors.bank_id)
+      }
+      if (errors?.destination_type) {
+        form.setError('destination_type', errors.destination_type)
       }
       if (errors?.error) {
         form.setError('amount', errors.error)
