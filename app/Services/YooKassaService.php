@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\Payout;
-use App\Models\PayoutMethod;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -205,17 +204,17 @@ class YooKassaService
         return $client;
     }
 
-    public function createPayout(User $user, float $amount, string $type, array $destination, ?PayoutMethod $method = null): Payout
+    public function createPayout(Payout $payout, User $user, array $destination): void
     {
         $idempotenceKey = 'payout_' . $user->id . '_' . \Illuminate\Support\Str::uuid()->toString();
 
         $payoutData = [
             'amount' => [
-                'value' => number_format($amount, 2, '.', ''),
+                'value' => number_format((float) $payout->amount, 2, '.', ''),
                 'currency' => 'RUB',
             ],
             'payout_destination_data' => $destination,
-            'description' => 'Вывод средств пользователем #' . $user->id,
+            'description' => $payout->description,
             'metadata' => [
                 'user_id' => $user->id,
             ],
@@ -224,15 +223,9 @@ class YooKassaService
         $client = $this->getPayoutClient();
         $response = $client->createPayout($payoutData, $idempotenceKey);
 
-        return Payout::create([
-            'user_id' => $user->id,
-            'payout_method_id' => $method?->id,
-            'amount' => $amount,
-            'currency' => 'RUB',
+        $payout->update([
             'yookassa_payout_id' => $response->getId(),
             'status' => $response->getStatus(),
-            'description' => $payoutData['description'],
-            'metadata' => $payoutData['metadata'],
         ]);
     }
 

@@ -247,9 +247,8 @@ class BalanceController extends Controller
 
             // Вызов API ЮKassa
             Log::info('Withdraw calling YooKassa API', ['destination_type' => $type]);
-            $yooPayout = $yooKassaService->createPayout($lockedUser, $validated['amount'], $type, $destination, $method);
-            $payout->update(['yookassa_payout_id' => $yooPayout->yookassa_payout_id]);
-            Log::info('Withdraw YooKassa API success', ['yookassa_payout_id' => $yooPayout->yookassa_payout_id]);
+            $yooKassaService->createPayout($payout, $lockedUser, $destination);
+            Log::info('Withdraw YooKassa API success', ['yookassa_payout_id' => $payout->fresh()->yookassa_payout_id]);
 
             return back()->with('success', 'Заявка на вывод создана и обрабатывается.');
         } catch (\Throwable $e) {

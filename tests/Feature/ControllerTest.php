@@ -638,14 +638,8 @@ test('add balance requires positive amount', function () {
 test('user can withdraw balance', function () {
     $user = User::factory()->create(['balance' => 1000]);
 
-    $fakePayout = new \App\Models\Payout([
-        'yookassa_payout_id' => 'po-test-123',
-        'status' => 'pending',
-    ]);
-    $fakePayout->id = 999;
-
-    $this->mock(\App\Services\YooKassaService::class, function ($mock) use ($fakePayout) {
-        $mock->shouldReceive('createPayout')->andReturn($fakePayout);
+    $this->mock(\App\Services\YooKassaService::class, function ($mock) {
+        $mock->shouldReceive('createPayout');
     });
 
     $response = $this->actingAs($user)->post(route('balance.withdraw'), [
