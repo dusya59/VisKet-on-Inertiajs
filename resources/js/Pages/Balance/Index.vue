@@ -355,7 +355,7 @@ const authUser = computed(() => page.props.auth?.user || page.props.authUser || 
 const flashMessage = computed(() => page.props.flash?.success || page.props.flash?.message || '')
 
 const quickAmounts = [100, 300, 500, 1000, 3000, 5000]
-const withdrawalAmounts = [100, 100.01, 100.02, 300, 500, 1000, 3000, 5000]
+const withdrawalAmounts = [100, 300, 500, 1000, 3000, 5000]
 const isWithdrawal = ref(false)
 const historyTab = ref('received')
 

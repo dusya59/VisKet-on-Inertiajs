@@ -281,6 +281,10 @@
                       controls
                       @click.stop="openVideo(message.video_url)"
                     ></video>
+                    <div v-if="message.reply_to" class="reply-quote">
+                      <div class="reply-quote-author">{{ message.reply_to.user.name }}</div>
+                      <div class="reply-quote-text">{{ message.reply_to.content?.slice(0, 100) }}</div>
+                    </div>
                     <div class="message-content" @click="handleMessageContentClick">
                       <span
                         v-if="message.content && !isOnlyPostUrl(message.content)"
@@ -333,10 +337,6 @@
                         </form>
                         <button type="button" class="change-price-btn" @click.stop="openPriceChangeModal(message)">Изменить</button>
                       </div>
-                    </div>
-                    <div v-if="message.reply_to" class="reply-quote">
-                      <div class="reply-quote-author">{{ message.reply_to.user.name }}</div>
-                      <div class="reply-quote-text">{{ message.reply_to.content?.slice(0, 100) }}</div>
                     </div>
                     <div class="message-time">
                       <span>{{ message.time }}</span>
@@ -1015,7 +1015,7 @@ const skeletonItems = computed(() => [
   { side: 'left', lines: ['72%', '36%', '24%'], hasThirdLine: true },
 ])
 
-const POST_URL_REGEX = /http?:\/\/[^\/\s]+\/posts\/(\d+)/
+const POST_URL_REGEX = /https?:\/\/[^\/\s]+\/posts\/(\d+)/
 
 function extractPostIds(content) {
   if (!content) return []
@@ -1135,7 +1135,7 @@ function getPostPreviewsFromContent(content) {
 function renderContent(content) {
   if (!content) return ''
   let result = content.replace(
-    /http?:\/\/[^\/\s]+\/posts\/(\d+)/g,
+    /https?:\/\/[^\/\s]+\/posts\/(\d+)/g,
     (url, id) => `<a href="/posts/${id}" class="post-link" data-link="local">${url}</a>`
   )
   result = result.replace(
