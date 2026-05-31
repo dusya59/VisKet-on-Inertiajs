@@ -327,14 +327,17 @@ class YooKassaService
 
             foreach ($response->getItems() as $bank) {
                 $banks[] = [
-                    'id' => $bank->getId(),
+                    'bank_id' => $bank->getBankId(),
                     'name' => $bank->getName(),
                 ];
             }
 
             return $banks;
         } catch (\Exception $e) {
-            Log::warning('Failed to fetch SBP banks from YooKassa', ['error' => $e->getMessage()]);
+            Log::warning('Failed to fetch SBP banks from YooKassa', [
+                'error' => $e->getMessage(),
+                'agent_id' => config('services.yookassa_payout.shop_id'),
+            ]);
 
             return [];
         }

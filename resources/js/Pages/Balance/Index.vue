@@ -138,7 +138,7 @@
                   <div class="input-wrapper">
                     <select v-model="form.bank_id">
                       <option value="">— Выберите банк —</option>
-                      <option v-for="bank in sbpBanks" :key="bank.id" :value="bank.id">
+                      <option v-for="bank in sbpBanks" :key="bank.bank_id" :value="bank.bank_id">
                         {{ bank.name }}
                       </option>
                     </select>
@@ -497,7 +497,8 @@ const submitBalance = () => {
 const loadSbpBanks = async () => {
   try {
     const response = await fetch('/balance/sbp-banks')
-    sbpBanks.value = await response.json()
+    const data = await response.json()
+    sbpBanks.value = data.items || data || []
   } catch (e) {
     sbpBanks.value = []
   }

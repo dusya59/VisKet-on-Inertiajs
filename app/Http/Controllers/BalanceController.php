@@ -238,6 +238,7 @@ class BalanceController extends Controller
 
             Log::error('Withdraw exception caught', [
                 'committed' => $committed,
+                'agent_id' => config('services.yookassa_payout.shop_id'),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
