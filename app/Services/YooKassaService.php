@@ -283,12 +283,12 @@ class YooKassaService
             'event' => $event,
         ]);
 
-        if ($newStatus === 'succeeded' && $payout->isPending()) {
+        if ($newStatus === 'succeeded' && $payout->status !== 'succeeded') {
             DB::transaction(function () use ($payout) {
                 $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
 
-                if (!$lockedPayout->isPending()) {
-                    Log::info('Webhook payout: not pending anymore (race condition)', [
+                if ($lockedPayout->status === 'succeeded') {
+                    Log::info('Webhook payout: already succeeded (race condition)', [
                         'payout_id' => $lockedPayout->id,
                         'current_status' => $lockedPayout->status,
                     ]);
@@ -300,7 +300,7 @@ class YooKassaService
                     'succeeded_at' => now(),
                 ]);
 
-                if ($lockedPayout->transaction) {
+                if ($lockedPayout->transaction && $lockedPayout->transaction->status === 'pending') {
                     $lockedPayout->transaction->update(['status' => 'completed']);
                 }
 
@@ -311,12 +311,12 @@ class YooKassaService
                     'amount' => $lockedPayout->amount,
                 ]);
             });
-        } elseif ($newStatus === 'canceled' && $payout->isPending()) {
+        } elseif ($newStatus === 'canceled' && $payout->status !== 'canceled') {
             DB::transaction(function () use ($payout) {
                 $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
 
-                if (!$lockedPayout->isPending()) {
-                    Log::info('Webhook payout: not pending anymore (race condition)', [
+                if ($lockedPayout->status === 'canceled') {
+                    Log::info('Webhook payout: already canceled (race condition)', [
                         'payout_id' => $lockedPayout->id,
                         'current_status' => $lockedPayout->status,
                     ]);
@@ -328,7 +328,7 @@ class YooKassaService
                     'canceled_at' => now(),
                 ]);
 
-                if ($lockedPayout->transaction) {
+                if ($lockedPayout->transaction && $lockedPayout->transaction->status === 'pending') {
                     $lockedPayout->transaction->update(['status' => 'cancelled']);
                 }
 
@@ -346,7 +346,7 @@ class YooKassaService
             Log::info('Webhook payout: no action needed', [
                 'payout_id' => $payout->id,
                 'new_status' => $newStatus,
-                'is_pending' => $payout->isPending(),
+                'current_status' => $payout->status,
             ]);
         }
 

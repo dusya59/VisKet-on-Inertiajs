@@ -39,25 +39,29 @@ class BalanceController extends Controller
                     $info = $yooKassaService->getPayoutInfo($tx->payout->yookassa_payout_id);
                     $status = $info->getStatus();
 
-                    if ($status === 'succeeded' && $tx->payout->isPending()) {
+                    if ($status === 'succeeded') {
                         DB::transaction(function () use ($tx) {
                             $payout = \App\Models\Payout::where('id', $tx->payout->id)->lockForUpdate()->first();
-                            if ($payout->isPending()) {
+                            if ($payout->status !== 'succeeded') {
                                 $payout->update([
                                     'status' => 'succeeded',
                                     'succeeded_at' => now(),
                                 ]);
+                            }
+                            if ($tx->status === 'pending') {
                                 $tx->update(['status' => 'completed']);
                             }
                         });
-                    } elseif ($status === 'canceled' && $tx->payout->isPending()) {
+                    } elseif ($status === 'canceled') {
                         DB::transaction(function () use ($tx) {
                             $payout = \App\Models\Payout::where('id', $tx->payout->id)->lockForUpdate()->first();
-                            if ($payout->isPending()) {
+                            if ($payout->status !== 'canceled') {
                                 $payout->update([
                                     'status' => 'canceled',
                                     'canceled_at' => now(),
                                 ]);
+                            }
+                            if ($tx->status === 'pending') {
                                 $tx->update(['status' => 'cancelled']);
                                 $payout->user->increment('balance', $payout->amount);
                             }
@@ -279,7 +283,19 @@ class BalanceController extends Controller
             // Вызов API ЮKassa
             Log::info('Withdraw calling YooKassa API', ['destination_type' => 'bank_card']);
             $yooKassaService->createPayout($payout, $lockedUser, $destination);
-            Log::info('Withdraw YooKassa API success', ['yookassa_payout_id' => $payout->fresh()->yookassa_payout_id]);
+            Log::info('Withdraw YooKassa API success', [
+                'yookassa_payout_id' => $payout->fresh()->yookassa_payout_id,
+                'payout_status' => $payout->fresh()->status,
+            ]);
+
+            // Если API сразу вернул succeeded (тестовый шлюз), обновляем транзакцию
+            $payout->refresh();
+            if ($payout->status === 'succeeded' && $transaction->status === 'pending') {
+                $transaction->update(['status' => 'completed']);
+                Log::info('Withdraw transaction auto-completed', [
+                    'transaction_id' => $transaction->id,
+                ]);
+            }
 
             return back()->with('success', 'Заявка на вывод создана и обрабатывается.');
         } catch (\Throwable $e) {
@@ -343,27 +359,31 @@ class BalanceController extends Controller
             $info = $yooKassaService->getPayoutInfo($transaction->payout->yookassa_payout_id);
             $status = $info->getStatus();
 
-            if ($status === 'succeeded' && $transaction->payout->isPending()) {
+            if ($status === 'succeeded') {
                 DB::transaction(function () use ($transaction) {
                     $payout = \App\Models\Payout::where('id', $transaction->payout->id)->lockForUpdate()->first();
-                    if ($payout->isPending()) {
+                    if ($payout->status !== 'succeeded') {
                         $payout->update([
                             'status' => 'succeeded',
                             'succeeded_at' => now(),
                         ]);
+                    }
+                    if ($transaction->status === 'pending') {
                         $transaction->update(['status' => 'completed']);
                     }
                 });
 
                 return back()->with('success', 'Выплата подтверждена — статус обновлён.');
-            } elseif ($status === 'canceled' && $transaction->payout->isPending()) {
+            } elseif ($status === 'canceled') {
                 DB::transaction(function () use ($transaction) {
                     $payout = \App\Models\Payout::where('id', $transaction->payout->id)->lockForUpdate()->first();
-                    if ($payout->isPending()) {
+                    if ($payout->status !== 'canceled') {
                         $payout->update([
                             'status' => 'canceled',
                             'canceled_at' => now(),
                         ]);
+                    }
+                    if ($transaction->status === 'pending') {
                         $transaction->update(['status' => 'cancelled']);
                         $payout->user->increment('balance', $payout->amount);
                     }
