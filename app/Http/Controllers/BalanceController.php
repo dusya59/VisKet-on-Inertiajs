@@ -320,4 +320,66 @@ class BalanceController extends Controller
             ]);
         }
     }
+
+    public function refreshPayoutStatus(Request $request, YooKassaService $yooKassaService)
+    {
+        $validated = $request->validate([
+            'transaction_id' => 'required|exists:transactions,id',
+        ]);
+
+        $user = auth()->user();
+        $transaction = Transaction::where('id', $validated['transaction_id'])
+            ->where('from_user_id', $user->id)
+            ->where('type', 'withdrawal')
+            ->where('status', 'pending')
+            ->with('payout')
+            ->first();
+
+        if (! $transaction || ! $transaction->payout || ! $transaction->payout->yookassa_payout_id) {
+            return back()->with('error', 'Выплата не найдена или не имеет ID ЮKassa');
+        }
+
+        try {
+            $info = $yooKassaService->getPayoutInfo($transaction->payout->yookassa_payout_id);
+            $status = $info->getStatus();
+
+            if ($status === 'succeeded' && $transaction->payout->isPending()) {
+                DB::transaction(function () use ($transaction) {
+                    $payout = \App\Models\Payout::where('id', $transaction->payout->id)->lockForUpdate()->first();
+                    if ($payout->isPending()) {
+                        $payout->update([
+                            'status' => 'succeeded',
+                            'succeeded_at' => now(),
+                        ]);
+                        $transaction->update(['status' => 'completed']);
+                    }
+                });
+
+                return back()->with('success', 'Выплата подтверждена — статус обновлён.');
+            } elseif ($status === 'canceled' && $transaction->payout->isPending()) {
+                DB::transaction(function () use ($transaction) {
+                    $payout = \App\Models\Payout::where('id', $transaction->payout->id)->lockForUpdate()->first();
+                    if ($payout->isPending()) {
+                        $payout->update([
+                            'status' => 'canceled',
+                            'canceled_at' => now(),
+                        ]);
+                        $transaction->update(['status' => 'cancelled']);
+                        $payout->user->increment('balance', $payout->amount);
+                    }
+                });
+
+                return back()->with('success', 'Выплата отменена — баланс возвращён.');
+            }
+
+            return back()->with('info', 'Текущий статус в ЮKassa: ' . $status);
+        } catch (\Throwable $e) {
+            Log::warning('Manual payout refresh failed', [
+                'transaction_id' => $transaction->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Не удалось получить статус из ЮKassa: ' . $e->getMessage());
+        }
+    }
 }

@@ -125,6 +125,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/balance', [BalanceController::class, 'index'])->name('balance');
     Route::post('/balance/add', [BalanceController::class, 'add'])->middleware('throttle:10,1')->name('balance.add');
     Route::post('/balance/withdraw', [BalanceController::class, 'withdraw'])->middleware('throttle:10,1')->name('balance.withdraw');
+    Route::post('/balance/refresh-payout', [BalanceController::class, 'refreshPayoutStatus'])->middleware('throttle:10,1')->name('balance.refresh-payout');
     Route::delete('/balance/payout-methods/{id}', [BalanceController::class, 'destroyPayoutMethod'])->name('balance.payout-methods.destroy');
 
     // Settings

@@ -251,7 +251,7 @@
                   <div class="tx-top">
                     <span class="tx-amount positive">+{{ Number(tx.amount).toFixed(2) }} ₽</span>
                     <span :class="['tx-status', tx.status]">
-                      {{ tx.status === 'completed' ? 'Завершён' : 'Ожидание' }}
+                      {{ getStatusLabel(tx.status) }}
                     </span>
                   </div>
                   <div class="tx-desc">{{ getTransactionType(tx) }}</div>
@@ -272,7 +272,7 @@
                   <div class="tx-top">
                     <span class="tx-amount negative">−{{ Number(tx.amount).toFixed(2) }} ₽</span>
                     <span :class="['tx-status', tx.status]">
-                      {{ tx.status === 'completed' ? 'Завершён' : 'Ожидание' }}
+                      {{ getStatusLabel(tx.status) }}
                     </span>
                   </div>
                   <div class="tx-desc">{{ getTransactionType(tx) }}</div>
@@ -293,11 +293,19 @@
                   <div class="tx-top">
                     <span class="tx-amount withdrawn">−{{ Number(tx.amount).toFixed(2) }} ₽</span>
                     <span :class="['tx-status', tx.status]">
-                      {{ tx.status === 'completed' ? 'Завершён' : 'Ожидание' }}
+                      {{ getStatusLabel(tx.status) }}
                     </span>
                   </div>
                   <div class="tx-desc">{{ getTransactionType(tx) }}</div>
                   <div class="tx-date">{{ formatDate(tx.created_at) }}</div>
+                  <button
+                    v-if="tx.status === 'pending' && tx.payout && tx.payout.yookassa_payout_id"
+                    type="button"
+                    class="refresh-btn"
+                    @click="refreshPayout(tx.id)"
+                  >
+                    Проверить статус
+                  </button>
                 </div>
                 <div v-if="withdrawnTransactions.length === 0" class="tx-item empty">Нет транзакций</div>
               </div>
@@ -549,6 +557,26 @@ const yAxisValues = computed(() => {
   const step = chartMax.value / 5
   return [5, 4, 3, 2, 1, 0].map(i => Math.round(step * i))
 })
+
+const refreshPayout = (transactionId) => {
+  form.post('/balance/refresh-payout', {
+    data: { transaction_id: transactionId },
+    preserveScroll: true,
+    onSuccess: () => {},
+    onError: (errors) => {
+      alert(errors?.error || 'Ошибка обновления статуса')
+    }
+  })
+}
+
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 'completed': return 'Завершён'
+    case 'cancelled': return 'Отменён'
+    case 'pending': return 'Ожидание'
+    default: return status
+  }
+}
 
 const tooltip = ref({ visible: false, x: 0, y: 0, text: '' })
 const barsContainer = ref(null)
@@ -1151,6 +1179,24 @@ const hideTooltip = () => {
 .pagination-info {
   font-size: 14px;
   color: var(--muted);
+}
+
+.refresh-btn {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.refresh-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
 }
 
 /* Responsive */

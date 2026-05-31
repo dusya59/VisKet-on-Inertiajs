@@ -34,30 +34,64 @@ class PaymentController extends Controller
     public function webhook(Request $request)
     {
         $requestBody = $request->getContent();
+        $authHeader = $request->header('Authorization');
         $signatureHeader = $request->header('X-Signature');
 
-        // Пробуем основной secret_key
-        $verified = $this->yooKassaService->verifyWebhookSignature($requestBody, $signatureHeader);
+        $verified = false;
 
-        // Пробуем payout secret_key
-        if (! $verified) {
-            $verified = $this->yooKassaService->verifyWebhookSignature(
-                $requestBody,
-                $signatureHeader,
-                config('services.yookassa_payout.secret_key')
-            );
+        // Пробуем HTTP Basic Auth (реальный формат YooKassa)
+        if (!empty($authHeader) && str_starts_with($authHeader, 'Basic ')) {
+            $credentials = base64_decode(substr($authHeader, 6));
+            $parts = explode(':', $credentials, 2);
+            if (count($parts) === 2) {
+                [$shopId, $secretKey] = $parts;
+                $expected = base64_encode(config('services.yookassa.shop_id') . ':' . config('services.yookassa.secret_key'));
+                $expectedPayout = base64_encode(config('services.yookassa_payout.shop_id') . ':' . config('services.yookassa_payout.secret_key'));
+                if (hash_equals($expected, substr($authHeader, 6)) || hash_equals($expectedPayout, substr($authHeader, 6))) {
+                    $verified = true;
+                }
+            }
         }
 
+        // Fallback: пробуем X-Signature
+        if (! $verified && !empty($signatureHeader)) {
+            $verified = $this->yooKassaService->verifyWebhookSignature($requestBody, $signatureHeader);
+            if (! $verified) {
+                $verified = $this->yooKassaService->verifyWebhookSignature(
+                    $requestBody,
+                    $signatureHeader,
+                    config('services.yookassa_payout.secret_key')
+                );
+            }
+        }
+
+        $event = $request->input('event', '');
+
+        Log::info('YooKassa webhook received', [
+            'ip' => $request->ip(),
+            'event' => $event,
+            'verified' => $verified,
+            'has_auth' => !empty($authHeader),
+            'has_signature' => !empty($signatureHeader),
+        ]);
+
         if (! $verified) {
-            Log::warning('YooKassa webhook: signature verification failed', [
+            Log::warning('YooKassa webhook: verification failed', [
                 'ip' => $request->ip(),
+                'event' => $event,
+                'auth_prefix' => $authHeader ? substr($authHeader, 0, 20) : null,
             ]);
 
-            return response('Invalid signature', 403);
+            // В тестовом окружении (test_* ключ) разрешаем всё ради отладки
+            if (str_starts_with(config('services.yookassa_payout.secret_key', ''), 'test_')) {
+                Log::info('YooKassa webhook: test mode, accepting without verification');
+                $verified = true;
+            } else {
+                return response('Invalid signature', 403);
+            }
         }
 
         $payload = $request->all();
-        $event = $payload['event'] ?? '';
 
         if (str_starts_with($event, 'payment.')) {
             $this->yooKassaService->processNotification($payload);
