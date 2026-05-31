@@ -125,7 +125,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/balance', [BalanceController::class, 'index'])->name('balance');
     Route::post('/balance/add', [BalanceController::class, 'add'])->middleware('throttle:10,1')->name('balance.add');
     Route::post('/balance/withdraw', [BalanceController::class, 'withdraw'])->middleware('throttle:10,1')->name('balance.withdraw');
-    Route::get('/balance/sbp-banks', [BalanceController::class, 'sbpBanks'])->name('balance.sbp-banks');
+    Route::delete('/balance/payout-methods/{id}', [BalanceController::class, 'destroyPayoutMethod'])->name('balance.payout-methods.destroy');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');

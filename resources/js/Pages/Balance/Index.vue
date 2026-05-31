@@ -73,9 +73,9 @@
                   type="button"
                   class="method-btn"
                   :class="{ active: selectedMethodId === m.id }"
-                  @click="selectedMethodId = m.id; form.card_number = ''; form.phone = ''; form.bank_id = ''"
+                  @click="selectedMethodId = m.id; form.card_number = ''"
                 >
-                  {{ m.type === 'bank_card' ? 'Карта' : 'СБП' }} {{ m.masked_number }}
+                  Карта {{ m.masked_number }}
                 </button>
                 <button
                   type="button"
@@ -88,26 +88,7 @@
               </div>
 
               <div v-if="!selectedMethodId" class="new-method">
-                <div class="toggle-row">
-                  <button
-                    type="button"
-                    class="toggle-btn"
-                    :class="{ active: form.destination_type === 'bank_card' }"
-                    @click="form.destination_type = 'bank_card'"
-                  >
-                    Банковская карта
-                  </button>
-                  <button
-                    type="button"
-                    class="toggle-btn"
-                    :class="{ active: form.destination_type === 'sbp' }"
-                    @click="form.destination_type = 'sbp'; loadSbpBanks()"
-                  >
-                    СБП
-                  </button>
-                </div>
-
-                <div v-if="form.destination_type === 'bank_card'" class="input-group">
+                <div class="input-group">
                   <label class="input-label">Номер карты:</label>
                   <div class="input-wrapper">
                     <input
@@ -122,31 +103,6 @@
                   <p v-if="form.errors.card_number" class="error-text">{{ form.errors.card_number }}</p>
                 </div>
 
-                <div v-if="form.destination_type === 'sbp'" class="input-group">
-                  <label class="input-label">Телефон:</label>
-                  <div class="input-wrapper">
-                    <input
-                      v-model="form.phone"
-                      type="text"
-                      inputmode="tel"
-                      placeholder="79000000000"
-                      maxlength="11"
-                    />
-                  </div>
-                  <p v-if="form.errors.phone" class="error-text">{{ form.errors.phone }}</p>
-
-                  <label class="input-label">Банк:</label>
-                  <div class="input-wrapper">
-                    <select v-model="form.bank_id">
-                      <option value="">— Выберите банк —</option>
-                      <option v-for="bank in sbpBanks" :key="bank.bank_id" :value="bank.bank_id">
-                        {{ bank.name }}
-                      </option>
-                    </select>
-                  </div>
-                  <p v-if="form.errors.bank_id" class="error-text">{{ form.errors.bank_id }}</p>
-                </div>
-
                 <label class="save-method-label">
                   <input v-model="form.save_method" type="checkbox" />
                   Сохранить реквизиты для следующих выводов
@@ -155,6 +111,13 @@
 
               <div v-else class="saved-method-info">
                 <p class="method-info">Вывод на сохранённый реквизит</p>
+                <button
+                  type="button"
+                  class="remove-method-btn"
+                  @click="removeSavedMethod"
+                >
+                  Нажмите сюда, чтобы убрать
+                </button>
               </div>
             </div>
 
@@ -390,17 +353,13 @@ const historyTab = ref('received')
 
 const form = useForm({
   amount: '',
-  destination_type: 'bank_card',
   card_number: '',
-  phone: '',
-  bank_id: '',
   save_method: false,
   payout_method_id: null,
 })
 const displayAmount = ref('')
 const formError = ref('')
 const selectedMethodId = ref(null)
-const sbpBanks = ref([])
 
 const withdrawError = computed(() => {
   if (formError.value) return formError.value
@@ -464,25 +423,13 @@ const submitBalance = () => {
       return
     }
     if (!selectedMethodId.value) {
-      if (form.destination_type === 'bank_card') {
-        if (!form.card_number) {
-          formError.value = 'Введите номер банковской карты'
-          return
-        }
-        if (!luhnCheck(form.card_number)) {
-          formError.value = 'Неверный номер банковской карты. Проверьте правильность ввода.'
-          return
-        }
+      if (!form.card_number) {
+        formError.value = 'Введите номер банковской карты'
+        return
       }
-      if (form.destination_type === 'sbp') {
-        if (!form.phone) {
-          formError.value = 'Введите номер телефона для СБП'
-          return
-        }
-        if (!form.bank_id) {
-          formError.value = 'Выберите банк для СБП'
-          return
-        }
+      if (!luhnCheck(form.card_number)) {
+        formError.value = 'Неверный номер банковской карты. Проверьте правильность ввода.'
+        return
       }
     }
     form.payout_method_id = selectedMethodId.value
@@ -507,15 +454,6 @@ const submitBalance = () => {
       if (errors?.card_number) {
         form.setError('card_number', errors.card_number)
       }
-      if (errors?.phone) {
-        form.setError('phone', errors.phone)
-      }
-      if (errors?.bank_id) {
-        form.setError('bank_id', errors.bank_id)
-      }
-      if (errors?.destination_type) {
-        form.setError('destination_type', errors.destination_type)
-      }
       if (errors?.error) {
         form.setError('amount', errors.error)
       }
@@ -523,14 +461,16 @@ const submitBalance = () => {
   })
 }
 
-const loadSbpBanks = async () => {
-  try {
-    const response = await fetch('/balance/sbp-banks')
-    const data = await response.json()
-    sbpBanks.value = data.items || data || []
-  } catch (e) {
-    sbpBanks.value = []
-  }
+const removeSavedMethod = () => {
+  if (!selectedMethodId.value) return
+  if (!confirm('Удалить сохранённый способ вывода?')) return
+
+  form.delete(`/balance/payout-methods/${selectedMethodId.value}`, {
+    preserveScroll: true,
+    onSuccess: () => {
+      selectedMethodId.value = null
+    },
+  })
 }
 
 const getDaysRemaining = (transaction) => {
@@ -906,6 +846,20 @@ const hideTooltip = () => {
   font-size: 14px;
   color: var(--muted);
   margin: 0;
+}
+
+.remove-method-btn {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.remove-method-btn:hover {
+  color: var(--accent-deep);
 }
 
 .input-wrapper select {

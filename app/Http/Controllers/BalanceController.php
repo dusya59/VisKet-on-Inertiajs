@@ -13,7 +13,7 @@ use Inertia\Inertia;
 
 class BalanceController extends Controller
 {
-    public function index()
+    public function index(YooKassaService $yooKassaService)
     {
         $user = auth()->user();
 
@@ -24,6 +24,55 @@ class BalanceController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $allTransactions = Transaction::where(function ($query) use ($user) {
+            $query->where('from_user_id', $user->id)
+                ->orWhere('to_user_id', $user->id);
+        })
+            ->with(['fromUser', 'toUser', 'application.vacancy', 'payout'])
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        // Синхронизация статусов pending payouts с YooKassa
+        foreach ($allTransactions->items() as $tx) {
+            if ($tx->type === 'withdrawal' && $tx->status === 'pending' && $tx->payout && $tx->payout->yookassa_payout_id) {
+                try {
+                    $info = $yooKassaService->getPayoutInfo($tx->payout->yookassa_payout_id);
+                    $status = $info->getStatus();
+
+                    if ($status === 'succeeded' && $tx->payout->isPending()) {
+                        DB::transaction(function () use ($tx) {
+                            $payout = \App\Models\Payout::where('id', $tx->payout->id)->lockForUpdate()->first();
+                            if ($payout->isPending()) {
+                                $payout->update([
+                                    'status' => 'succeeded',
+                                    'succeeded_at' => now(),
+                                ]);
+                                $tx->update(['status' => 'completed']);
+                            }
+                        });
+                    } elseif ($status === 'canceled' && $tx->payout->isPending()) {
+                        DB::transaction(function () use ($tx) {
+                            $payout = \App\Models\Payout::where('id', $tx->payout->id)->lockForUpdate()->first();
+                            if ($payout->isPending()) {
+                                $payout->update([
+                                    'status' => 'canceled',
+                                    'canceled_at' => now(),
+                                ]);
+                                $tx->update(['status' => 'cancelled']);
+                                $payout->user->increment('balance', $payout->amount);
+                            }
+                        });
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to sync payout status in index', [
+                        'payout_id' => $tx->payout->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        // Перезагружаем транзакции после синхронизации
         $allTransactions = Transaction::where(function ($query) use ($user) {
             $query->where('from_user_id', $user->id)
                 ->orWhere('to_user_id', $user->id);
@@ -82,14 +131,27 @@ class BalanceController extends Controller
         return Inertia::location($payment->confirmation_url);
     }
 
+    public function destroyPayoutMethod($id)
+    {
+        $user = auth()->user();
+        $method = $user->payoutMethods()->where('id', $id)->firstOrFail();
+
+        if ($method->is_default) {
+            $nextMethod = $user->payoutMethods()->where('id', '!=', $id)->orderByDesc('created_at')->first();
+            if ($nextMethod) {
+                $nextMethod->update(['is_default' => true]);
+            }
+        }
+
+        $method->delete();
+
+        return back()->with('success', 'Сохранённый способ вывода удалён.');
+    }
+
     private function mapYooKassaError(string $message): string
     {
         if (str_contains($message, 'Error code: invalid_request') && str_contains($message, 'card.number')) {
             return 'Неверный номер банковской карты. Проверьте правильность ввода.';
-        }
-
-        if (str_contains($message, 'Error code: invalid_request') && str_contains($message, 'phone')) {
-            return 'Неверный номер телефона для СБП. Укажите номер в формате 79000000000.';
         }
 
         if (str_contains($message, 'Error code: invalid_credentials')) {
@@ -129,10 +191,7 @@ class BalanceController extends Controller
 
         $validated = $request->validate([
             'amount' => 'required|numeric|min:100|max:100000',
-            'destination_type' => 'nullable|in:bank_card,sbp',
             'card_number' => 'nullable|string|min:13|max:19',
-            'phone' => 'nullable|string|regex:/^7\d{10}$/',
-            'bank_id' => 'nullable|string',
             'save_method' => 'boolean',
             'payout_method_id' => 'nullable|exists:payout_methods,id',
         ]);
@@ -141,50 +200,23 @@ class BalanceController extends Controller
         Log::info('Withdraw validated', ['user_id' => $user->id, 'amount' => $validated['amount']]);
 
         // Ручная валидация реквизитов (если не выбран сохранённый метод)
-        if (empty($validated['payout_method_id'])) {
-            if (empty($validated['destination_type'])) {
-                return back()->withErrors(['destination_type' => 'Выберите способ вывода']);
-            }
-            if ($validated['destination_type'] === 'bank_card' && empty($validated['card_number'])) {
-                return back()->withErrors(['card_number' => 'Введите номер банковской карты']);
-            }
-            if ($validated['destination_type'] === 'sbp') {
-                if (empty($validated['phone'])) {
-                    return back()->withErrors(['phone' => 'Введите номер телефона для СБП']);
-                }
-                if (empty($validated['bank_id'])) {
-                    return back()->withErrors(['bank_id' => 'Выберите банк для СБП']);
-                }
-            }
+        if (empty($validated['payout_method_id']) && empty($validated['card_number'])) {
+            return back()->withErrors(['card_number' => 'Введите номер банковской карты']);
         }
 
         // Определяем реквизиты
-        $type = $validated['destination_type'];
         $method = null;
         $destination = [];
         $masked = '';
 
         if (! empty($validated['payout_method_id'])) {
             $method = $user->payoutMethods()->where('id', $validated['payout_method_id'])->firstOrFail();
-            $type = $method->type;
-
-            if ($type === 'bank_card') {
-                $destination = ['type' => 'bank_card', 'card' => ['number' => $method->full_number]];
-                $masked = $method->masked_number;
-            } else {
-                $destination = ['type' => 'sbp', 'phone' => $method->full_number, 'bank_id' => $method->bank_id];
-                $masked = $method->masked_number;
-            }
+            $destination = ['type' => 'bank_card', 'card' => ['number' => $method->full_number]];
+            $masked = $method->masked_number;
         } else {
-            if ($type === 'bank_card') {
-                $cardNumber = preg_replace('/\D/', '', $validated['card_number']);
-                $destination = ['type' => 'bank_card', 'card' => ['number' => $cardNumber]];
-                $masked = '•••• ' . substr($cardNumber, -4);
-            } else {
-                $phone = preg_replace('/\D/', '', $validated['phone']);
-                $destination = ['type' => 'sbp', 'phone' => $phone, 'bank_id' => $validated['bank_id'] ?? null];
-                $masked = '+7 ••• •••-' . substr($phone, -4, 2) . '-' . substr($phone, -2);
-            }
+            $cardNumber = preg_replace('/\D/', '', $validated['card_number']);
+            $destination = ['type' => 'bank_card', 'card' => ['number' => $cardNumber]];
+            $masked = '•••• ' . substr($cardNumber, -4);
         }
 
         $payout = null;
@@ -236,17 +268,16 @@ class BalanceController extends Controller
             if (empty($validated['payout_method_id']) && ! empty($validated['save_method'])) {
                 PayoutMethod::create([
                     'user_id' => $lockedUser->id,
-                    'type' => $type,
+                    'type' => 'bank_card',
                     'masked_number' => $masked,
-                    'full_number' => $type === 'bank_card' ? preg_replace('/\D/', '', $validated['card_number']) : preg_replace('/\D/', '', $validated['phone']),
-                    'bank_id' => $validated['bank_id'] ?? null,
+                    'full_number' => preg_replace('/\D/', '', $validated['card_number']),
                     'is_default' => $lockedUser->payoutMethods()->count() === 0,
                 ]);
                 Log::info('Withdraw payout method saved');
             }
 
             // Вызов API ЮKassa
-            Log::info('Withdraw calling YooKassa API', ['destination_type' => $type]);
+            Log::info('Withdraw calling YooKassa API', ['destination_type' => 'bank_card']);
             $yooKassaService->createPayout($payout, $lockedUser, $destination);
             Log::info('Withdraw YooKassa API success', ['yookassa_payout_id' => $payout->fresh()->yookassa_payout_id]);
 
@@ -288,10 +319,5 @@ class BalanceController extends Controller
                 'amount' => $this->mapYooKassaError($e->getMessage()),
             ]);
         }
-    }
-
-    public function sbpBanks(YooKassaService $yooKassaService)
-    {
-        return response()->json($yooKassaService->getSbpBanks());
     }
 }
