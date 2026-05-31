@@ -355,7 +355,7 @@ const authUser = computed(() => page.props.auth?.user || page.props.authUser || 
 const flashMessage = computed(() => page.props.flash?.success || page.props.flash?.message || '')
 
 const quickAmounts = [100, 300, 500, 1000, 3000, 5000]
-const withdrawalAmounts = [100, 300, 500, 1000, 3000, 5000]
+const withdrawalAmounts = [100, 100.01, 100.02, 300, 500, 1000, 3000, 5000]
 const isWithdrawal = ref(false)
 const historyTab = ref('received')
 
@@ -378,14 +378,16 @@ const withdrawError = computed(() => {
 const formattedAmount = computed({
   get: () => displayAmount.value,
   set: (val) => {
-    const raw = val.replace(/[^\d]/g, '')
-    displayAmount.value = raw ? parseInt(raw, 10).toLocaleString('ru-RU') : ''
+    const normalized = val.replace(/\s/g, '').replace(',', '.')
+    const match = normalized.match(/^\d+(\.\d{0,2})?/)
+    const raw = match ? match[0] : ''
+    displayAmount.value = raw ? Number(raw).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : ''
     form.amount = raw
   }
 })
 
 const setAmount = (amount) => {
-  displayAmount.value = amount.toLocaleString('ru-RU')
+  displayAmount.value = amount.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
   form.amount = String(amount)
 }
 
@@ -1148,7 +1150,7 @@ const hideTooltip = () => {
 }
 .tx-status.completed { background: var(--success-bg); color: var(--success); }
 .tx-status.pending { background: oklch(95% 0.04 80); color: oklch(75% 0.16 80); }
-.tx-status.cancelled { background: oklch(95% 0.02 10); color: oklch(60% 0.15 10); }
+.tx-status.cancelled { background: oklch(60% 0.15 10); color: oklch(95% 0.02 10); }
 
 .pending-section { margin-bottom: 32px; }
 
