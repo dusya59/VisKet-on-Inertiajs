@@ -337,7 +337,7 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 
@@ -559,10 +559,10 @@ const yAxisValues = computed(() => {
 })
 
 const refreshPayout = (transactionId) => {
-  form.post('/balance/refresh-payout', {
-    data: { transaction_id: transactionId },
+  router.post('/balance/refresh-payout', {
+    transaction_id: transactionId,
+  }, {
     preserveScroll: true,
-    onSuccess: () => {},
     onError: (errors) => {
       alert(errors?.error || 'Ошибка обновления статуса')
     }

@@ -239,7 +239,17 @@ class YooKassaService
         $event = $payload['event'] ?? null;
         $object = $payload['object'] ?? null;
 
+        Log::info('Webhook processPayoutNotification start', [
+            'event' => $event,
+            'has_object' => !empty($object),
+            'object_id' => $object['id'] ?? null,
+        ]);
+
         if (!$event || !$object || !isset($object['id'])) {
+            Log::warning('Webhook payout: missing event or object id', [
+                'event' => $event,
+                'object_keys' => $object ? array_keys($object) : null,
+            ]);
             return null;
         }
 
@@ -249,8 +259,18 @@ class YooKassaService
         $payout = Payout::where('yookassa_payout_id', $yookassaPayoutId)->first();
 
         if (!$payout) {
+            Log::warning('Webhook payout: payout not found by yookassa_payout_id', [
+                'yookassa_payout_id' => $yookassaPayoutId,
+            ]);
             return null;
         }
+
+        Log::info('Webhook payout: found', [
+            'payout_id' => $payout->id,
+            'current_status' => $payout->status,
+            'is_pending' => $payout->isPending(),
+            'event' => $event,
+        ]);
 
         $newStatus = match ($event) {
             'payout.succeeded' => 'succeeded',
@@ -258,11 +278,20 @@ class YooKassaService
             default => $payout->status,
         };
 
+        Log::info('Webhook payout: mapped status', [
+            'new_status' => $newStatus,
+            'event' => $event,
+        ]);
+
         if ($newStatus === 'succeeded' && $payout->isPending()) {
             DB::transaction(function () use ($payout) {
                 $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
 
                 if (!$lockedPayout->isPending()) {
+                    Log::info('Webhook payout: not pending anymore (race condition)', [
+                        'payout_id' => $lockedPayout->id,
+                        'current_status' => $lockedPayout->status,
+                    ]);
                     return;
                 }
 
@@ -275,8 +304,9 @@ class YooKassaService
                     $lockedPayout->transaction->update(['status' => 'completed']);
                 }
 
-                Log::info('Payout succeeded', [
+                Log::info('Webhook payout: succeeded processed', [
                     'payout_id' => $lockedPayout->id,
+                    'transaction_id' => $lockedPayout->transaction?->id,
                     'user_id' => $lockedPayout->user_id,
                     'amount' => $lockedPayout->amount,
                 ]);
@@ -286,6 +316,10 @@ class YooKassaService
                 $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
 
                 if (!$lockedPayout->isPending()) {
+                    Log::info('Webhook payout: not pending anymore (race condition)', [
+                        'payout_id' => $lockedPayout->id,
+                        'current_status' => $lockedPayout->status,
+                    ]);
                     return;
                 }
 
@@ -301,15 +335,28 @@ class YooKassaService
                 $user = User::where('id', $lockedPayout->user_id)->lockForUpdate()->first();
                 $user->increment('balance', $lockedPayout->amount);
 
-                Log::info('Payout canceled, balance refunded', [
+                Log::info('Webhook payout: canceled processed', [
                     'payout_id' => $lockedPayout->id,
+                    'transaction_id' => $lockedPayout->transaction?->id,
                     'user_id' => $user->id,
                     'amount' => $lockedPayout->amount,
                 ]);
             });
+        } else {
+            Log::info('Webhook payout: no action needed', [
+                'payout_id' => $payout->id,
+                'new_status' => $newStatus,
+                'is_pending' => $payout->isPending(),
+            ]);
         }
 
-        return $payout->fresh();
+        $fresh = $payout->fresh();
+        Log::info('Webhook payout: finished', [
+            'payout_id' => $payout->id,
+            'final_status' => $fresh?->status,
+        ]);
+
+        return $fresh;
     }
 
 

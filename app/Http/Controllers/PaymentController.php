@@ -36,6 +36,11 @@ class PaymentController extends Controller
         $requestBody = $request->getContent();
         $authHeader = $request->header('Authorization');
         $signatureHeader = $request->header('X-Signature');
+        $clientIp = $request->ip();
+
+        // Известные IP-адреса YooKassa для вебхуков
+        $yookassaIps = ['77.75.154.206', '77.75.156.206', '77.75.154.208', '77.75.156.208'];
+        $isYooKassaIp = in_array($clientIp, $yookassaIps, true);
 
         $verified = false;
 
@@ -66,25 +71,33 @@ class PaymentController extends Controller
         }
 
         $event = $request->input('event', '');
+        $payoutSecretKey = config('services.yookassa_payout.secret_key', '');
+        $isTestMode = str_starts_with($payoutSecretKey, 'test_');
 
         Log::info('YooKassa webhook received', [
-            'ip' => $request->ip(),
+            'ip' => $clientIp,
             'event' => $event,
             'verified' => $verified,
             'has_auth' => !empty($authHeader),
             'has_signature' => !empty($signatureHeader),
+            'is_yookassa_ip' => $isYooKassaIp,
+            'is_test_mode' => $isTestMode,
+            'secret_prefix' => substr($payoutSecretKey, 0, 10) . '...',
         ]);
 
         if (! $verified) {
             Log::warning('YooKassa webhook: verification failed', [
-                'ip' => $request->ip(),
+                'ip' => $clientIp,
                 'event' => $event,
-                'auth_prefix' => $authHeader ? substr($authHeader, 0, 20) : null,
+                'is_yookassa_ip' => $isYooKassaIp,
+                'is_test_mode' => $isTestMode,
             ]);
 
-            // В тестовом окружении (test_* ключ) разрешаем всё ради отладки
-            if (str_starts_with(config('services.yookassa_payout.secret_key', ''), 'test_')) {
-                Log::info('YooKassa webhook: test mode, accepting without verification');
+            // В тестовом окружении или с IP YooKassa разрешаем без верификации
+            if ($isTestMode || $isYooKassaIp) {
+                Log::info('YooKassa webhook: accepting without verification', [
+                    'reason' => $isTestMode ? 'test_mode' : 'yookassa_ip',
+                ]);
                 $verified = true;
             } else {
                 return response('Invalid signature', 403);
