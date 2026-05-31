@@ -283,24 +283,18 @@ class YooKassaService
             'event' => $event,
         ]);
 
-        if ($newStatus === 'succeeded' && $payout->status !== 'succeeded') {
+        if ($newStatus === 'succeeded') {
             DB::transaction(function () use ($payout) {
                 $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
 
-                if ($lockedPayout->status === 'succeeded') {
-                    Log::info('Webhook payout: already succeeded (race condition)', [
-                        'payout_id' => $lockedPayout->id,
-                        'current_status' => $lockedPayout->status,
+                if ($lockedPayout->status !== 'succeeded') {
+                    $lockedPayout->update([
+                        'status' => 'succeeded',
+                        'succeeded_at' => now(),
                     ]);
-                    return;
                 }
 
-                $lockedPayout->update([
-                    'status' => 'succeeded',
-                    'succeeded_at' => now(),
-                ]);
-
-                if ($lockedPayout->transaction && $lockedPayout->transaction->status === 'pending') {
+                if ($lockedPayout->transaction && $lockedPayout->transaction->status !== 'completed') {
                     $lockedPayout->transaction->update(['status' => 'completed']);
                 }
 
@@ -311,34 +305,27 @@ class YooKassaService
                     'amount' => $lockedPayout->amount,
                 ]);
             });
-        } elseif ($newStatus === 'canceled' && $payout->status !== 'canceled') {
+        } elseif ($newStatus === 'canceled') {
             DB::transaction(function () use ($payout) {
                 $lockedPayout = Payout::where('id', $payout->id)->lockForUpdate()->first();
 
-                if ($lockedPayout->status === 'canceled') {
-                    Log::info('Webhook payout: already canceled (race condition)', [
-                        'payout_id' => $lockedPayout->id,
-                        'current_status' => $lockedPayout->status,
+                if ($lockedPayout->status !== 'canceled') {
+                    $lockedPayout->update([
+                        'status' => 'canceled',
+                        'canceled_at' => now(),
                     ]);
-                    return;
                 }
 
-                $lockedPayout->update([
-                    'status' => 'canceled',
-                    'canceled_at' => now(),
-                ]);
-
-                if ($lockedPayout->transaction && $lockedPayout->transaction->status === 'pending') {
+                if ($lockedPayout->transaction && $lockedPayout->transaction->status !== 'cancelled') {
                     $lockedPayout->transaction->update(['status' => 'cancelled']);
+                    $user = User::where('id', $lockedPayout->user_id)->lockForUpdate()->first();
+                    $user->increment('balance', $lockedPayout->amount);
                 }
-
-                $user = User::where('id', $lockedPayout->user_id)->lockForUpdate()->first();
-                $user->increment('balance', $lockedPayout->amount);
 
                 Log::info('Webhook payout: canceled processed', [
                     'payout_id' => $lockedPayout->id,
                     'transaction_id' => $lockedPayout->transaction?->id,
-                    'user_id' => $user->id,
+                    'user_id' => $lockedPayout->user_id,
                     'amount' => $lockedPayout->amount,
                 ]);
             });

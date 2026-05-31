@@ -347,7 +347,6 @@ class BalanceController extends Controller
         $transaction = Transaction::where('id', $validated['transaction_id'])
             ->where('from_user_id', $user->id)
             ->where('type', 'withdrawal')
-            ->where('status', 'pending')
             ->with('payout')
             ->first();
 
@@ -368,7 +367,7 @@ class BalanceController extends Controller
                             'succeeded_at' => now(),
                         ]);
                     }
-                    if ($transaction->status === 'pending') {
+                    if ($transaction->status !== 'completed') {
                         $transaction->update(['status' => 'completed']);
                     }
                 });
@@ -383,7 +382,7 @@ class BalanceController extends Controller
                             'canceled_at' => now(),
                         ]);
                     }
-                    if ($transaction->status === 'pending') {
+                    if ($transaction->status !== 'cancelled') {
                         $transaction->update(['status' => 'cancelled']);
                         $payout->user->increment('balance', $payout->amount);
                     }
