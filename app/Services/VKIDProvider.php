@@ -103,10 +103,6 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
 
         $user = $this->mapUserToObject($userData);
 
-        if ($user instanceof User) {
-            $user->setAccessTokenResponseBody($this->credentialsResponseBody);
-        }
-
         return $user->setToken($token)
             ->setRefreshToken($this->parseRefreshToken($response))
             ->setExpiresIn($this->parseExpiresIn($response));
