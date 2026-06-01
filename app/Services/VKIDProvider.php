@@ -67,7 +67,7 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getTokenUrl()
     {
-        return 'https://id.vk.com/oauth2/token';
+        return 'https://id.vk.com/oauth2/auth';
     }
 
     /**
