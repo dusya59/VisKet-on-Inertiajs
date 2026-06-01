@@ -90,6 +90,7 @@ class SocialiteController extends Controller
             Log::error('Socialite callback error', [
                 'provider' => $provider,
                 'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->route('login')
