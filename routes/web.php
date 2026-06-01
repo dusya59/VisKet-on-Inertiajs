@@ -81,8 +81,8 @@ Route::post('/email/verification-notification', function (Request $request) {
     return back()->with('message', 'Ссылка для подтверждения отправлена!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->where('provider', 'google|github');
-Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->where('provider', 'google|github');
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->where('provider', 'google|vkontakte|yandex');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->where('provider', 'google|vkontakte|yandex');
 
 Route::middleware(['auth'])->group(function () {
 

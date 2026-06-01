@@ -68,5 +68,13 @@ class AppServiceProvider extends ServiceProvider
             ApplicationStatusChanged::class,
             SendDisputeResolvedNotification::class,
         );
+
+        Event::listen(
+            \SocialiteProviders\Manager\SocialiteWasCalled::class,
+            function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
+                $event->extendSocialite('vkontakte', \SocialiteProviders\VKontakte\Provider::class);
+                $event->extendSocialite('yandex', \SocialiteProviders\Yandex\Provider::class);
+            }
+        );
     }
 }

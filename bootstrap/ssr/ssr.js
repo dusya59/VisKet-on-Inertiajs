@@ -1863,44 +1863,44 @@ var _sfc_main$17 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: mode.value === "login" ? "Вход" : "Регистрация" }, null, _parent));
-			_push(`<div class="${ssrRenderClass([{ "register-mode": mode.value === "register" }, "Authblock"])}" data-v-f776d069><div class="form-wrapper" data-v-f776d069>`);
+			_push(`<div class="${ssrRenderClass([{ "register-mode": mode.value === "register" }, "Authblock"])}" data-v-c784582d><div class="form-wrapper" data-v-c784582d>`);
 			if (mode.value === "login") {
-				_push(`<form data-v-f776d069><h1 data-v-f776d069>Вход</h1>`);
-				if (_ctx.$page.props.errors.error) _push(`<div class="error-message global-error" data-v-f776d069>${ssrInterpolate(_ctx.$page.props.errors.error)}</div>`);
+				_push(`<form data-v-c784582d><h1 data-v-c784582d>Вход</h1>`);
+				if (_ctx.$page.props.errors.error) _push(`<div class="error-message global-error" data-v-c784582d>${ssrInterpolate(_ctx.$page.props.errors.error)}</div>`);
 				else _push(`<!---->`);
-				_push(`<div class="login-content" data-v-f776d069><div class="input-group" data-v-f776d069><label data-v-f776d069>Email</label><input type="email"${ssrRenderAttr("value", unref(loginForm).email)} placeholder="Введите email" required data-v-f776d069></div><div class="input-group" data-v-f776d069><label data-v-f776d069>Пароль</label><input type="password"${ssrRenderAttr("value", unref(loginForm).password)} placeholder="Введите пароль" required data-v-f776d069>`);
-				if (loginError.value) _push(`<div class="field-error" data-v-f776d069>${ssrInterpolate(loginError.value)}</div>`);
+				_push(`<div class="login-content" data-v-c784582d><div class="input-group" data-v-c784582d><label data-v-c784582d>Email</label><input type="email"${ssrRenderAttr("value", unref(loginForm).email)} placeholder="Введите email" required data-v-c784582d></div><div class="input-group" data-v-c784582d><label data-v-c784582d>Пароль</label><input type="password"${ssrRenderAttr("value", unref(loginForm).password)} placeholder="Введите пароль" required data-v-c784582d>`);
+				if (loginError.value) _push(`<div class="field-error" data-v-c784582d>${ssrInterpolate(loginError.value)}</div>`);
 				else _push(`<!---->`);
-				_push(`</div></div><button type="submit"${ssrIncludeBooleanAttr(unref(loginForm).processing) ? " disabled" : ""} data-v-f776d069>${ssrInterpolate(unref(loginForm).processing ? "Вход..." : "Войти")}</button><button type="button" class="switch-mode" data-v-f776d069> Нет аккаунта? Зарегистрироваться </button><div class="oauth-divider" data-v-f776d069><span data-v-f776d069>Или</span></div><div class="oauth-buttons" data-v-f776d069><a href="/auth/google/redirect" class="oauth-btn oauth-google" data-inertia="false" data-v-f776d069><img src="/images/google.svg" alt="" data-v-f776d069> Войти через Google </a><a href="/auth/github/redirect" class="oauth-btn oauth-github" data-inertia="false" data-v-f776d069><img src="/images/github.svg" alt="" data-v-f776d069> Войти через GitHub </a></div></form>`);
+				_push(`</div></div><button type="submit"${ssrIncludeBooleanAttr(unref(loginForm).processing) ? " disabled" : ""} data-v-c784582d>${ssrInterpolate(unref(loginForm).processing ? "Вход..." : "Войти")}</button><button type="button" class="switch-mode" data-v-c784582d> Нет аккаунта? Зарегистрироваться </button><div class="oauth-divider" data-v-c784582d><span data-v-c784582d>Или</span></div><div class="oauth-buttons" data-v-c784582d><a href="/auth/google/redirect" class="oauth-btn oauth-google" data-inertia="false" data-v-c784582d><img src="/images/google.svg" alt="" data-v-c784582d> Войти через Google </a><a href="/auth/vkontakte/redirect" class="oauth-btn oauth-vkontakte" data-inertia="false" data-v-c784582d><img src="/images/vkontakte.svg" alt="" data-v-c784582d> Войти через ВКонтакте </a><a href="/auth/yandex/redirect" class="oauth-btn oauth-yandex" data-inertia="false" data-v-c784582d><img src="/images/yandex.svg" alt="" data-v-c784582d> Войти через Яндекс </a></div></form>`);
 			} else {
-				_push(`<form class="register-form" data-v-f776d069><h1 data-v-f776d069>Регистрация</h1><div class="step-indicator" data-v-f776d069><!--[-->`);
+				_push(`<form class="register-form" data-v-c784582d><h1 data-v-c784582d>Регистрация</h1><div class="step-indicator" data-v-c784582d><!--[-->`);
 				ssrRenderList(3, (step) => {
 					_push(`<div class="${ssrRenderClass([{
 						active: currentStep.value === step,
 						completed: currentStep.value > step
-					}, "step-dot"])}" data-v-f776d069></div>`);
+					}, "step-dot"])}" data-v-c784582d></div>`);
 				});
-				_push(`<!--]--></div><div class="step-content" data-v-f776d069>`);
+				_push(`<!--]--></div><div class="step-content" data-v-c784582d>`);
 				if (currentStep.value === 1) {
-					_push(`<div class="step step-1" data-v-f776d069><div class="input-group" data-v-f776d069><label data-v-f776d069>Имя</label><input type="text"${ssrRenderAttr("value", registerData.name)} placeholder="Введите имя" required data-v-f776d069></div><div class="input-group" data-v-f776d069><label data-v-f776d069>Email</label><input type="email"${ssrRenderAttr("value", registerData.email)} placeholder="Введите email" required data-v-f776d069></div><div class="input-group" data-v-f776d069><label data-v-f776d069>Пароль</label><input type="password"${ssrRenderAttr("value", registerData.password)} placeholder="Минимум 8 символов" required data-v-f776d069></div><div class="input-group" data-v-f776d069><label data-v-f776d069>Подтверждение пароля</label><input type="password"${ssrRenderAttr("value", registerData.password_confirmation)} placeholder="Повторите пароль" required data-v-f776d069></div>`);
-					if (validationErrors.step1) _push(`<div class="error-message" data-v-f776d069>${ssrInterpolate(validationErrors.step1)}</div>`);
+					_push(`<div class="step step-1" data-v-c784582d><div class="input-group" data-v-c784582d><label data-v-c784582d>Имя</label><input type="text"${ssrRenderAttr("value", registerData.name)} placeholder="Введите имя" required data-v-c784582d></div><div class="input-group" data-v-c784582d><label data-v-c784582d>Email</label><input type="email"${ssrRenderAttr("value", registerData.email)} placeholder="Введите email" required data-v-c784582d></div><div class="input-group" data-v-c784582d><label data-v-c784582d>Пароль</label><input type="password"${ssrRenderAttr("value", registerData.password)} placeholder="Минимум 8 символов" required data-v-c784582d></div><div class="input-group" data-v-c784582d><label data-v-c784582d>Подтверждение пароля</label><input type="password"${ssrRenderAttr("value", registerData.password_confirmation)} placeholder="Повторите пароль" required data-v-c784582d></div>`);
+					if (validationErrors.step1) _push(`<div class="error-message" data-v-c784582d>${ssrInterpolate(validationErrors.step1)}</div>`);
 					else _push(`<!---->`);
 					if (registerErrors.value.length > 0) {
-						_push(`<div class="error-message" data-v-f776d069><!--[-->`);
+						_push(`<div class="error-message" data-v-c784582d><!--[-->`);
 						ssrRenderList(registerErrors.value, (err) => {
-							_push(`<div data-v-f776d069>${ssrInterpolate(err)}</div>`);
+							_push(`<div data-v-c784582d>${ssrInterpolate(err)}</div>`);
 						});
 						_push(`<!--]--></div>`);
 					} else _push(`<!---->`);
 					_push(`</div>`);
 				} else if (currentStep.value === 2) {
-					_push(`<div class="step step-2" data-v-f776d069><p class="optional-notice" data-v-f776d069>Опционально — вы сможете поменять данные в настройках личного кабинета</p><div class="avatar-upload" data-v-f776d069><label data-v-f776d069>Аватар</label><div class="avatar-preview" data-v-f776d069>`);
-					if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)} alt="Avatar preview" data-v-f776d069>`);
-					else _push(`<span class="avatar-placeholder" data-v-f776d069>Нажмите для загрузки</span>`);
-					_push(`</div><input type="file" accept="image/*" hidden data-v-f776d069>`);
-					if (avatarPreview.value) _push(`<button type="button" class="remove-avatar" data-v-f776d069>Удалить</button>`);
+					_push(`<div class="step step-2" data-v-c784582d><p class="optional-notice" data-v-c784582d>Опционально — вы сможете поменять данные в настройках личного кабинета</p><div class="avatar-upload" data-v-c784582d><label data-v-c784582d>Аватар</label><div class="avatar-preview" data-v-c784582d>`);
+					if (avatarPreview.value) _push(`<img${ssrRenderAttr("src", avatarPreview.value)} alt="Avatar preview" data-v-c784582d>`);
+					else _push(`<span class="avatar-placeholder" data-v-c784582d>Нажмите для загрузки</span>`);
+					_push(`</div><input type="file" accept="image/*" hidden data-v-c784582d>`);
+					if (avatarPreview.value) _push(`<button type="button" class="remove-avatar" data-v-c784582d>Удалить</button>`);
 					else _push(`<!---->`);
-					_push(`</div><div class="form-group" data-v-f776d069><label data-v-f776d069>О себе</label><textarea placeholder="Расскажите о себе..." rows="4" data-v-f776d069>${ssrInterpolate(registerData.bio)}</textarea></div><div class="form-group" data-v-f776d069><div class="label-with-tooltip" data-v-f776d069><label data-v-f776d069>Навыки</label><div class="tooltip-trigger" data-v-f776d069><span class="help-icon" data-v-f776d069>?</span><div class="tooltip-content" data-v-f776d069> Выберите навыки, которыми вы владеете. Это поможет работодателям найти вас по соответствующим вакансиям. </div></div></div>`);
+					_push(`</div><div class="form-group" data-v-c784582d><label data-v-c784582d>О себе</label><textarea placeholder="Расскажите о себе..." rows="4" data-v-c784582d>${ssrInterpolate(registerData.bio)}</textarea></div><div class="form-group" data-v-c784582d><div class="label-with-tooltip" data-v-c784582d><label data-v-c784582d>Навыки</label><div class="tooltip-trigger" data-v-c784582d><span class="help-icon" data-v-c784582d>?</span><div class="tooltip-content" data-v-c784582d> Выберите навыки, которыми вы владеете. Это поможет работодателям найти вас по соответствующим вакансиям. </div></div></div>`);
 					_push(ssrRenderComponent(SkillsSelector_default, {
 						modelValue: registerData.skills,
 						"onUpdate:modelValue": ($event) => registerData.skills = $event,
@@ -1908,23 +1908,23 @@ var _sfc_main$17 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 					}, null, _parent));
 					_push(`</div></div>`);
 				} else if (currentStep.value === 3) {
-					_push(`<div class="step step-3" data-v-f776d069><p class="optional-notice" data-v-f776d069>Опционально — повысьте шансы на трудоустройство</p><div class="form-group" data-v-f776d069><label data-v-f776d069>Телефон</label><div class="phone-input-wrapper" data-v-f776d069><input type="tel"${ssrRenderAttr("value", registerData.phone)} placeholder="+7 (___) ___-__-__" data-v-f776d069><span class="phone-hint" data-v-f776d069>Пригодится для двухфакторной аутентификации</span></div></div><div class="form-group" data-v-f776d069><label data-v-f776d069>Резюме</label><div class="file-upload" data-v-f776d069>`);
-					if (registerData.resume) _push(`<span data-v-f776d069>${ssrInterpolate(registerData.resume.name)}</span>`);
-					else _push(`<span data-v-f776d069>Нажмите для загрузки PDF, DOC, DOCX</span>`);
-					_push(`</div><input type="file" accept=".pdf,.doc,.docx" hidden data-v-f776d069></div><div class="form-group" data-v-f776d069><label data-v-f776d069>Паспорт</label><div class="file-upload" data-v-f776d069>`);
-					if (registerData.passport) _push(`<span data-v-f776d069>${ssrInterpolate(registerData.passport.name)}</span>`);
-					else _push(`<span data-v-f776d069>Загрузите скан паспорта или сфоткайте разворот</span>`);
-					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-f776d069></div><div class="form-group" data-v-f776d069><label data-v-f776d069>Диплом/Сертификаты</label><div class="file-upload" data-v-f776d069>`);
-					if (registerData.certificates) _push(`<span data-v-f776d069>${ssrInterpolate(registerData.certificates.name)}</span>`);
-					else _push(`<span data-v-f776d069>Загрузите документы об образовании</span>`);
-					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-f776d069><span class="phone-hint" data-v-f776d069>(Вы сможете найти их в настройках в вкладке Мои файлы) </span></div><div class="checkbox-group" data-v-f776d069><label class="checkbox-label" data-v-f776d069><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.email_confirmed) ? ssrLooseContain(registerData.email_confirmed, null) : registerData.email_confirmed) ? " checked" : ""} data-v-f776d069><span data-v-f776d069>Подтвердить email</span></label></div><div class="checkbox-group" data-v-f776d069><label class="checkbox-label verification-label" data-v-f776d069><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.request_verification) ? ssrLooseContain(registerData.request_verification, null) : registerData.request_verification) ? " checked" : ""} data-v-f776d069><span data-v-f776d069>Запросить верификацию аккаунта</span><div class="tooltip-trigger" data-v-f776d069><span class="help-icon" data-v-f776d069>?</span><div class="tooltip-content" data-v-f776d069> Верификация добавит галочку <img src="/images/verified.svg" alt="" data-v-f776d069> рядом с вашим именем, что повысит доверие работодателей. </div></div></label></div></div>`);
+					_push(`<div class="step step-3" data-v-c784582d><p class="optional-notice" data-v-c784582d>Опционально — повысьте шансы на трудоустройство</p><div class="form-group" data-v-c784582d><label data-v-c784582d>Телефон</label><div class="phone-input-wrapper" data-v-c784582d><input type="tel"${ssrRenderAttr("value", registerData.phone)} placeholder="+7 (___) ___-__-__" data-v-c784582d><span class="phone-hint" data-v-c784582d>Пригодится для двухфакторной аутентификации</span></div></div><div class="form-group" data-v-c784582d><label data-v-c784582d>Резюме</label><div class="file-upload" data-v-c784582d>`);
+					if (registerData.resume) _push(`<span data-v-c784582d>${ssrInterpolate(registerData.resume.name)}</span>`);
+					else _push(`<span data-v-c784582d>Нажмите для загрузки PDF, DOC, DOCX</span>`);
+					_push(`</div><input type="file" accept=".pdf,.doc,.docx" hidden data-v-c784582d></div><div class="form-group" data-v-c784582d><label data-v-c784582d>Паспорт</label><div class="file-upload" data-v-c784582d>`);
+					if (registerData.passport) _push(`<span data-v-c784582d>${ssrInterpolate(registerData.passport.name)}</span>`);
+					else _push(`<span data-v-c784582d>Загрузите скан паспорта или сфоткайте разворот</span>`);
+					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-c784582d></div><div class="form-group" data-v-c784582d><label data-v-c784582d>Диплом/Сертификаты</label><div class="file-upload" data-v-c784582d>`);
+					if (registerData.certificates) _push(`<span data-v-c784582d>${ssrInterpolate(registerData.certificates.name)}</span>`);
+					else _push(`<span data-v-c784582d>Загрузите документы об образовании</span>`);
+					_push(`</div><input type="file" accept="image/*,.pdf" hidden data-v-c784582d><span class="phone-hint" data-v-c784582d>(Вы сможете найти их в настройках в вкладке Мои файлы) </span></div><div class="checkbox-group" data-v-c784582d><label class="checkbox-label" data-v-c784582d><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.email_confirmed) ? ssrLooseContain(registerData.email_confirmed, null) : registerData.email_confirmed) ? " checked" : ""} data-v-c784582d><span data-v-c784582d>Подтвердить email</span></label></div><div class="checkbox-group" data-v-c784582d><label class="checkbox-label verification-label" data-v-c784582d><input type="checkbox"${ssrIncludeBooleanAttr(Array.isArray(registerData.request_verification) ? ssrLooseContain(registerData.request_verification, null) : registerData.request_verification) ? " checked" : ""} data-v-c784582d><span data-v-c784582d>Запросить верификацию аккаунта</span><div class="tooltip-trigger" data-v-c784582d><span class="help-icon" data-v-c784582d>?</span><div class="tooltip-content" data-v-c784582d> Верификация добавит галочку <img src="/images/verified.svg" alt="" data-v-c784582d> рядом с вашим именем, что повысит доверие работодателей. </div></div></label></div></div>`);
 				} else _push(`<!---->`);
-				_push(`</div><div class="form-actions" data-v-f776d069>`);
-				if (currentStep.value > 1) _push(`<button type="button" class="btn-back" data-v-f776d069> Назад </button>`);
+				_push(`</div><div class="form-actions" data-v-c784582d>`);
+				if (currentStep.value > 1) _push(`<button type="button" class="btn-back" data-v-c784582d> Назад </button>`);
 				else _push(`<!---->`);
-				if (currentStep.value < 3) _push(`<button type="button" class="btn-next" data-v-f776d069> Далее </button>`);
-				else _push(`<button type="submit"${ssrIncludeBooleanAttr(unref(registerForm).processing) ? " disabled" : ""} class="btn-submit" data-v-f776d069>${ssrInterpolate(unref(registerForm).processing ? "Регистрация..." : "Зарегистрироваться")}</button>`);
-				_push(`</div><button type="button" class="switch-mode" data-v-f776d069> Уже есть аккаунт? Войти </button></form>`);
+				if (currentStep.value < 3) _push(`<button type="button" class="btn-next" data-v-c784582d> Далее </button>`);
+				else _push(`<button type="submit"${ssrIncludeBooleanAttr(unref(registerForm).processing) ? " disabled" : ""} class="btn-submit" data-v-c784582d>${ssrInterpolate(unref(registerForm).processing ? "Регистрация..." : "Зарегистрироваться")}</button>`);
+				_push(`</div><button type="button" class="switch-mode" data-v-c784582d> Уже есть аккаунт? Войти </button></form>`);
 			}
 			_push(`</div></div><!--]-->`);
 		};
@@ -1936,7 +1936,7 @@ _sfc_main$17.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Auth/Auth.vue");
 	return _sfc_setup$17 ? _sfc_setup$17(props, ctx) : void 0;
 };
-var Auth_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$17, [["__scopeId", "data-v-f776d069"]]);
+var Auth_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$17, [["__scopeId", "data-v-c784582d"]]);
 //#endregion
 //#region resources/js/Pages/Balance/Index.vue
 var Index_exports$2 = /* @__PURE__ */ __exportAll({ default: () => Index_default$2 });
