@@ -109,7 +109,7 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
      *
      * @throws \Exception
      */
-    protected function getAccessTokenResponse($code)
+    public function getAccessTokenResponse($code)
     {
         $fields = $this->getTokenFields($code);
 
