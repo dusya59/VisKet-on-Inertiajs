@@ -60,7 +60,9 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
 
         Log::info('VK ID token request', [
             'url' => $this->getTokenUrl(),
-            'fields' => $fields,
+            'client_id' => $fields['client_id'] ?? null,
+            'has_code' => ! empty($fields['code']),
+            'has_device_id' => ! empty($fields['device_id']),
         ]);
 
         $response = $this->getHttpClient()->post($this->getTokenUrl(), [
@@ -72,7 +74,9 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
 
         Log::info('VK ID token raw response', [
             'status' => $response->getStatusCode(),
-            'body' => $body,
+            'has_access_token' => ! empty($body['access_token']),
+            'has_user_id' => ! empty($body['user_id']),
+            'error' => $body['error'] ?? null,
         ]);
 
         if (isset($body['error'])) {
@@ -93,8 +97,6 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
 
         $token = $this->parseAccessToken($response);
 
-        Log::info('VK ID parsed token', ['token' => substr($token, 0, 50).'...']);
-
         $userData = $this->getUserByToken($token);
 
         Log::info('VK ID user data', ['data' => $userData]);
@@ -110,39 +112,30 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
             ->setExpiresIn($this->parseExpiresIn($response));
     }
 
-    /**
-     * Parse JWT payload from id_token returned by VK ID.
-     */
-    protected function parseJwtPayload(string $token): array
-    {
-        $parts = explode('.', $token);
-        if (count($parts) !== 3) {
-            return [];
-        }
-
-        $payload = base64_decode(strtr($parts[1], '-_', '+/'));
-        if ($payload === false) {
-            return [];
-        }
-
-        return json_decode($payload, true) ?? [];
-    }
-
     protected function getUserByToken($token)
     {
-        // VK ID возвращает данные пользователя в id_token (JWT)
-        $idToken = $this->credentialsResponseBody['id_token'] ?? null;
-        $jwtData = $idToken ? $this->parseJwtPayload($idToken) : [];
+        $response = $this->getHttpClient()->post('https://id.vk.com/oauth2/user_info', [
+            'headers' => ['Accept' => 'application/json'],
+            'form_params' => [
+                'client_id'    => $this->clientId,
+                'access_token' => $token,
+            ],
+        ]);
 
-        Log::info('VK ID JWT payload', ['jwt' => $jwtData]);
+        $body = json_decode((string) $response->getBody(), true);
+
+        Log::info('VK ID user_info response', ['body' => $body]);
+
+        // VK ID возвращает профиль внутри ключа "user"
+        $user = $body['user'] ?? [];
 
         return [
-            'user_id' => $this->credentialsResponseBody['user_id']
-                ?? ($jwtData['sub'] ?? null),
-            'email' => $jwtData['email'] ?? null,
-            'first_name' => $jwtData['first_name'] ?? null,
-            'last_name' => $jwtData['last_name'] ?? null,
-            'avatar' => $jwtData['avatar'] ?? null,
+            'user_id'    => $user['user_id']
+                ?? ($this->credentialsResponseBody['user_id'] ?? null),
+            'email'      => $user['email'] ?? null,
+            'first_name' => $user['first_name'] ?? null,
+            'last_name'  => $user['last_name'] ?? null,
+            'avatar'     => $user['avatar'] ?? null,
         ];
     }
 
