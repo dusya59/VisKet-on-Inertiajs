@@ -88,7 +88,8 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
     {
         $fields = parent::getTokenFields($code);
 
-        $deviceId = session()->get('vk_device_id');
+        // VK ID присылает device_id в callback URL — используем его
+        $deviceId = $this->request->input('device_id') ?? session()->get('vk_device_id');
         if ($deviceId) {
             $fields['device_id'] = $deviceId;
         }
