@@ -11,51 +11,16 @@ use Laravel\Socialite\Two\User;
 
 class VKIDProvider extends AbstractProvider implements ProviderInterface
 {
-    /**
-     * The scopes being requested.
-     *
-     * @var array
-     */
     protected $scopes = ['email'];
-
-    /**
-     * The separating character for the requested scopes.
-     *
-     * @var string
-     */
     protected $scopeSeparator = ' ';
-
-    /**
-     * Indicates if PKCE should be used.
-     *
-     * @var bool
-     */
     protected $usesPKCE = true;
-
-    /**
-     * Raw response body from VK ID token endpoint.
-     *
-     * @var array
-     */
     protected $credentialsResponseBody = [];
 
-    /**
-     * Get the authentication URL for the provider.
-     *
-     * @param  string  $state
-     * @return string
-     */
     protected function getAuthUrl($state)
     {
         return $this->buildAuthUrlFromBase('https://id.vk.com/authorize', $state);
     }
 
-    /**
-     * Get the GET parameters for the authorization URL.
-     *
-     * @param  string|null  $state
-     * @return array
-     */
     protected function getCodeFields($state = null)
     {
         $fields = parent::getCodeFields($state);
@@ -68,33 +33,20 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
         return $fields;
     }
 
-    /**
-     * Get the token URL for the provider.
-     *
-     * @return string
-     */
     protected function getTokenUrl()
     {
         return 'https://id.vk.com/oauth2/auth';
     }
 
-    /**
-     * Get the POST fields for the token request.
-     *
-     * @param  string  $code
-     * @return array
-     */
     protected function getTokenFields($code)
     {
         $fields = parent::getTokenFields($code);
 
-        // VK ID присылает device_id в callback URL — используем его
         $deviceId = $this->request->input('device_id') ?? session()->get('vk_device_id');
         if ($deviceId) {
             $fields['device_id'] = $deviceId;
         }
 
-        // VK ID использует code_v2
         if ($this->request->has('type')) {
             $fields['type'] = $this->request->input('type');
         }
@@ -102,14 +54,6 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
         return $fields;
     }
 
-    /**
-     * Get the access token response from the token URL.
-     *
-     * @param  string  $code
-     * @return array
-     *
-     * @throws \Exception
-     */
     public function getAccessTokenResponse($code)
     {
         $fields = $this->getTokenFields($code);
@@ -138,9 +82,6 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
         return $body;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function user()
     {
         if ($this->hasInvalidState()) {
@@ -152,9 +93,8 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
 
         $token = $this->parseAccessToken($response);
 
-        Log::info('VK ID parsed token', ['token' => $token]);
+        Log::info('VK ID parsed token', ['token' => substr($token, 0, 50).'...']);
 
-        // VK ID возвращает данные пользователя прямо в ответе токена
         $userData = $this->getUserByToken($token);
 
         Log::info('VK ID user data', ['data' => $userData]);
@@ -171,55 +111,41 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
     }
 
     /**
-     * Get the raw user for the given access token.
-     *
-     * VK ID возвращает данные пользователя прямо в ответе /oauth2/auth,
-     * поэтому используем их. При необходимости делаем запрос к user_info.
-     *
-     * @param  string  $token
-     * @return array
+     * Parse JWT payload from id_token returned by VK ID.
      */
-    protected function getUserByToken($token)
+    protected function parseJwtPayload(string $token): array
     {
-        // VK ID возвращает user_id, email, first_name, last_name прямо в ответе токена
-        $data = [
-            'user_id' => $this->credentialsResponseBody['user_id']
-                ?? $this->credentialsResponseBody['id']
-                ?? null,
-            'email' => $this->credentialsResponseBody['email'] ?? null,
-            'first_name' => $this->credentialsResponseBody['first_name'] ?? null,
-            'last_name' => $this->credentialsResponseBody['last_name'] ?? null,
-            'avatar' => $this->credentialsResponseBody['avatar'] ?? null,
-        ];
-
-        // Если user_id есть, пробуем получить доп. данные через user_info
-        if (! empty($data['user_id']) && ! empty($token)) {
-            try {
-                $response = $this->getHttpClient()->post('https://id.vk.com/oauth2/user_info', [
-                    'headers' => [
-                        'Authorization' => 'Bearer '.$token,
-                    ],
-                ]);
-
-                $body = json_decode((string) $response->getBody(), true);
-                $userInfo = $body['user'] ?? $body['response'] ?? $body ?? [];
-
-                // Мержим данные, отдавая приоритет user_info
-                $data = array_merge($data, $userInfo);
-            } catch (\Exception $e) {
-                Log::warning('VK ID user_info failed', ['error' => $e->getMessage()]);
-            }
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) {
+            return [];
         }
 
-        return $data;
+        $payload = base64_decode(strtr($parts[1], '-_', '+/'));
+        if ($payload === false) {
+            return [];
+        }
+
+        return json_decode($payload, true) ?? [];
     }
 
-    /**
-     * Get the access token from the token response body.
-     *
-     * @param  array  $body
-     * @return string
-     */
+    protected function getUserByToken($token)
+    {
+        // VK ID возвращает данные пользователя в id_token (JWT)
+        $idToken = $this->credentialsResponseBody['id_token'] ?? null;
+        $jwtData = $idToken ? $this->parseJwtPayload($idToken) : [];
+
+        Log::info('VK ID JWT payload', ['jwt' => $jwtData]);
+
+        return [
+            'user_id' => $this->credentialsResponseBody['user_id']
+                ?? ($jwtData['sub'] ?? null),
+            'email' => $jwtData['email'] ?? null,
+            'first_name' => $jwtData['first_name'] ?? null,
+            'last_name' => $jwtData['last_name'] ?? null,
+            'avatar' => $jwtData['avatar'] ?? null,
+        ];
+    }
+
     protected function parseAccessToken($body)
     {
         return Arr::get($body, 'access_token')
@@ -228,34 +154,16 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
             ?? '';
     }
 
-    /**
-     * Get the refresh token from the token response body.
-     *
-     * @param  array  $body
-     * @return string|null
-     */
     protected function parseRefreshToken($body)
     {
         return Arr::get($body, 'refresh_token') ?? null;
     }
 
-    /**
-     * Get the expires in from the token response body.
-     *
-     * @param  array  $body
-     * @return string|null
-     */
     protected function parseExpiresIn($body)
     {
         return Arr::get($body, 'expires_in') ?? null;
     }
 
-    /**
-     * Map the raw user array to a Socialite User instance.
-     *
-     * @param  array  $user
-     * @return \Laravel\Socialite\Two\User
-     */
     protected function mapUserToObject(array $user)
     {
         $id = Arr::get($user, 'user_id')
