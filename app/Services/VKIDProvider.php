@@ -93,7 +93,48 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
             $fields['device_id'] = $deviceId;
         }
 
+        // VK ID использует code_v2
+        if ($this->request->has('type')) {
+            $fields['type'] = $this->request->input('type');
+        }
+
         return $fields;
+    }
+
+    /**
+     * Get the access token response from the token URL.
+     *
+     * @param  string  $code
+     * @return array
+     *
+     * @throws \Exception
+     */
+    protected function getAccessTokenResponse($code)
+    {
+        $fields = $this->getTokenFields($code);
+
+        Log::info('VK ID token request', [
+            'url' => $this->getTokenUrl(),
+            'fields' => $fields,
+        ]);
+
+        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
+            'headers' => ['Accept' => 'application/json'],
+            'form_params' => $fields,
+        ]);
+
+        $body = json_decode((string) $response->getBody(), true);
+
+        Log::info('VK ID token raw response', [
+            'status' => $response->getStatusCode(),
+            'body' => $body,
+        ]);
+
+        if (isset($body['error'])) {
+            throw new \Exception('VK ID error: '.($body['error_description'] ?? $body['error']));
+        }
+
+        return $body;
     }
 
     /**
@@ -108,13 +149,14 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
         $response = $this->getAccessTokenResponse($this->getCode());
         $this->credentialsResponseBody = $response;
 
-        // Логируем ответ VK ID для отладки
-        Log::info('VK ID token response', ['response' => $response]);
-
         $token = $this->parseAccessToken($response);
+
+        Log::info('VK ID parsed token', ['token' => $token]);
 
         // VK ID возвращает данные пользователя прямо в ответе токена
         $userData = $this->getUserByToken($token);
+
+        Log::info('VK ID user data', ['data' => $userData]);
 
         $user = $this->mapUserToObject($userData);
 
