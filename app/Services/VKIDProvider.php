@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Two\AbstractProvider;
+use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\ProviderInterface;
 use Laravel\Socialite\Two\User;
 
@@ -31,6 +33,13 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
     protected $usesPKCE = true;
 
     /**
+     * Raw response body from VK ID token endpoint.
+     *
+     * @var array
+     */
+    protected $credentialsResponseBody = [];
+
+    /**
      * Get the authentication URL for the provider.
      *
      * @param  string  $state
@@ -51,7 +60,6 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
     {
         $fields = parent::getCodeFields($state);
 
-        // VK ID требует device_id в запросе авторизации
         $deviceId = session()->get('vk_device_id');
         if ($deviceId) {
             $fields['device_id'] = $deviceId;
@@ -80,7 +88,6 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
     {
         $fields = parent::getTokenFields($code);
 
-        // VK ID требует device_id
         $deviceId = session()->get('vk_device_id');
         if ($deviceId) {
             $fields['device_id'] = $deviceId;
@@ -90,23 +97,114 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function user()
+    {
+        if ($this->hasInvalidState()) {
+            throw new InvalidStateException;
+        }
+
+        $response = $this->getAccessTokenResponse($this->getCode());
+        $this->credentialsResponseBody = $response;
+
+        // Логируем ответ VK ID для отладки
+        Log::info('VK ID token response', ['response' => $response]);
+
+        $token = $this->parseAccessToken($response);
+
+        // VK ID возвращает данные пользователя прямо в ответе токена
+        $userData = $this->getUserByToken($token);
+
+        $user = $this->mapUserToObject($userData);
+
+        if ($user instanceof User) {
+            $user->setAccessTokenResponseBody($this->credentialsResponseBody);
+        }
+
+        return $user->setToken($token)
+            ->setRefreshToken($this->parseRefreshToken($response))
+            ->setExpiresIn($this->parseExpiresIn($response));
+    }
+
+    /**
      * Get the raw user for the given access token.
+     *
+     * VK ID возвращает данные пользователя прямо в ответе /oauth2/auth,
+     * поэтому используем их. При необходимости делаем запрос к user_info.
      *
      * @param  string  $token
      * @return array
      */
     protected function getUserByToken($token)
     {
-        $response = $this->getHttpClient()->post('https://id.vk.com/oauth2/user_info', [
-            'headers' => [
-                'Authorization' => 'Bearer '.$token,
-            ],
-        ]);
+        // VK ID возвращает user_id, email, first_name, last_name прямо в ответе токена
+        $data = [
+            'user_id' => $this->credentialsResponseBody['user_id']
+                ?? $this->credentialsResponseBody['id']
+                ?? null,
+            'email' => $this->credentialsResponseBody['email'] ?? null,
+            'first_name' => $this->credentialsResponseBody['first_name'] ?? null,
+            'last_name' => $this->credentialsResponseBody['last_name'] ?? null,
+            'avatar' => $this->credentialsResponseBody['avatar'] ?? null,
+        ];
 
-        $body = json_decode((string) $response->getBody(), true);
+        // Если user_id есть, пробуем получить доп. данные через user_info
+        if (! empty($data['user_id']) && ! empty($token)) {
+            try {
+                $response = $this->getHttpClient()->post('https://id.vk.com/oauth2/user_info', [
+                    'headers' => [
+                        'Authorization' => 'Bearer '.$token,
+                    ],
+                ]);
 
-        // VK ID возвращает user_info внутри response или на верхнем уровне
-        return $body['response'] ?? $body ?? [];
+                $body = json_decode((string) $response->getBody(), true);
+                $userInfo = $body['user'] ?? $body['response'] ?? $body ?? [];
+
+                // Мержим данные, отдавая приоритет user_info
+                $data = array_merge($data, $userInfo);
+            } catch (\Exception $e) {
+                Log::warning('VK ID user_info failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get the access token from the token response body.
+     *
+     * @param  array  $body
+     * @return string
+     */
+    protected function parseAccessToken($body)
+    {
+        return Arr::get($body, 'access_token')
+            ?? Arr::get($body, 'token')
+            ?? Arr::get($body, 'silent_token')
+            ?? '';
+    }
+
+    /**
+     * Get the refresh token from the token response body.
+     *
+     * @param  array  $body
+     * @return string|null
+     */
+    protected function parseRefreshToken($body)
+    {
+        return Arr::get($body, 'refresh_token') ?? null;
+    }
+
+    /**
+     * Get the expires in from the token response body.
+     *
+     * @param  array  $body
+     * @return string|null
+     */
+    protected function parseExpiresIn($body)
+    {
+        return Arr::get($body, 'expires_in') ?? null;
     }
 
     /**
@@ -117,12 +215,25 @@ class VKIDProvider extends AbstractProvider implements ProviderInterface
      */
     protected function mapUserToObject(array $user)
     {
+        $id = Arr::get($user, 'user_id')
+            ?? Arr::get($user, 'id')
+            ?? Arr::get($user, 'uuid')
+            ?? Arr::get($user, 'user')
+            ?? null;
+
+        $firstName = Arr::get($user, 'first_name') ?? '';
+        $lastName = Arr::get($user, 'last_name') ?? '';
+        $name = trim($firstName.' '.$lastName);
+        if (empty($name)) {
+            $name = Arr::get($user, 'name') ?? Arr::get($user, 'display_name') ?? 'VK User';
+        }
+
         return (new User)->setRaw($user)->map([
-            'id' => Arr::get($user, 'user_id'),
-            'nickname' => Arr::get($user, 'nickname'),
-            'name' => trim(Arr::get($user, 'first_name', '').' '.Arr::get($user, 'last_name', '')),
+            'id' => $id,
+            'nickname' => Arr::get($user, 'nickname') ?? Arr::get($user, 'screen_name'),
+            'name' => $name,
             'email' => Arr::get($user, 'email'),
-            'avatar' => Arr::get($user, 'avatar'),
+            'avatar' => Arr::get($user, 'avatar') ?? Arr::get($user, 'photo_200'),
         ]);
     }
 }
