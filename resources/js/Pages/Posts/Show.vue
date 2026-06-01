@@ -612,7 +612,6 @@ header {
   flex: 0 0 50%;
   max-width: 50%;
   height: fit-content;
-  min-height: 400px;
   display: flex;
   align-items: flex-start;
   transition: all 0.3s ease;

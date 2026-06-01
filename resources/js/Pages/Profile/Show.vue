@@ -208,6 +208,9 @@ const aboutMeForm = useForm({
 });
 
 const submitAboutMe = () => {
+  if (!aboutMeForm.aboutme || aboutMeForm.aboutme.trim().length === 0) {
+    return;
+  }
 
   aboutMeForm.put(route('profile.update-aboutme', props.user.username), {
     preserveScroll: true,
