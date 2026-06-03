@@ -2649,6 +2649,11 @@ watch(() => props.activeChat?.messages, (msgs) => {
     gap: 10px;
 }
 
+.message-input-container textarea {
+    font-family: montserrat;
+    font-size: 16px;
+}
+
 .message-form textarea {
     flex: 1;
     padding: 10px;
@@ -3120,6 +3125,7 @@ watch(() => props.activeChat?.messages, (msgs) => {
   padding: 12px;
   background: #f1f5f9;
   border-radius: 8px;
+  max-height: 320px;
 }
 
 .application-cover-letter h4 {
