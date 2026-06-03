@@ -33,10 +33,6 @@
               <img src="/images/google.svg" alt="">
               Войти через Google
             </a>
-            <a href="/auth/vkontakte/redirect" class="oauth-btn oauth-vkontakte" data-inertia="false">
-              <img src="/images/vkontakte.svg" alt="">
-              Войти через ВКонтакте
-            </a>
             <a href="/auth/yandex/redirect" class="oauth-btn oauth-yandex" data-inertia="false">
               <img src="/images/yandex.svg" alt="">
               Войти через Яндекс

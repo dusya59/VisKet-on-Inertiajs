@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
-use App\Services\VKIDProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -70,18 +69,6 @@ class AppServiceProvider extends ServiceProvider
             ApplicationStatusChanged::class,
             SendDisputeResolvedNotification::class,
         );
-
-        // Регистрируем VK ID (id.vk.com) кастомный провайдер
-        Socialite::extend('vkontakte', function ($app) {
-            $config = $app['config']['services.vkontakte'];
-
-            return new VKIDProvider(
-                $app['request'],
-                $config['client_id'],
-                $config['client_secret'],
-                $config['redirect']
-            );
-        });
 
         // Регистрируем Yandex через SocialiteProviders
         Socialite::extend('yandex', function ($app) {

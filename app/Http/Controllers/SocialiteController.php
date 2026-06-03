@@ -14,16 +14,6 @@ class SocialiteController extends Controller
 {
     public function redirect(string $provider)
     {
-        if ($provider === 'vkontakte') {
-            // VK ID требует device_id
-            $deviceId = session()->get('vk_device_id') ?? uniqid('vk_', true);
-            session()->put('vk_device_id', $deviceId);
-
-            return Socialite::driver('vkontakte')
-                ->with(['device_id' => $deviceId])
-                ->redirect();
-        }
-
         return Socialite::driver($provider)->redirect();
     }
 
