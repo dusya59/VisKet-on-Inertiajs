@@ -592,8 +592,14 @@
 
     <div v-if="selectedMessages.length > 0" class="selection-toolbar">
       <span>{{ selectedMessages.length }} выбрано</span>
-      <button v-if="canDeleteSelected" type="button" class="selection-delete-btn" @click="deleteSelectedMessages">
+      <button v-if="showReplyBtn" type="button" class="selection-reply-btn" @click="replyToSelected">
+        Ответить
+      </button>
+      <button v-if="showDeleteForEveryone" type="button" class="selection-delete-btn" @click="deleteSelectedMessages">
         Удалить
+      </button>
+      <button v-if="showDeleteForMe" type="button" class="selection-delete-me-btn" @click="deleteForMe">
+        Удалить у меня
       </button>
       <button type="button" class="selection-clear-btn" @click="clearSelection">
         Отмена
@@ -1374,10 +1380,14 @@ const isVacancyAuthor = computed(() => {
   return currentUserId !== applicantId
 })
 
-const canDeleteSelected = computed(() => {
+const showReplyBtn = computed(() => selectedMessages.value.length === 1)
+
+const showDeleteForEveryone = computed(() => {
   if (selectedMessages.value.length === 0) return false
   return selectedMessages.value.every(m => m.is_mine)
 })
+
+const showDeleteForMe = computed(() => selectedMessages.value.length > 0)
 
 const isUserOnline = (userId) => {
   return onlineUsers.value.has(userId)
@@ -1780,6 +1790,35 @@ const clearSelection = () => {
   selectedMessages.value = []
 }
 
+const replyToSelected = () => {
+  if (selectedMessages.value.length !== 1) return
+  replyToMessage(selectedMessages.value[0])
+  clearSelection()
+}
+
+const deleteForMe = async () => {
+  if (selectedMessages.value.length === 0) return
+
+  const messageIds = selectedMessages.value.map(m => m.id)
+  if (!confirm(`Удалить ${messageIds.length} сообщение(й) у вас?`)) return
+
+  const backup = [...localMessages.value]
+  localMessages.value = localMessages.value.filter(m => !messageIds.includes(m.id))
+  selectedMessages.value = []
+
+  router.delete(`/chats/${props.activeChat.id}/messages`, {
+    data: { ids: messageIds },
+    preserveScroll: true,
+    onSuccess: () => {
+      hideContextMenu()
+    },
+    onError: () => {
+      localMessages.value = backup
+      selectedMessages.value = messageIds.map(id => backup.find(m => m.id === id)).filter(Boolean)
+    }
+  })
+}
+
 const deleteSelectedMessages = async () => {
   if (selectedMessages.value.length === 0) return
 
@@ -1798,7 +1837,7 @@ const deleteSelectedMessages = async () => {
   selectedMessages.value = []
 
   router.delete(`/chats/${props.activeChat.id}/messages`, {
-    data: { ids: messageIds },
+    data: { ids: messageIds, mode: 'everyone' },
     preserveScroll: true,
     onSuccess: () => {
       hideContextMenu()
@@ -3611,6 +3650,34 @@ watch(() => props.activeChat?.messages, (msgs) => {
   background: #5a6268;
 }
 
+.selection-reply-btn {
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.selection-reply-btn:hover {
+  background: #0056b3;
+}
+
+.selection-delete-me-btn {
+  padding: 8px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.selection-delete-me-btn:hover {
+  background: #5a6268;
+}
+
 .messages-move {
   transition: transform 0.3s ease;
 }
@@ -4223,10 +4290,6 @@ html.dark .reply-name {
 
 html.dark .reply-text {
   color: #94a3b8;
-}
-
-html.dark .cancel-reply-btn {
-  color: #64748b;
 }
 
 html.dark .cancel-reply-btn:hover {

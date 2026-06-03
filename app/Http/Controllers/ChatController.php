@@ -459,18 +459,33 @@ class ChatController extends Controller
             'ids.*' => 'integer',
         ])['ids'];
 
+        $mode = $request->input('mode', 'me');
+
         $messages = Message::where('chat_id', $chat->id)
             ->whereIn('id', $ids)
-            ->where('user_id', $user->id)
             ->get();
 
         foreach ($messages as $message) {
-            $userIds = $message->deleted_for_user_ids ?? [];
-            $userIds[] = $user->id;
-            $message->update([
-                'deleted_for_user_ids' => array_values(array_unique($userIds)),
-                'hidden_at' => now(),
-            ]);
+            if ($mode === 'everyone') {
+                if ($message->user_id !== $user->id) {
+                    continue;
+                }
+
+                $message->update([
+                    'deleted_for_everyone' => true,
+                    'deleted_by_id' => $user->id,
+                    'hidden_at' => now(),
+                ]);
+
+                event(new \App\Events\MessageDeleted($message->id, $chat->id));
+            } else {
+                $userIds = $message->deleted_for_user_ids ?? [];
+                $userIds[] = $user->id;
+                $message->update([
+                    'deleted_for_user_ids' => array_values(array_unique($userIds)),
+                    'hidden_at' => now(),
+                ]);
+            }
         }
 
         $chat->touch();
