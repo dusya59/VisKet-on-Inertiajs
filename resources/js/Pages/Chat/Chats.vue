@@ -122,7 +122,6 @@
           >
             <div class="options-menu-item" @click="handleChatFiles">Файлы чата</div>
             <div class="options-menu-item" @click="handleSearchChat">Поиск по чату</div>
-            <div class="options-menu-item delete" @click="handleDeleteChat">Удалить чат</div>
           </div>
 
           <div 
@@ -1878,13 +1877,6 @@ const handleSearchChat = () => {
       searchInputRef.value.focus()
     }
   })
-}
-
-const handleDeleteChat = () => {
-  if (confirm('Вы уверены, что хотите удалить этот чат?')) {
-    console.log('Удалить чат')
-  }
-  hideOptionsMenu()
 }
 
 const handleBackClick = () => {
