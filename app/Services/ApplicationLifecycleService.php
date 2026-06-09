@@ -76,7 +76,6 @@ class ApplicationLifecycleService
 
             Transaction::create([
                 'from_user_id' => $lockedClient->id,
-                'to_user_id' => null,
                 'amount' => $price,
                 'type' => 'payment',
                 'status' => 'pending',
