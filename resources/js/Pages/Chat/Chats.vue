@@ -1232,7 +1232,7 @@ const acceptApplication = () => {
   router.post(`/applications/${props.activeChat.application.id}/accept`, {}, {
     preserveScroll: true,
     onSuccess: () => {
-      router.reload({ only: ['activeChat'] })
+      window.location.reload()
     }
   })
 }
@@ -1241,7 +1241,7 @@ const rejectApplication = () => {
   router.post(`/applications/${props.activeChat.application.id}/reject`, {}, {
     preserveScroll: true,
     onSuccess: () => {
-      router.reload({ only: ['activeChat'] })
+      window.location.reload()
     }
   })
 }
@@ -1250,7 +1250,7 @@ const withdrawApplication = () => {
   router.post(`/applications/${props.activeChat.application.id}/withdraw`, {}, {
     preserveScroll: true,
     onSuccess: () => {
-      router.reload({ only: ['activeChat'] })
+      window.location.reload()
     }
   })
 }
@@ -1259,7 +1259,7 @@ const closeVacancy = () => {
   router.post(`/applications/${props.activeChat.application.id}/close-vacancy`, {}, {
     preserveScroll: true,
     onSuccess: () => {
-      router.reload({ only: ['activeChat'] })
+      window.location.reload()
     }
   })
 }
@@ -1268,7 +1268,7 @@ const confirmCompletion = () => {
   router.post(`/applications/${props.activeChat.application.id}/confirm-completion`, {}, {
     preserveScroll: true,
     onSuccess: () => {
-      router.reload({ only: ['activeChat'] })
+      window.location.reload()
     }
   })
 }
@@ -1277,7 +1277,7 @@ const markCompleted = () => {
   router.post(`/applications/${props.activeChat.application.id}/mark-completed`, {}, {
     preserveScroll: true,
     onSuccess: () => {
-      router.reload({ only: ['activeChat'] })
+      window.location.reload()
     }
   })
 }
