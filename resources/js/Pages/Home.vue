@@ -74,6 +74,25 @@
             </div>
           </div>
           <div class="filter-group">
+            <label>Бюджет:</label>
+            <div class="budget-inputs">
+              <input 
+                type="number" 
+                v-model.number="budgetFrom"
+                placeholder="От"
+                class="budget-input"
+                min="0"
+              />
+              <input 
+                type="number" 
+                v-model.number="budgetTo"
+                placeholder="До"
+                class="budget-input"
+                min="0"
+              />
+            </div>
+          </div>
+          <div class="filter-group">
             <label>Навыки:</label>
             <SkillsSelector
               v-model="selectedSkills"
@@ -157,6 +176,8 @@ const viewMode = ref(localStorage.getItem('viewMode') || 'grid')
 const filtersVisible = ref(false)
 const filtersContainer = ref(null)
 const mainWrapper = ref(null)
+const budgetFrom = ref(null)
+const budgetTo = ref(null)
 
 const syncFiltersHeight = () => {
   if (filtersContainer.value && mainWrapper.value) {
@@ -209,7 +230,16 @@ const filteredPosts = computed(() => {
     )
   }
 
-  if (typeFilter.value) {
+  const hasBudgetFilter = budgetFrom.value !== null || budgetTo.value !== null
+
+  if (hasBudgetFilter) {
+    result = result.filter(post => {
+      if (!post.is_vacancy || !post.vacancy) return false
+      if (budgetFrom.value !== null && post.vacancy.budget_min < budgetFrom.value) return false
+      if (budgetTo.value !== null && post.vacancy.budget_max > budgetTo.value) return false
+      return true
+    })
+  } else if (typeFilter.value) {
     if (typeFilter.value === 'vacancy') {
       result = result.filter(post => post.is_vacancy)
     } else {
@@ -341,6 +371,32 @@ export default {
   font-size: 14px;
   color: #64748b;
   font-weight: 500;
+}
+
+.budget-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.budget-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+
+.budget-input:focus {
+  outline: none;
+  border-color: rgb(255, 52, 52);
+  box-shadow: 0 0 0 3px rgba(255, 52, 52, 0.1);
+}
+
+.budget-input::placeholder {
+  color: #cbd5e1;
 }
 
 .filter-group .multiselect-container {
@@ -680,6 +736,21 @@ html.dark .filter-group label {
   color: #94a3b8;
 }
 
+html.dark .budget-input {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .budget-input:focus {
+  border-color: rgb(255, 52, 52);
+  box-shadow: 0 0 0 3px rgba(255, 52, 52, 0.2);
+}
+
+html.dark .budget-input::placeholder {
+  color: #475569;
+}
+
 html.dark .type-selector {
   border-color: #334155;
 }
@@ -948,6 +1019,16 @@ html.dark .posts.list-mode :deep(#like) {
     min-width: 80px;
     text-align: center;
     padding: 0.4rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .budget-inputs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .budget-input {
+    padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
   }
 }
