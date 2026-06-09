@@ -5292,16 +5292,16 @@ var _sfc_main$12 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: "Главная" }, null, _parent));
-			_push(`<div class="block1" data-v-9e79b3d3><img${ssrRenderAttr("src", unref(isDark) ? "/images/nightEarth.png" : "/images/Earth.png")} alt="Earth" class="hero-image" data-v-9e79b3d3><h1 class="hero-title" data-v-9e79b3d3><span class="visket-text" data-v-9e79b3d3> V<span class="letter-i"${ssrRenderAttr("title", unref(isDark) ? "переключить на светлую тему" : "переключить на темную тему")} data-v-9e79b3d3> I <svg class="sun-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-v-9e79b3d3><circle cx="12" cy="12" r="5" fill="currentColor" data-v-9e79b3d3></circle><path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-v-9e79b3d3></path></svg></span>SKET </span> — место, где работа находит работника<br data-v-9e79b3d3>и наоборот. </h1></div><div class="block2" data-v-9e79b3d3><button class="filter-toggle" data-v-9e79b3d3> Фильтры <span data-v-9e79b3d3>${ssrInterpolate(filtersVisible.value ? "▼" : "▶")}</span></button><div class="search-container" data-v-9e79b3d3><input class="searchbar"${ssrRenderAttr("value", query.value)} type="text" placeholder="Поиск по постам" data-v-9e79b3d3><div class="view-mode-toggle" data-v-9e79b3d3><button class="${ssrRenderClass([{ active: viewMode.value === "grid" }, "view-mode-btn"])}" type="button" data-v-9e79b3d3><img src="/images/grid-view.svg" alt="Сетка" data-v-9e79b3d3></button><button class="${ssrRenderClass([{ active: viewMode.value === "list" }, "view-mode-btn"])}" type="button" data-v-9e79b3d3><img src="/images/list-view.svg" alt="Список" data-v-9e79b3d3></button></div></div></div><div class="${ssrRenderClass([{ filtersOpen: filtersVisible.value }, "content-wrapper"])}" data-v-9e79b3d3>`);
-			if (filtersVisible.value) _push(`<div class="filters-overlay-mobile" data-v-9e79b3d3></div>`);
+			_push(`<div class="block1" data-v-5fa23638><img${ssrRenderAttr("src", unref(isDark) ? "/images/nightEarth.png" : "/images/Earth.png")} alt="Earth" class="hero-image" data-v-5fa23638><h1 class="hero-title" data-v-5fa23638><span class="visket-text" data-v-5fa23638> V<span class="letter-i"${ssrRenderAttr("title", unref(isDark) ? "переключить на светлую тему" : "переключить на темную тему")} data-v-5fa23638> I <svg class="sun-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-v-5fa23638><circle cx="12" cy="12" r="5" fill="currentColor" data-v-5fa23638></circle><path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-v-5fa23638></path></svg></span>SKET </span> — место, где работа находит работника<br data-v-5fa23638>и наоборот. </h1></div><div class="block2" data-v-5fa23638><button class="filter-toggle" data-v-5fa23638> Фильтры <span data-v-5fa23638>${ssrInterpolate(filtersVisible.value ? "▼" : "▶")}</span></button><div class="search-container" data-v-5fa23638><input class="searchbar"${ssrRenderAttr("value", query.value)} type="text" placeholder="Поиск по постам" data-v-5fa23638><div class="view-mode-toggle" data-v-5fa23638><button class="${ssrRenderClass([{ active: viewMode.value === "grid" }, "view-mode-btn"])}" type="button" data-v-5fa23638><img src="/images/grid-view.svg" alt="Сетка" data-v-5fa23638></button><button class="${ssrRenderClass([{ active: viewMode.value === "list" }, "view-mode-btn"])}" type="button" data-v-5fa23638><img src="/images/list-view.svg" alt="Список" data-v-5fa23638></button></div></div></div><div class="${ssrRenderClass([{ filtersOpen: filtersVisible.value }, "content-wrapper"])}" data-v-5fa23638>`);
+			if (filtersVisible.value) _push(`<div class="filters-overlay-mobile" data-v-5fa23638></div>`);
 			else _push(`<!---->`);
-			_push(`<div class="filterscontainer" data-v-9e79b3d3><div class="filters" data-v-9e79b3d3><div class="filter-group" data-v-9e79b3d3><label data-v-9e79b3d3>Тип:</label><div class="type-selector" data-v-9e79b3d3><button class="${ssrRenderClass({ active: typeFilter.value === "" })}" data-v-9e79b3d3> Все </button><button class="${ssrRenderClass({ active: typeFilter.value === "vacancy" })}" data-v-9e79b3d3> Вакансии </button><button class="${ssrRenderClass({ active: typeFilter.value === "post" })}" data-v-9e79b3d3> Посты </button></div></div><div class="filter-group" data-v-9e79b3d3><label data-v-9e79b3d3>Бюджет:</label><div class="budget-inputs" data-v-9e79b3d3><input type="number"${ssrRenderAttr("value", budgetFrom.value)} placeholder="От" class="budget-input" min="0" data-v-9e79b3d3><input type="number"${ssrRenderAttr("value", budgetTo.value)} placeholder="До" class="budget-input" min="0" data-v-9e79b3d3></div></div><div class="filter-group" data-v-9e79b3d3><label data-v-9e79b3d3>Навыки:</label>`);
+			_push(`<div class="filterscontainer" data-v-5fa23638><div class="filters" data-v-5fa23638><div class="filter-group" data-v-5fa23638><label data-v-5fa23638>Тип:</label><div class="type-selector" data-v-5fa23638><button class="${ssrRenderClass({ active: typeFilter.value === "" })}" data-v-5fa23638> Все </button><button class="${ssrRenderClass({ active: typeFilter.value === "vacancy" })}" data-v-5fa23638> Вакансии </button><button class="${ssrRenderClass({ active: typeFilter.value === "post" })}" data-v-5fa23638> Посты </button></div></div><div class="filter-group" data-v-5fa23638><label data-v-5fa23638>Бюджет:</label><div class="budget-inputs" data-v-5fa23638><input type="number"${ssrRenderAttr("value", budgetFrom.value)} placeholder="От" class="budget-input" min="0" data-v-5fa23638><input type="number"${ssrRenderAttr("value", budgetTo.value)} placeholder="До" class="budget-input" min="0" data-v-5fa23638></div></div><div class="filter-group" data-v-5fa23638><label data-v-5fa23638>Навыки:</label>`);
 			_push(ssrRenderComponent(SkillsSelector_default, {
 				modelValue: selectedSkills.value,
 				"onUpdate:modelValue": ($event) => selectedSkills.value = $event,
 				skills: __props.skills
 			}, null, _parent));
-			_push(`</div></div></div><div class="main-wrapper" data-v-9e79b3d3><div class="tabs" data-v-9e79b3d3><button class="${ssrRenderClass({ active: activeTab.value === "all" })}" data-v-9e79b3d3> Все посты </button><button class="${ssrRenderClass({ active: activeTab.value === "foryou" })}" data-v-9e79b3d3> Для вас </button></div><div class="${ssrRenderClass([{ "list-mode": viewMode.value === "list" }, "posts"])}" data-v-9e79b3d3>`);
+			_push(`</div></div></div><div class="main-wrapper" data-v-5fa23638><div class="tabs" data-v-5fa23638><button class="${ssrRenderClass({ active: activeTab.value === "all" })}" data-v-5fa23638> Все посты </button><button class="${ssrRenderClass({ active: activeTab.value === "foryou" })}" data-v-5fa23638> Для вас </button></div><div class="${ssrRenderClass([{ "list-mode": viewMode.value === "list" }, "posts"])}" data-v-5fa23638>`);
 			if (displayedPosts.value.length > 0) {
 				_push(`<!--[-->`);
 				ssrRenderList(displayedPosts.value, (post) => {
@@ -5314,7 +5314,7 @@ var _sfc_main$12 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 			} else {
 				_push(`<!--[-->`);
 				if (activeTab.value === "foryou" && !authUser.value) {
-					_push(`<p class="empty-message" data-v-9e79b3d3> Чтобы подобрать для вас лучшую работу — `);
+					_push(`<p class="empty-message" data-v-5fa23638> Чтобы подобрать для вас лучшую работу — `);
 					_push(ssrRenderComponent(unref(Link), { href: "/login/" }, {
 						default: withCtx((_, _push, _parent, _scopeId) => {
 							if (_push) _push(`авторизуйтесь`);
@@ -5323,7 +5323,7 @@ var _sfc_main$12 = /* @__PURE__ */ Object.assign({ layout: AppLayout_default }, 
 						_: 1
 					}, _parent));
 					_push(`</p>`);
-				} else _push(`<p class="empty-message" data-v-9e79b3d3>Пока ничего нет</p>`);
+				} else _push(`<p class="empty-message" data-v-5fa23638>Пока ничего нет</p>`);
 				_push(`<!--]-->`);
 			}
 			_push(`</div></div></div><!--]-->`);
@@ -5336,7 +5336,7 @@ _sfc_main$12.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Home.vue");
 	return _sfc_setup$12 ? _sfc_setup$12(props, ctx) : void 0;
 };
-var Home_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$12, [["__scopeId", "data-v-9e79b3d3"]]);
+var Home_default = /* @__PURE__ */ _plugin_vue_export_helper_default(_sfc_main$12, [["__scopeId", "data-v-5fa23638"]]);
 //#endregion
 //#region resources/js/Pages/Payment/Result.vue
 var Result_exports = /* @__PURE__ */ __exportAll({ default: () => Result_default });

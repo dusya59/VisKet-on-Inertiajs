@@ -683,6 +683,15 @@ export default {
   color: black;
 }
 
+.posts.list-mode :deep(.post .description) {
+  line-height: 1.6;
+  padding: 10px 0 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 10;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .posts.list-mode :deep(#like) {
   color: black;
 }
@@ -803,6 +812,16 @@ html.dark .posts.list-mode :deep(.post a) {
 
 html.dark .posts.list-mode :deep(.post .title) {
   color: #f1f5f9;
+}
+
+html.dark .posts.list-mode :deep(.post .description) {
+  color: #e2e8f0;
+  line-height: 1.6;
+  padding: 10px 0 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 10;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 html.dark .posts.list-mode :deep(#like) {
