@@ -36,6 +36,9 @@ class HomeController extends Controller
                     'is_vacancy' => $post->vacancy !== null,
                     'vacancy' => $post->vacancy ? [
                         'position' => $post->vacancy->position,
+                        'budget_min' => $post->vacancy->budget_min,
+                        'budget_max' => $post->vacancy->budget_max,
+                        'requirements' => $post->vacancy->requirements,
                         'skills' => $post->vacancy->skills->map(function ($skill) {
                             return [
                                 'id' => $skill->id,

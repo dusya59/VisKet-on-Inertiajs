@@ -235,8 +235,10 @@ const filteredPosts = computed(() => {
   if (hasBudgetFilter) {
     result = result.filter(post => {
       if (!post.is_vacancy || !post.vacancy) return false
-      if (budgetFrom.value !== null && post.vacancy.budget_min < budgetFrom.value) return false
-      if (budgetTo.value !== null && post.vacancy.budget_max > budgetTo.value) return false
+      const vMin = post.vacancy.budget_min
+      const vMax = post.vacancy.budget_max
+      if (budgetFrom.value !== null && (vMin === null || vMin < budgetFrom.value)) return false
+      if (budgetTo.value !== null && (vMax === null || vMax > budgetTo.value)) return false
       return true
     })
   } else if (typeFilter.value) {
