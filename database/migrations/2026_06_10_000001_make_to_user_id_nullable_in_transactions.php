@@ -8,31 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->dropForeign(['to_user_id']);
-        });
-
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->foreignId('to_user_id')->nullable()->change();
-        });
-
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->foreign('to_user_id')->references('id')->on('users')->nullOnDelete();
-        });
+        DB::statement('ALTER TABLE `transactions` MODIFY `to_user_id` BIGINT UNSIGNED NULL');
     }
 
     public function down(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->dropForeign(['to_user_id']);
-        });
-
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->foreignId('to_user_id')->nullable(false)->change();
-        });
-
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->foreign('to_user_id')->references('id')->on('users')->nullOnDelete();
-        });
+        DB::statement('ALTER TABLE `transactions` MODIFY `to_user_id` BIGINT UNSIGNED NOT NULL');
     }
 };
