@@ -295,8 +295,8 @@ class PostController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'position' => 'nullable|string|max:255',
             'budget_min' => 'nullable|numeric|min:0',
@@ -325,7 +325,7 @@ class PostController extends Controller
         if ($post->vacancy) {
             $post->vacancy->update([
                 'position' => $validated['position'] ?? null,
-                'budet_min' => $validated['budget_min'] ?? null,
+                'budget_min' => $validated['budget_min'] ?? null,
                 'budget_max' => $validated['budget_max'] ?? null,
                 'deadline' => $validated['deadline'] ?? null,
                 'requirements' => $validated['requirements'] ?? null,

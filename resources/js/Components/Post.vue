@@ -14,9 +14,9 @@
     <div class="post-content">
       <div class="post-body">
         <Link :href="post.show_url">
-          <h3 class="title">{{ post.title }}</h3>
+          <h3 class="title">{{ post.is_vacancy && post.vacancy?.position ? post.vacancy.position : post.title }}</h3>
         </Link>
-        <p class="description">{{ post.description }}</p>
+        <p class="description">{{ post.is_vacancy && post.vacancy?.requirements ? post.vacancy.requirements : post.description }}</p>
         <div v-if="post.is_vacancy && post.vacancy?.skills?.length" class="post-skills">
           <span
             v-for="skill in post.vacancy.skills"

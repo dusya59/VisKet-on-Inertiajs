@@ -266,12 +266,7 @@ const submit = () => {
     data.budget_max = form.budget_max || null
     data.deadline = form.deadline || null
     data.requirements = form.requirements || null
-    
-    const skillsWithLevels = {}
-    form.skills.forEach(s => {
-      skillsWithLevels[s.id] = { level: s.level }
-    })
-    data.skills = skillsWithLevels
+    data.skills = form.skills.map(s => s.id)
   }
   
   form.transform(() => data).post(props.post.update_url, {
