@@ -230,15 +230,15 @@ const filteredPosts = computed(() => {
     )
   }
 
-  const hasBudgetFilter = budgetFrom.value !== null || budgetTo.value !== null
+  const hasBudgetFilter = Number.isFinite(budgetFrom.value) || Number.isFinite(budgetTo.value)
 
   if (hasBudgetFilter) {
     result = result.filter(post => {
       if (!post.is_vacancy || !post.vacancy) return false
       const vMin = post.vacancy.budget_min
       const vMax = post.vacancy.budget_max
-      if (budgetFrom.value !== null && (vMin === null || vMin < budgetFrom.value)) return false
-      if (budgetTo.value !== null && (vMax === null || vMax > budgetTo.value)) return false
+      if (Number.isFinite(budgetFrom.value) && (vMin === null || vMin < budgetFrom.value)) return false
+      if (Number.isFinite(budgetTo.value) && (vMax === null || vMax > budgetTo.value)) return false
       return true
     })
   } else if (typeFilter.value) {
