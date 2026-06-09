@@ -39,7 +39,7 @@ class SendApplicationStatusNotification
             'type' => 'application_status_changed',
             'title' => $titles[$status] ?? 'Обновление статуса',
             'content' => $messages[$status] ?? "Статус заявки изменён на {$status}.",
-            'link' => "/chats/{$application->chat_id}",
+            'link' => "/chats/{$application->chat?->id}",
             'is_read' => false,
         ]);
     }

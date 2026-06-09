@@ -638,7 +638,6 @@ html.dark .modal textarea {
 }
 
 @media (max-width: 1000px) {
-  /* ─── Навигация ───────────────────────────────────────── */
   .admin-nav {
     display: flex;
     overflow-x: auto;

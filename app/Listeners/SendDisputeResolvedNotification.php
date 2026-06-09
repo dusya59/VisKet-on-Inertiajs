@@ -26,7 +26,7 @@ class SendDisputeResolvedNotification
                 'type' => 'dispute_resolved',
                 'title' => 'Спор решён',
                 'content' => "Администратор решил спор по вакансии \"{$application->vacancy->position}\". Решение: {$event->application->dispute?->resolution}",
-                'link' => "/chats/{$application->chat_id}",
+                'link' => "/chats/{$application->chat?->id}",
                 'is_read' => false,
             ]);
         }

@@ -99,8 +99,7 @@ class ApplicationLifecycleService
                 'price' => $price,
             ]);
 
-            $application->fill($lockedApplication->toArray());
-            $application->syncOriginal();
+        $application->refresh();
         });
     }
 
