@@ -1231,36 +1231,54 @@ const resetForm = () => {
 const acceptApplication = () => {
   router.post(`/applications/${props.activeChat.application.id}/accept`, {}, {
     preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['activeChat'] })
+    }
   })
 }
 
 const rejectApplication = () => {
   router.post(`/applications/${props.activeChat.application.id}/reject`, {}, {
     preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['activeChat'] })
+    }
   })
 }
 
 const withdrawApplication = () => {
   router.post(`/applications/${props.activeChat.application.id}/withdraw`, {}, {
     preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['activeChat'] })
+    }
   })
 }
 
 const closeVacancy = () => {
   router.post(`/applications/${props.activeChat.application.id}/close-vacancy`, {}, {
     preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['activeChat'] })
+    }
   })
 }
 
 const confirmCompletion = () => {
   router.post(`/applications/${props.activeChat.application.id}/confirm-completion`, {}, {
     preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['activeChat'] })
+    }
   })
 }
 
 const markCompleted = () => {
   router.post(`/applications/${props.activeChat.application.id}/mark-completed`, {}, {
     preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['activeChat'] })
+    }
   })
 }
 
